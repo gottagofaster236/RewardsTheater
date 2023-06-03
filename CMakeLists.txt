@@ -19,7 +19,7 @@ set(LINUX_MAINTAINER_EMAIL "lr.soft.now@gmail.com")
 
 # Add your custom source files here - header files are optional and only required for visibility
 # e.g. in Xcode or Visual Studio
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/plugin-main.c)
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/RewardsTheaterMain.cpp)
 
 # Import libobs as main plugin dependency
 find_package(libobs REQUIRED)
@@ -31,8 +31,6 @@ find_package(obs-frontend-api REQUIRED)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::obs-frontend-api)
 #]]
 
-# Uncomment those lines if you want to use Qt in your plugin
-#[[
 find_qt(COMPONENTS Widgets Core)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Qt::Core Qt::Widgets)
 set_target_properties(
@@ -40,11 +38,6 @@ set_target_properties(
   PROPERTIES AUTOMOC ON
              AUTOUIC ON
              AUTORCC ON)
-#]]
-
-configure_file(src/plugin-macros.h.in ${CMAKE_SOURCE_DIR}/src/plugin-macros.generated.h)
-
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/plugin-macros.generated.h)
 
 # /!\ TAKE NOTE: No need to edit things past this point /!\
 

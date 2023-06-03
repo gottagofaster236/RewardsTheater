@@ -1,5 +1,7 @@
 # OBS Plugin Template
 
+xcopy /F /R /Y /I /E "C:\Users\lievl\source\repos\RewardsTheater\build_x64\rundir\Debug\" "C:\Program Files\obs-studio\"
+
 ## Introduction
 
 This plugin is meant to make it easy to quickstart development of new OBS plugins. It includes:
