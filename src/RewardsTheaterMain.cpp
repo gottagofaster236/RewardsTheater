@@ -1,29 +1,36 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Copyright (c) 2023, Lev Leontev
 
+#include "RewardsTheaterSettings.h"
 #include <obs-module.h>
 #include <obs.h>
-#include <sstream>
+#include <QMainWindow>
+#include <QAction>
+#include <obs-frontend-api.h>
+#include <memory>
 
 OBS_DECLARE_MODULE()
-OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
-
-static bool sources_enum_proc(void* data, obs_source_t* source) {
-	(void) data;
-	blog(LOG_INFO, "Source name: %s", obs_source_get_name(source));
-	return true;
-}
+OBS_MODULE_USE_DEFAULT_LOCALE("RewardsTheater", "en-US")
 
 bool obs_module_load(void) {
-	int x = 123;
-	std::ostringstream oss;
-	oss << x;
-	blog(LOG_INFO, "idk 123 = %s", oss.str().c_str());
-	obs_enum_sources(&sources_enum_proc, NULL);
-	blog(LOG_INFO, "enumeration ended");
-	return true;
+    QMainWindow *mainWindow = (QMainWindow*) obs_frontend_get_main_window();
+    QAction *action = (QAction*) obs_frontend_add_tools_menu_qaction(
+	    obs_module_text("RewardsTheater"));
+    
+    obs_frontend_push_ui_translation(obs_module_get_string);
+	auto rewardTheaterSettings = new RewardsTheaterSettings(mainWindow);
+    obs_frontend_pop_ui_translation();
+
+	auto menuCb = [=]
+	{
+		rewardTheaterSettings->setVisible(!rewardTheaterSettings->isVisible());
+	};
+
+	action->connect(action, &QAction::triggered, menuCb);
+    
+    return true;
 }
 
 void obs_module_unload() {
-	blog(LOG_INFO, "plugin unloaded");
+    
 }

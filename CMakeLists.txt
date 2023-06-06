@@ -19,20 +19,22 @@ set(LINUX_MAINTAINER_EMAIL "lr.soft.now@gmail.com")
 
 # Add your custom source files here - header files are optional and only required for visibility
 # e.g. in Xcode or Visual Studio
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/RewardsTheaterMain.cpp)
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE
+	src/RewardsTheaterMain.cpp
+	src/RewardsTheaterSettings.cpp
+	src/RewardsTheaterSettings.h
+	)
 
 # Import libobs as main plugin dependency
 find_package(libobs REQUIRED)
 include(cmake/ObsPluginHelpers.cmake)
 
-# Uncomment these lines if you want to use the OBS Frontend API in your plugin
-#[[
 find_package(obs-frontend-api REQUIRED)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::obs-frontend-api)
-#]]
 
 find_qt(COMPONENTS Widgets Core)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Qt::Core Qt::Widgets)
+
 set_target_properties(
   ${CMAKE_PROJECT_NAME}
   PROPERTIES AUTOMOC ON
