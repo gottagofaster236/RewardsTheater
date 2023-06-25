@@ -4,7 +4,7 @@
 #include "RewardsTheaterSettings.h"
 #include "ui_RewardsTheaterSettings.h"
 
-RewardsTheaterSettings::RewardsTheaterSettings(QWidget *parent) : 
+RewardsTheaterSettings::RewardsTheaterSettings(QWidget *parent = nullptr) : 
         QDialog(parent), ui(std::make_unique<Ui::RewardsTheaterSettings>()) {
 	ui->setupUi(this);
 }

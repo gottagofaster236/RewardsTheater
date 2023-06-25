@@ -9,6 +9,14 @@
 #include <obs-frontend-api.h>
 #include <memory>
 
+/*
+#include <boost/asio.hpp>
+#include <boost/beast.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/asio/ssl.hpp>
+#include <boost/url.hpp>
+#include <boost/property_tree/json_parser.hpp>*/
+
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE("RewardsTheater", "en-US")
 

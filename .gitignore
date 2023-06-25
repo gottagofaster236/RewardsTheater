@@ -15,3 +15,7 @@
 .vs
 out
 design
+CMakeUserPresets.json
+CMakeCache.txt
+CMakeFiles
+build_copy.txt

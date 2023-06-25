@@ -1,7 +1,13 @@
 cmake_minimum_required(VERSION 3.16...3.21)
 
+#set(CMAKE_TOOLCHAIN_FILE "C:/Program Files (x86)/Microsoft Visual Studio/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake")
+
 project(RewardsTheater VERSION 1.0.0)
 add_library(${CMAKE_PROJECT_NAME} MODULE)
+
+#include_directories("C:/Program Files (x86)/Microsoft Visual Studio/vcpkg/vcpkg/installed/x64-windows/include")
+#link_directories("C:/Program Files (x86)/Microsoft Visual Studio/vcpkg/vcpkg/installed/x64-windows/lib")
+
 
 # Replace `Your Name Here` with the name (yours or your organization's) you want to see as the
 # author of the plugin (in the plugin's metadata itself and in the installers)
@@ -17,6 +23,9 @@ set(MACOS_BUNDLEID "com.gottagofaster.RewardsTheater")
 # Replace `me@contoso.com` with the maintainer email address you want to put in Linux packages
 set(LINUX_MAINTAINER_EMAIL "lr.soft.now@gmail.com")
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # Add your custom source files here - header files are optional and only required for visibility
 # e.g. in Xcode or Visual Studio
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
@@ -24,6 +33,10 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 	src/RewardsTheaterSettings.cpp
 	src/RewardsTheaterSettings.h
 	)
+    
+# Boost
+find_package(Boost REQUIRED COMPONENTS system CONFIG)
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC Boost::system)
 
 # Import libobs as main plugin dependency
 find_package(libobs REQUIRED)
