@@ -14,7 +14,7 @@ class RewardsTheaterSettings : public QDialog {
     Q_OBJECT
 
 public:
-    explicit RewardsTheaterSettings(QWidget *parent);
+    explicit RewardsTheaterSettings(QWidget *parent = nullptr);
 	~RewardsTheaterSettings();
 
 private:
