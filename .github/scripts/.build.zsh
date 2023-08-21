@@ -209,11 +209,26 @@ Usage: %B${functrace[1]%:*}%b <option> [<options>]
   if (( ! (${skips[(Ie)all]} + ${skips[(Ie)build]}) )) {
     log_info "Configuring ${product_name}..."
 
+    # Define the target to triplet mapping
+    typeset -A target_triplet_map
+    target_triplet_map=(
+      macos-x86_64 x64-osx-static
+      macos-arm64 arm64-osx-static
+      linux-x86_64 x64-linux-static
+      linux-aarch64 arm64-linux-static
+    )
+
+    # Derive the correct triplet
+    local _vcpkg_target_triplet=${target_triplet_map[$target]}
+
+    # Define the cmake arguments
     local _plugin_deps="${project_root:h}/obs-build-dependencies/plugin-deps-${OBS_DEPS_VERSION}-qt${QT_VERSION}-${target##*-}"
     local -a cmake_args=(
       -DCMAKE_BUILD_TYPE=${BUILD_CONFIG:-RelWithDebInfo}
       -DQT_VERSION=${QT_VERSION}
       -DCMAKE_PREFIX_PATH="${_plugin_deps}"
+      -DCMAKE_TOOLCHAIN_FILE="${project_root}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      -DVCPKG_TARGET_TRIPLET=${_vcpkg_target_triplet}
     )
 
     if (( _loglevel == 0 )) cmake_args+=(-Wno_deprecated -Wno-dev --log-level=ERROR)

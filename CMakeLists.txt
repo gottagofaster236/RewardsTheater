@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.16...3.21)
+cmake_minimum_required(VERSION 3.16...3.18)
+cmake_policy(SET CMP0111 OLD)
 
 project(RewardsTheater VERSION 1.0.0)
 add_library(${CMAKE_PROJECT_NAME} MODULE)
@@ -23,7 +24,17 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 	src/RewardsTheaterMain.cpp
 	src/RewardsTheaterSettings.cpp
 	src/RewardsTheaterSettings.h
+	src/TwitchAuth.cpp
+	src/TwitchAuth.h
 	)
+
+# Boost
+set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)
+set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+find_package(Boost REQUIRED COMPONENTS system url)
+find_package(OpenSSL REQUIRED)
+target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC Boost::system Boost::url OpenSSL::SSL OpenSSL::Crypto)
 
 # Import libobs as main plugin dependency
 find_package(libobs REQUIRED)
