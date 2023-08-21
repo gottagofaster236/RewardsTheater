@@ -15,7 +15,7 @@ class RewardsTheaterSettings : public QDialog {
 
 public:
     explicit RewardsTheaterSettings(QWidget *parent = nullptr);
-	~RewardsTheaterSettings();
+    ~RewardsTheaterSettings();
 
 private:
     std::unique_ptr<Ui::RewardsTheaterSettings> ui;
