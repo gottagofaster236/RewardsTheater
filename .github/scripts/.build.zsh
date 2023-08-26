@@ -212,8 +212,8 @@ Usage: %B${functrace[1]%:*}%b <option> [<options>]
     # Define the target to triplet mapping
     typeset -A target_triplet_map
     target_triplet_map=(
-      macos-x86_64 x64-osx-static
-      macos-arm64 arm64-osx-static
+      macos-x86_64 x64-osx
+      macos-arm64 arm64-osx
       linux-x86_64 x64-linux-static
       linux-aarch64 arm64-linux-static
     )
@@ -246,7 +246,7 @@ Usage: %B${functrace[1]%:*}%b <option> [<options>]
         cmake_args+=(
           -DCMAKE_FRAMEWORK_PATH="${_plugin_deps}/Frameworks"
           -DCMAKE_OSX_ARCHITECTURES=${${target##*-}//universal/x86_64;arm64}
-          -DCMAKE_OSX_DEPLOYMENT_TARGET=${DEPLOYMENT_TARGET:-10.15}
+          -DCMAKE_OSX_DEPLOYMENT_TARGET="13.0"
           -DOBS_CODESIGN_LINKER=ON
           -DOBS_BUNDLE_CODESIGN_IDENTITY="${CODESIGN_IDENT:--}"
         )

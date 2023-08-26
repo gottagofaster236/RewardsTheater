@@ -5,6 +5,7 @@
         "boost-url",
         "boost-beast",
         "boost-property-tree",
-        "openssl"
+        "openssl",
+        "fmt"
     ]
 }

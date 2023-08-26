@@ -3,12 +3,17 @@
 
 #pragma once
 
+#ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable : 4702)
+#pragma warning(disable: 4702)
+#endif
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 #include <boost/property_tree/ptree.hpp>
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
+
 #include <chrono>
 #include <mutex>
 #include <optional>

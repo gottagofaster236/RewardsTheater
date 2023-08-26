@@ -3,13 +3,19 @@
 
 #include "TwitchAuth.h"
 
+#ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable : 4702)
+#pragma warning(disable: 4702)
+#endif
 #include <boost/asio/ssl.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/url.hpp>
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
+
 #include <cstdint>
+#include <fmt/core.h>
 #include <iostream>  // TODO remove
 
 static const char* const AUTH_PAGE_HTML = R"(
@@ -86,7 +92,7 @@ void TwitchAuth::authenticateWithToken(const std::string& token) {
     std::cout << "Access Token: " << token << std::endl;  // TODO remove
     try {
         auto expiresIn = tokenExpiresIn(token);
-        std::cout << "The token expires in " << expiresIn << " seconds" << std::endl;
+        std::cout << "The token expires in " << expiresIn.count() << " seconds" << std::endl;
     } catch (std::exception& ex) {
         std::cout << "Error: " << ex.what() << std::endl;
     }
@@ -204,7 +210,7 @@ std::string TwitchAuth::getAuthUrl() {
 
     authUrl.set_params({
         {"client_id", clientId},
-        {"redirect_uri", std::format("http://localhost:{}", authServerPort)},
+        {"redirect_uri", fmt::format("http://localhost:{}", authServerPort)},
         {"scope", scopesString},
         {"response_type", "token"},
         {"force_verify", "true"},
