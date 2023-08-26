@@ -20,24 +20,22 @@ set(LINUX_MAINTAINER_EMAIL "lr.soft.now@gmail.com")
 
 # Add your custom source files here - header files are optional and only required for visibility
 # e.g. in Xcode or Visual Studio
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE
-	src/RewardsTheaterMain.cpp
-	src/RewardsTheaterSettings.cpp
-	src/RewardsTheaterSettings.h
-	src/TwitchAuth.cpp
-	src/TwitchAuth.h
-	)
+target_sources(
+  ${CMAKE_PROJECT_NAME} PRIVATE src/RewardsTheaterMain.cpp src/RewardsTheaterSettings.cpp
+                                src/RewardsTheaterSettings.h src/TwitchAuth.cpp src/TwitchAuth.h)
 
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED 20)
 
 # Libraries from vcpkg
-set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY
+                                                   "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 find_package(Boost REQUIRED COMPONENTS system url)
 find_package(OpenSSL REQUIRED)
 find_package(fmt REQUIRED)
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
-target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC Boost::system Boost::url OpenSSL::SSL OpenSSL::Crypto fmt::fmt)
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC Boost::system Boost::url OpenSSL::SSL
+                                                   OpenSSL::Crypto fmt::fmt)
 
 # Import libobs as main plugin dependency
 find_package(libobs REQUIRED)
