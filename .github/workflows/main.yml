@@ -141,6 +141,12 @@ jobs:
           print "CODESIGN_IDENT=${{ secrets.MACOS_SIGNING_APPLICATION_IDENTITY }}" >> $GITHUB_ENV
           print "CODESIGN_IDENT_INSTALLER=${{ secrets.MACOS_SIGNING_INSTALLER_IDENTITY }}" >> $GITHUB_ENV
 
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          runVcpkgInstall: true
+          vcpkgGitCommitId: c95000e1b5bb62884de08d5e952993c8bced9db6
+
       - name: Build Plugin
         uses: ./plugin/.github/actions/build-plugin
         with:
@@ -228,6 +234,12 @@ jobs:
             echo 'found=false' >> $GITHUB_OUTPUT
           fi
 
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          runVcpkgInstall: true
+          vcpkgGitCommitId: c95000e1b5bb62884de08d5e952993c8bced9db6
+
       - name: Build Plugin
         uses: ./plugin/.github/actions/build-plugin
         with:
@@ -309,6 +321,12 @@ jobs:
           }
 
           "found=$(([string]${LabelFound}).ToLower())" >> $env:GITHUB_OUTPUT
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          runVcpkgInstall: true
+          vcpkgGitCommitId: c95000e1b5bb62884de08d5e952993c8bced9db6
 
       - name: Build Plugin
         uses: ./plugin/.github/actions/build-plugin
