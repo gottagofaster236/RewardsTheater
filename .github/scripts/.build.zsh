@@ -214,8 +214,8 @@ Usage: %B${functrace[1]%:*}%b <option> [<options>]
     target_triplet_map=(
       macos-x86_64 x64-osx
       macos-arm64 arm64-osx
-      linux-x86_64 x64-linux-static
-      linux-aarch64 arm64-linux-static
+      linux-x86_64 x64-linux
+      linux-aarch64 arm64-linux
     )
 
     # Derive the correct triplet
