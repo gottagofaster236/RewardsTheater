@@ -29,9 +29,7 @@ AlignConsecutiveMacros:
   PadOperators: false
 AlignEscapedNewlines: DontAlign
 AlignOperands: Align
-AlignTrailingComments:
-  Kind: Never
-  OverEmptyLines: 0
+AlignTrailingComments: false
 AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: Empty

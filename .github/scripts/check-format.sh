@@ -26,8 +26,8 @@ elif [[ ${OS} = "Darwin" ]] ; then
 fi
 
 # Discover clang-format
-if type clang-format-13 2> /dev/null ; then
-    CLANG_FORMAT=clang-format-13
+if type clang-format-15 2> /dev/null ; then
+    CLANG_FORMAT=clang-format-15
 elif type clang-format 2> /dev/null ; then
     # Clang format found, but need to check version
     CLANG_FORMAT=clang-format
@@ -37,7 +37,7 @@ elif type clang-format 2> /dev/null ; then
         exit 1
     fi
 else
-    echo "No appropriate clang-format found (expected clang-format-13.0.0, or clang-format)"
+    echo "No appropriate clang-format found (expected clang-format-15.0.0, or clang-format)"
     exit 1
 fi
 
