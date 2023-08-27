@@ -5,7 +5,7 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4702)
+#pragma warning(disable : 4702)
 #endif
 #include <boost/asio/ssl.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -14,8 +14,9 @@
 #pragma warning(pop)
 #endif
 
-#include <cstdint>
 #include <fmt/core.h>
+
+#include <cstdint>
 #include <iostream>  // TODO remove
 
 static const char* const AUTH_PAGE_HTML = R"(
