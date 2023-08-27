@@ -148,6 +148,7 @@ jobs:
           VCPKG_DEFAULT_TRIPLET: ${{ format('{0}-windows-static', matrix.arch) }}
         with:
           vcpkgDirectory: '${{ github.workspace }}/plugin/vcpkg'
+          doNotUpdateVcpkg: true
           runVcpkgInstall: true
 
       - name: Build Plugin
@@ -244,6 +245,7 @@ jobs:
           VCPKG_DEFAULT_TRIPLET: ${{ (matrix.arch == 'arm64' && 'arm64-osx') || 'x64-osx' }}
         with:
           vcpkgDirectory: '${{ github.workspace }}/plugin/vcpkg'
+          doNotUpdateVcpkg: true
           runVcpkgInstall: true
 
       - name: Build Plugin
@@ -333,6 +335,7 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: '${{ github.workspace }}/plugin/vcpkg'
+          doNotUpdateVcpkg: true
           runVcpkgInstall: true
 
       - name: Build Plugin
