@@ -61,6 +61,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: plugin
+          fetch-depth: 0
           submodules: recursive
 
       - name: Checkout obs-studio
@@ -143,9 +144,10 @@ jobs:
 
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
+        env:
+          VCPKG_DEFAULT_TRIPLET: ${{ format('{0}-windows-static', matrix.arch) }}
         with:
           runVcpkgInstall: true
-          vcpkgGitCommitId: c95000e1b5bb62884de08d5e952993c8bced9db6
 
       - name: Build Plugin
         uses: ./plugin/.github/actions/build-plugin
@@ -195,6 +197,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: plugin
+          fetch-depth: 0
           submodules: recursive
 
       - name: Checkout obs-studio
@@ -236,9 +239,10 @@ jobs:
 
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
+        env:
+          VCPKG_DEFAULT_TRIPLET: ${{ (matrix.arch == 'arm64' && 'arm64-osx') || 'x64-osx' }}
         with:
           runVcpkgInstall: true
-          vcpkgGitCommitId: c95000e1b5bb62884de08d5e952993c8bced9db6
 
       - name: Build Plugin
         uses: ./plugin/.github/actions/build-plugin
@@ -280,6 +284,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: plugin
+          fetch-depth: 0
           submodules: recursive
 
       - name: Checkout obs-studio
@@ -326,7 +331,6 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           runVcpkgInstall: true
-          vcpkgGitCommitId: c95000e1b5bb62884de08d5e952993c8bced9db6
 
       - name: Build Plugin
         uses: ./plugin/.github/actions/build-plugin
@@ -381,6 +385,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: plugin
+          fetch-depth: 0
           submodules: recursive
 
       - name: Get Metadata
