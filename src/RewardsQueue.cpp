@@ -7,7 +7,10 @@
 
 std::vector<RewardAndSource> RewardsQueue::getRewardsQueue() const {
     std::lock_guard<std::mutex> lock(rewardsMutex);
-    return std::vector<RewardAndSource>(rewardsQueue.begin(), rewardsQueue.end());
+    auto rewardsQueueCopy = rewardsQueue;
+    return std::vector<RewardAndSource>(
+        std::make_move_iterator(rewardsQueueCopy.begin()), std::make_move_iterator(rewardsQueueCopy.end())
+    );
 }
 
 void RewardsQueue::queueReward(const RewardAndSource& reward) {
@@ -84,6 +87,6 @@ std::optional<RewardAndSource> RewardsQueue::popNextReward() {
     return {};
 }
 
-void RewardsQueue::onMediaEnded(void* param, calldata_t* data) {
+void RewardsQueue::onMediaEnded(void* param, [[maybe_unused]] calldata_t* data) {
     static_cast<RewardsQueue*>(param)->playNextReward();
 }

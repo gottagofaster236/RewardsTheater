@@ -20,3 +20,4 @@ CMakeCache.txt
 CMakeFiles
 build_copy.txt
 .cache/
+build.ps1

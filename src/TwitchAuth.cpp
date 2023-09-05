@@ -3,6 +3,9 @@
 
 #include "TwitchAuth.h"
 
+#include <QDesktopServices>
+#include <QUrl>
+
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4702)
@@ -15,9 +18,11 @@
 #endif
 
 #include <fmt/core.h>
+#include <util/base.h>
 
 #include <cstdint>
-#include <iostream>  // TODO remove
+
+using namespace std::chrono_literals;
 
 static const char* const AUTH_PAGE_HTML = R"(
     <html>
@@ -36,7 +41,7 @@ static const char* const AUTH_PAGE_HTML = R"(
             let xhr = new XMLHttpRequest();
             xhr.open('POST', '/accessToken');
             xhr.setRequestHeader('Content-Type', 'text/plain');
-            let errorMessage = 'Please paste this token into OBS: ' + accessToken;
+            let errorMessage = 'Please paste this access token into OBS: ' + accessToken;
             xhr.onload = function() {
               if (xhr.status === 200) {
                 message.textContent = 'Twitch authentication was successful! You can return to OBS now.';
@@ -58,12 +63,13 @@ static const char* const AUTH_PAGE_HTML = R"(
     </html>
 )";
 
-TwitchAuth::TwitchAuth(const std::string& clientId, const std::set<std::string>& scopes, std::uint16_t authServerPort)
-    : clientId(clientId), scopes(scopes), authServerPort(authServerPort) {
-    using namespace boost::urls;
-
+TwitchAuth::TwitchAuth(
+    Settings& settings, const std::string& clientId, const std::set<std::string>& scopes, std::uint16_t authServerPort
+)
+    : settings(settings), clientId(clientId), scopes(scopes), authServerPort(authServerPort) {
+    authenticateWithToken(settings.getTwitchAccessToken());  // TODO don't show message boxes here idk
     startAuthServer(authServerPort);
-    std::cout << "auth url: " << getAuthUrl() << std::endl;
+    blog(LOG_INFO, "%s", fmt::format("auth url: {}", getAuthUrl()).c_str());
 }
 
 TwitchAuth::~TwitchAuth() {
@@ -74,29 +80,6 @@ TwitchAuth::~TwitchAuth() {
 std::optional<std::string> TwitchAuth::getAccessToken() {
     std::lock_guard<std::mutex> guard(accessTokenMutex);
     return accessToken;
-}
-
-static void openUrl(const std::string& url) {
-    (void) url;
-    // TODO fix this!!!! (Replace with QT I mean)
-}
-
-void TwitchAuth::authenticate() {
-    openUrl(getAuthUrl());
-}
-
-void TwitchAuth::authenticateWithToken(const std::string& token) {
-    {
-        std::lock_guard<std::mutex> guard(accessTokenMutex);
-        accessToken = token;
-    }
-    std::cout << "Access Token: " << token << std::endl;  // TODO remove
-    try {
-        auto expiresIn = tokenExpiresIn(token);
-        std::cout << "The token expires in " << expiresIn.count() << " seconds" << std::endl;
-    } catch (std::exception& ex) {
-        std::cout << "Error: " << ex.what() << std::endl;
-    }
 }
 
 std::chrono::seconds TwitchAuth::tokenExpiresIn(const std::string& token) {
@@ -121,7 +104,7 @@ std::chrono::seconds TwitchAuth::tokenExpiresIn(const std::string& token) {
     http::read(stream, buffer, response);
 
     if (response.result() != http::status::ok) {
-        return std::chrono::seconds{0};
+        return 0s;
     }
     std::string body = boost::beast::buffers_to_string(response.body().data());
     boost::property_tree::ptree jsonTree;
@@ -130,8 +113,8 @@ std::chrono::seconds TwitchAuth::tokenExpiresIn(const std::string& token) {
 
     // Check that the token has the necessary scopes.
     if (!tokenHasNeededScopes(jsonTree)) {
-        std::cout << "Error: Token is missing necessary scopes." << std::endl;
-        return std::chrono::seconds{0};
+        blog(LOG_INFO, "Error: Token is missing necessary scopes.");
+        return 0s;
     }
     return std::chrono::seconds{jsonTree.get<int>("expires_in")};
 }
@@ -144,8 +127,69 @@ bool TwitchAuth::tokenHasNeededScopes(const boost::property_tree::ptree& oauthVa
     return tokenScopes == scopes;
 }
 
-asio::awaitable<void> runAuthServer(TwitchAuth* auth, asio::io_context& ioContext, std::uint16_t port);
-asio::awaitable<void> processRequest(TwitchAuth* auth, tcp::socket socket);
+static void openUrl(const std::string& url) {
+    QDesktopServices::openUrl(QUrl(QString::fromStdString(url), QUrl::TolerantMode));
+}
+
+void TwitchAuth::authenticate() {
+    openUrl(getAuthUrl());
+}
+
+void TwitchAuth::authenticateWithToken(const std::string& token) {
+    std::chrono::seconds expiresIn;
+    try {
+        expiresIn = tokenExpiresIn(token);
+        blog(LOG_INFO, "%s", fmt::format("The token expires in {} seconds", expiresIn.count()).c_str());
+    } catch (boost::system::system_error& error) {
+        blog(LOG_INFO, "%s", fmt::format("Error in tokenExpiresIn: {}", error.what()).c_str());
+        expiresIn = 0s;
+    }
+    bool isValidToken = expiresIn != 0s;
+
+    {
+        std::lock_guard<std::mutex> guard(accessTokenMutex);
+        if (isValidToken) {
+            accessToken = token;
+        } else {
+            accessToken = {};
+        }
+    }
+
+    if (isValidToken) {
+        settings.setTwitchAccessToken(token);
+        onAuthenticationSuccess();
+    } else {
+        settings.setTwitchAccessToken("");
+        onAuthenticationFailure();
+    }
+}
+
+void TwitchAuth::addCallback(Callback& callback) {
+    std::lock_guard guard(callbacksMutex);
+    callbacks.insert(&callback);
+}
+
+// Shouldn't be called inside a callback - return false from it instead.
+void TwitchAuth::removeCallback(Callback& callback) {
+    std::lock_guard guard(callbacksMutex);
+    callbacks.erase(&callback);
+}
+
+void TwitchAuth::onAuthenticationSuccess() {
+    std::lock_guard guard(callbacksMutex);
+    for (auto callback = callbacks.begin(); callback != callbacks.end();) {
+        (*(callback++))->onAuthenticationSuccess();
+    }
+}
+
+void TwitchAuth::onAuthenticationFailure() {
+    std::lock_guard guard(callbacksMutex);
+    for (auto callback = callbacks.begin(); callback != callbacks.end();) {
+        (*(callback++))->onAuthenticationFailure();
+    }
+}
+
+static asio::awaitable<void> runAuthServer(TwitchAuth* auth, asio::io_context& ioContext, std::uint16_t port);
 
 void TwitchAuth::startAuthServer(std::uint16_t port) {
     authServerThread = std::thread([=, this]() {
@@ -154,10 +198,12 @@ void TwitchAuth::startAuthServer(std::uint16_t port) {
             asio::co_spawn(ioContext, std::move(authServer), asio::detached);
             ioContext.run();
         } catch (const boost::system::system_error& error) {
-            std::cout << "Auth server exception: " << error.what() << std::endl;
+            blog(LOG_INFO, "%s", fmt::format("Auth server exception: ", error.what()).c_str());
         }
     });
 }
+
+static asio::awaitable<void> processRequest(TwitchAuth* auth, tcp::socket socket);
 
 asio::awaitable<void> runAuthServer(TwitchAuth* auth, asio::io_context& ioContext, std::uint16_t port) {
     tcp::acceptor acceptor{ioContext, {tcp::v4(), port}};
@@ -166,7 +212,7 @@ asio::awaitable<void> runAuthServer(TwitchAuth* auth, asio::io_context& ioContex
             tcp::socket socket = co_await acceptor.async_accept(asio::use_awaitable);
             asio::co_spawn(ioContext, processRequest(auth, std::move(socket)), asio::detached);
         } catch (const boost::system::system_error& error) {
-            std::cout << "Error: " << error.what() << std::endl;
+            blog(LOG_INFO, "%s", fmt::format("Error: ", error.what()).c_str());
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }

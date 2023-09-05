@@ -21,6 +21,8 @@
 #include <string>
 #include <thread>
 
+#include "Settings.h"
+
 namespace http = boost::beast::http;
 namespace asio = boost::asio;
 using tcp = asio::ip::tcp;
@@ -31,17 +33,36 @@ using tcp = asio::ip::tcp;
  */
 class TwitchAuth {
 public:
-    TwitchAuth(const std::string& clientId, const std::set<std::string>& scopes, std::uint16_t authServerPort);
+    class Callback {
+    public:
+        virtual void onAuthenticationSuccess(){};
+        virtual void onAuthenticationFailure(){};
+    };
+
+    TwitchAuth(
+        Settings& settings,
+        const std::string& clientId,
+        const std::set<std::string>& scopes,
+        std::uint16_t authServerPort
+    );
     ~TwitchAuth();
+
     std::optional<std::string> getAccessToken();
+    std::chrono::seconds tokenExpiresIn(const std::string& token);
+
     void authenticate();
     void authenticateWithToken(const std::string& token);
-    std::chrono::seconds tokenExpiresIn(const std::string& token);
+
+    void addCallback(Callback& callback);
+    void removeCallback(Callback& callback);
 
 private:
     bool tokenHasNeededScopes(const boost::property_tree::ptree& oauthValidateResponse);
     void startAuthServer(std::uint16_t port);
     std::string getAuthUrl();
+
+    void onAuthenticationSuccess();
+    void onAuthenticationFailure();
 
     std::optional<std::string> accessToken;
     std::mutex accessTokenMutex;
@@ -49,7 +70,11 @@ private:
     std::thread authServerThread;
     boost::asio::io_context ioContext;
 
+    Settings& settings;
     std::string clientId;
     std::set<std::string> scopes;
     std::uint16_t authServerPort;
+
+    std::set<Callback*> callbacks;
+    std::recursive_mutex callbacksMutex;
 };
