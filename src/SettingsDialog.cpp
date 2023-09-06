@@ -11,7 +11,7 @@
 #include "ui_SettingsDialog.h"
 
 SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
-    : QDialog(parent), ui(std::make_unique<Ui::SettingsDialog>()), plugin(plugin),
+    : QDialog(parent), plugin(plugin), ui(std::make_unique<Ui::SettingsDialog>()),
       authenticateWithTwitchDialog(new AuthenticateWithTwitchDialog(this, plugin.getTwitchAuth())) {
     ui->setupUi(this);
     connect(ui->authButton, &QPushButton::clicked, this, &SettingsDialog::onAuthButtonClicked);
