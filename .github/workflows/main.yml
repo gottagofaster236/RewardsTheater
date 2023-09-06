@@ -332,7 +332,7 @@ jobs:
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
         env:
-          VCPKG_DEFAULT_TRIPLET: ${{ format('{0}-windows-static', matrix.arch) }}
+          VCPKG_DEFAULT_TRIPLET: ${{ format('{0}-windows-static-md', matrix.arch) }}
         with:
           vcpkgDirectory: '${{ github.workspace }}/plugin/vcpkg'
           doNotUpdateVcpkg: true

@@ -21,20 +21,28 @@ set(LINUX_MAINTAINER_EMAIL "lr.soft.now@gmail.com")
 # Add your custom source files here - header files are optional and only required for visibility
 # e.g. in Xcode or Visual Studio
 target_sources(
-  ${CMAKE_PROJECT_NAME} PRIVATE src/RewardsTheaterMain.cpp src/SettingsDialog.cpp
-                                src/SettingsDialog.h src/TwitchAuth.cpp src/TwitchAuth.h
-                                src/Reward.h src/RewardsQueue.h src/RewardsQueue.cpp
-                                src/TwitchRewardsApi.h src/TwitchRewardsApi.cpp
-                                src/AuthenticateWithTwitchDialog.cpp
-                                src/AuthenticateWithTwitchDialog.h src/RewardsTheaterPlugin.cpp
-                                src/RewardsTheaterPlugin.h src/Settings.h src/Settings.cpp)
+  ${CMAKE_PROJECT_NAME}
+  PRIVATE src/RewardsTheaterMain.cpp
+          src/SettingsDialog.cpp
+          src/SettingsDialog.h
+          src/TwitchAuth.cpp
+          src/TwitchAuth.h
+          src/Reward.h
+          src/RewardsQueue.h
+          src/RewardsQueue.cpp
+          src/TwitchRewardsApi.h
+          src/TwitchRewardsApi.cpp
+          src/AuthenticateWithTwitchDialog.cpp
+          src/AuthenticateWithTwitchDialog.h
+          src/RewardsTheaterPlugin.cpp
+          src/RewardsTheaterPlugin.h
+          src/Settings.h
+          src/Settings.cpp)
 
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED 20)
 
 # Libraries from vcpkg
-set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY
-                                                   "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 find_package(Boost REQUIRED COMPONENTS system url)
 find_package(OpenSSL REQUIRED)
 find_package(fmt REQUIRED)

@@ -75,7 +75,7 @@ function Build {
             "-DCMAKE_BUILD_TYPE=${Configuration}"
             "-DCMAKE_PREFIX_PATH:PATH=$(Resolve-Path -Path "${ProjectRoot}/../obs-build-dependencies/${DepsPath}")"
             "-DQT_VERSION=${script:QtVersion}"
-            "-DVCPKG_TARGET_TRIPLET=${script:Target}-windows-static"
+            "-DVCPKG_TARGET_TRIPLET=${script:Target}-windows-static-md"
             "-DCMAKE_TOOLCHAIN_FILE=$(Resolve-Path -Path "${ProjectRoot}/vcpkg/scripts/buildsystems/vcpkg.cmake")"
         )
 
