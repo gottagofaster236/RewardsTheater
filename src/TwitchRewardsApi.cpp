@@ -3,4 +3,6 @@
 
 #include "TwitchRewardsApi.h"
 
-TwitchRewardsApi::TwitchRewardsApi(TwitchAuth& twitchAuth) : twitchAuth(twitchAuth) {}
+TwitchRewardsApi::TwitchRewardsApi(TwitchAuth& twitchAuth) : twitchAuth(twitchAuth) {
+    (void) this->twitchAuth;
+}
