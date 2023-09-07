@@ -52,11 +52,13 @@ public:
 
     void authenticate();
     void authenticateWithToken(const std::string& token);
+    asio::awaitable<void> asyncAuthenticateWithToken(std::string token, asio::io_context& ioContext);
 
     void addCallback(Callback& callback);
     void removeCallback(Callback& callback);
 
 private:
+    asio::awaitable<std::chrono::seconds> asyncTokenExpiresIn(std::string token, asio::io_context& ioContext);
     bool tokenHasNeededScopes(const boost::property_tree::ptree& oauthValidateResponse);
     void startAuthServer(std::uint16_t port);
     std::string getAuthUrl();
@@ -68,7 +70,7 @@ private:
     std::mutex accessTokenMutex;
 
     std::thread authServerThread;
-    boost::asio::io_context ioContext;
+    boost::asio::io_context authServerIoContext;
 
     Settings& settings;
     std::string clientId;

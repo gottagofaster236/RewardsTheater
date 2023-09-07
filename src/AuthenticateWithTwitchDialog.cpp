@@ -28,6 +28,12 @@ AuthenticateWithTwitchDialog::AuthenticateWithTwitchDialog(QWidget* parent, Twit
         &AuthenticateWithTwitchDialog::onAuthenticateWithAccessTokenClicked
     );
     connect(this, &AuthenticateWithTwitchDialog::hideSignal, this, &AuthenticateWithTwitchDialog::hide);
+    connect(
+        this,
+        &AuthenticateWithTwitchDialog::showAuthenticationFailureMessageSignal,
+        this,
+        &AuthenticateWithTwitchDialog::showAuthenticationFailureMessage
+    );
 
     twitchAuth.addCallback(*this);
 }
@@ -39,11 +45,11 @@ AuthenticateWithTwitchDialog::~AuthenticateWithTwitchDialog() {
 void AuthenticateWithTwitchDialog::onAuthenticationSuccess() {
     // The callback is called from TwitchAuth's internal server thread, so we can't call hide() directly
     // (as it can only be called from the GUI thread).
-    threadSafeHide();
+    emit hideSignal();
 }
 
 void AuthenticateWithTwitchDialog::onAuthenticationFailure() {
-    qErrorMessage.showMessage("Authentification failed");
+    emit showAuthenticationFailureMessageSignal();
 }
 
 void AuthenticateWithTwitchDialog::onAuthenticateInBrowserClicked() {
@@ -54,6 +60,6 @@ void AuthenticateWithTwitchDialog::onAuthenticateWithAccessTokenClicked() {
     twitchAuth.authenticateWithToken(ui->accessTokenEdit->text().toStdString());
 }
 
-void AuthenticateWithTwitchDialog::threadSafeHide() {
-    emit hideSignal();
+void AuthenticateWithTwitchDialog::showAuthenticationFailureMessage() {
+    qErrorMessage.showMessage("Authentification failed");
 }

@@ -27,15 +27,14 @@ public:
 
 signals:
     void hideSignal();
+    void showAuthenticationFailureMessageSignal();
 
 private slots:
     void onAuthenticateInBrowserClicked();
     void onAuthenticateWithAccessTokenClicked();
+    void showAuthenticationFailureMessage();
 
 private:
-    // Calls hide() on GUI thread.
-    void threadSafeHide();
-
     std::unique_ptr<Ui::AuthenticateWithTwitchDialog> ui;
     TwitchAuth& twitchAuth;
     QErrorMessage qErrorMessage;

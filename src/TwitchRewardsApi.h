@@ -12,5 +12,5 @@ public:
     TwitchRewardsApi(TwitchAuth& twitchAuth);
 
 private:
-    TwitchAuth& twitchAuth;
+    [[maybe_unused]] TwitchAuth& twitchAuth;
 };
