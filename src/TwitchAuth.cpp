@@ -67,7 +67,10 @@ TwitchAuth::TwitchAuth(
     Settings& settings, const std::string& clientId, const std::set<std::string>& scopes, std::uint16_t authServerPort
 )
     : settings(settings), clientId(clientId), scopes(scopes), authServerPort(authServerPort) {
-    authenticateWithToken(settings.getTwitchAccessToken());  // TODO don't show message boxes here idk
+    std::optional<std::string> savedAccessToken = settings.getTwitchAccessToken();
+    if (savedAccessToken) {
+        authenticateWithToken(savedAccessToken.value());
+    }
     startAuthServer(authServerPort);
     blog(LOG_INFO, "%s", fmt::format("auth url: {}", getAuthUrl()).c_str());
 }

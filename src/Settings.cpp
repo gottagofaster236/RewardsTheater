@@ -37,11 +37,22 @@ void Settings::setObsSourceName(const std::string& rewardId, const std::string& 
     config_set_string(config, PLUGIN_NAME, rewardId.c_str(), obsSourceName.c_str());
 }
 
-std::string Settings::getTwitchAccessToken() const {
+std::optional<std::string> Settings::getTwitchAccessToken() const {
     config_set_default_string(config, PLUGIN_NAME, TWITCH_ACCESS_TOKEN_KEY, "");
-    return config_get_string(config, PLUGIN_NAME, TWITCH_ACCESS_TOKEN_KEY);
+    std::string result = config_get_string(config, PLUGIN_NAME, TWITCH_ACCESS_TOKEN_KEY);
+    if (result.empty()) {
+        return {};
+    } else {
+        return result;
+    }
 }
 
-void Settings::setTwitchAccessToken(const std::string& accessToken) {
-    config_set_string(config, PLUGIN_NAME, TWITCH_ACCESS_TOKEN_KEY, accessToken.c_str());
+void Settings::setTwitchAccessToken(const std::optional<std::string>& accessToken) {
+    const char* value;
+    if (accessToken) {
+        value = accessToken.value().c_str();
+    } else {
+        value = "";
+    }
+    config_set_string(config, PLUGIN_NAME, TWITCH_ACCESS_TOKEN_KEY, value);
 }

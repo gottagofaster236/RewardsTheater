@@ -24,8 +24,8 @@ public:
     std::string getObsSourceName(const std::string& rewardId) const;
     void setObsSourceName(const std::string& rewardId, const std::string& obsSourceName);
 
-    std::string getTwitchAccessToken() const;
-    void setTwitchAccessToken(const std::string& accessToken);
+    std::optional<std::string> getTwitchAccessToken() const;
+    void setTwitchAccessToken(const std::optional<std::string>& accessToken);
 
 private:
     config_t* config;
