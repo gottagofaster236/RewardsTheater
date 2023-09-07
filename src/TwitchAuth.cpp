@@ -64,7 +64,10 @@ static const char* const AUTH_PAGE_HTML = R"(
 )";
 
 TwitchAuth::TwitchAuth(
-    Settings& settings, const std::string& clientId, const std::set<std::string>& scopes, std::uint16_t authServerPort
+    Settings& settings,
+    const std::string& clientId,
+    const std::set<std::string>& scopes,
+    std::uint16_t authServerPort
 )
     : settings(settings), clientId(clientId), scopes(scopes), authServerPort(authServerPort) {
     std::optional<std::string> savedAccessToken = settings.getTwitchAccessToken();
@@ -92,9 +95,8 @@ std::chrono::seconds TwitchAuth::tokenExpiresIn(const std::string& token) {
     return future.get();
 }
 
-asio::awaitable<std::chrono::seconds> TwitchAuth::asyncTokenExpiresIn(
-    const std::string token, asio::io_context& ioContext
-) {
+asio::awaitable<std::chrono::seconds>
+TwitchAuth::asyncTokenExpiresIn(const std::string token, asio::io_context& ioContext) {
     using namespace asio;
     ssl::context sslContext{asio::ssl::context::sslv23};
     sslContext.set_default_verify_paths();

@@ -19,7 +19,10 @@ static const int AUTH_SERVER_PORT = 19918;
 RewardsTheaterPlugin::RewardsTheaterPlugin()
     : settings(Settings(obs_frontend_get_global_config())),
       twitchAuth(
-          settings, TWITCH_CLIENT_ID, {"channel:read:redemptions", "channel:manage:redemptions"}, AUTH_SERVER_PORT
+          settings,
+          TWITCH_CLIENT_ID,
+          {"channel:read:redemptions", "channel:manage:redemptions"},
+          AUTH_SERVER_PORT
       ),
       twitchRewardsApi(twitchAuth) {
     QMainWindow* mainWindow = (QMainWindow*) obs_frontend_get_main_window();
