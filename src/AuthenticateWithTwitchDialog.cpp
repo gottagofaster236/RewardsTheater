@@ -3,6 +3,7 @@
 
 #include "AuthenticateWithTwitchDialog.h"
 
+#include <obs-module.h>
 #include <obs.h>
 
 #include <iostream>
@@ -11,8 +12,7 @@
 #include "ui_AuthenticateWithTwitchDialog.h"
 
 AuthenticateWithTwitchDialog::AuthenticateWithTwitchDialog(QWidget* parent, TwitchAuth& twitchAuth)
-    : QDialog(parent), ui(std::make_unique<Ui::AuthenticateWithTwitchDialog>()), twitchAuth(twitchAuth),
-      qErrorMessage(this) {
+    : QDialog(parent), ui(std::make_unique<Ui::AuthenticateWithTwitchDialog>()), twitchAuth(twitchAuth) {
     ui->setupUi(this);
 
     connect(
@@ -27,30 +27,17 @@ AuthenticateWithTwitchDialog::AuthenticateWithTwitchDialog(QWidget* parent, Twit
         this,
         &AuthenticateWithTwitchDialog::onAuthenticateWithAccessTokenClicked
     );
-    connect(this, &AuthenticateWithTwitchDialog::hideSignal, this, &AuthenticateWithTwitchDialog::hide);
+
+    connect(&twitchAuth, &TwitchAuth::onAuthenticationSuccess, this, &AuthenticateWithTwitchDialog::hide);
     connect(
-        this,
-        &AuthenticateWithTwitchDialog::showAuthenticationFailureMessageSignal,
+        &twitchAuth,
+        &TwitchAuth::onAuthenticationFailure,
         this,
         &AuthenticateWithTwitchDialog::showAuthenticationFailureMessage
     );
-
-    twitchAuth.addCallback(*this);
 }
 
-AuthenticateWithTwitchDialog::~AuthenticateWithTwitchDialog() {
-    twitchAuth.removeCallback(*this);
-}
-
-void AuthenticateWithTwitchDialog::onAuthenticationSuccess() {
-    // The callback is called from TwitchAuth's internal server thread, so we can't call hide() directly
-    // (as it can only be called from the GUI thread).
-    emit hideSignal();
-}
-
-void AuthenticateWithTwitchDialog::onAuthenticationFailure() {
-    emit showAuthenticationFailureMessageSignal();
-}
+AuthenticateWithTwitchDialog::~AuthenticateWithTwitchDialog() = default;
 
 void AuthenticateWithTwitchDialog::onAuthenticateInBrowserClicked() {
     twitchAuth.authenticate();
@@ -61,5 +48,5 @@ void AuthenticateWithTwitchDialog::onAuthenticateWithAccessTokenClicked() {
 }
 
 void AuthenticateWithTwitchDialog::showAuthenticationFailureMessage() {
-    qErrorMessage.showMessage("Authentification failed");
+    QMessageBox::warning(this, obs_module_text("RewardsTheater"), obs_module_text("TwitchAuthenticationFailed"));
 }

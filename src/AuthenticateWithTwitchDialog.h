@@ -4,7 +4,7 @@
 #pragma once
 
 #include <QDialog>
-#include <QErrorMessage>
+#include <QMessageBox>
 #include <memory>
 #include <thread>
 
@@ -14,20 +14,13 @@ namespace Ui {
 class AuthenticateWithTwitchDialog;
 }
 
-class AuthenticateWithTwitchDialog : public QDialog, private TwitchAuth::Callback {
+class AuthenticateWithTwitchDialog : public QDialog {
     Q_OBJECT
 
 public:
     AuthenticateWithTwitchDialog(QWidget* parent, TwitchAuth& twitchAuth);
 
     ~AuthenticateWithTwitchDialog();
-
-    void onAuthenticationSuccess() override;
-    void onAuthenticationFailure() override;
-
-signals:
-    void hideSignal();
-    void showAuthenticationFailureMessageSignal();
 
 private slots:
     void onAuthenticateInBrowserClicked();
@@ -37,5 +30,4 @@ private slots:
 private:
     std::unique_ptr<Ui::AuthenticateWithTwitchDialog> ui;
     TwitchAuth& twitchAuth;
-    QErrorMessage qErrorMessage;
 };

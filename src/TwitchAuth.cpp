@@ -175,35 +175,10 @@ asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token, 
 
     if (isValidToken) {
         settings.setTwitchAccessToken(token);
-        onAuthenticationSuccess();
+        emit onAuthenticationSuccess();
     } else {
         settings.setTwitchAccessToken("");
-        onAuthenticationFailure();
-    }
-}
-
-void TwitchAuth::addCallback(Callback& callback) {
-    std::lock_guard guard(callbacksMutex);
-    callbacks.insert(&callback);
-}
-
-// Shouldn't be called inside a callback - return false from it instead.
-void TwitchAuth::removeCallback(Callback& callback) {
-    std::lock_guard guard(callbacksMutex);
-    callbacks.erase(&callback);
-}
-
-void TwitchAuth::onAuthenticationSuccess() {
-    std::lock_guard guard(callbacksMutex);
-    for (auto callback = callbacks.begin(); callback != callbacks.end();) {
-        (*(callback++))->onAuthenticationSuccess();
-    }
-}
-
-void TwitchAuth::onAuthenticationFailure() {
-    std::lock_guard guard(callbacksMutex);
-    for (auto callback = callbacks.begin(); callback != callbacks.end();) {
-        (*(callback++))->onAuthenticationFailure();
+        emit onAuthenticationFailure();
     }
 }
 
