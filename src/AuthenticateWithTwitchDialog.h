@@ -25,7 +25,7 @@ public:
 private slots:
     void onAuthenticateInBrowserClicked();
     void onAuthenticateWithAccessTokenClicked();
-    void showAuthenticationFailureMessage();
+    void showAuthenticationFailureMessage(TwitchAuth::AuthenticationFailureReason reason);
 
 private:
     std::unique_ptr<Ui::AuthenticateWithTwitchDialog> ui;

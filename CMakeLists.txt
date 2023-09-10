@@ -37,7 +37,10 @@ target_sources(
           src/RewardsTheaterPlugin.cpp
           src/RewardsTheaterPlugin.h
           src/Settings.h
-          src/Settings.cpp)
+          src/Settings.cpp
+          src/TwitchApi.h
+          src/TwitchApi.cpp
+          src/Log.h)
 
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED 20)

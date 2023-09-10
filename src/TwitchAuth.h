@@ -8,7 +8,6 @@
 #pragma warning(disable : 4702)
 #endif
 #include <boost/asio.hpp>
-#include <boost/beast.hpp>
 #include <boost/property_tree/ptree.hpp>
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -23,10 +22,6 @@
 #include <thread>
 
 #include "Settings.h"
-
-namespace http = boost::beast::http;
-namespace asio = boost::asio;
-using tcp = asio::ip::tcp;
 
 /**
  * A class for Twitch authentication using the Implicit grant flow.
@@ -45,18 +40,24 @@ public:
     ~TwitchAuth();
 
     std::optional<std::string> getAccessToken();
-    std::chrono::seconds tokenExpiresIn(const std::string& token);
 
     void authenticate();
     void authenticateWithToken(const std::string& token);
-    asio::awaitable<void> asyncAuthenticateWithToken(std::string token, asio::io_context& ioContext);
+    boost::asio::awaitable<void> asyncAuthenticateWithToken(std::string token, boost::asio::io_context& ioContext);
+    void logOut();
+
+    enum class AuthenticationFailureReason {
+        AUTH_TOKEN_INVALID, NETWORK_ERROR
+    };
 
 signals:
     void onAuthenticationSuccess();
-    void onAuthenticationFailure();
+    void onAuthenticationFailure(AuthenticationFailureReason reason);
+    void onAuthenticationChanged();
 
 private:
-    asio::awaitable<std::chrono::seconds> asyncTokenExpiresIn(std::string token, asio::io_context& ioContext);
+    boost::asio::awaitable<std::chrono::seconds>
+    asyncTokenExpiresIn(std::string token, boost::asio::io_context& ioContext);
     bool tokenHasNeededScopes(const boost::property_tree::ptree& oauthValidateResponse);
     void startAuthServer(std::uint16_t port);
     std::string getAuthUrl();

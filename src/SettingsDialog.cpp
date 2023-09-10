@@ -8,6 +8,7 @@
 #include <iostream>
 #include <obs.hpp>
 
+#include "Log.h"
 #include "ui_SettingsDialog.h"
 
 SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
@@ -19,12 +20,12 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
 }
 
 void SettingsDialog::onAuthButtonClicked() {
-    blog(LOG_INFO, "onAuthButtonClicked");
+    log(LOG_INFO, "onAuthButtonClicked");
     authenticateWithTwitchDialog->open();
 }
 
 SettingsDialog::~SettingsDialog() = default;
 
 void SettingsDialog::onOpenRewardsQueueClicked() {
-    blog(LOG_INFO, "onOpenRewardsQueueClicked");
+    log(LOG_INFO, "onOpenRewardsQueueClicked");
 }
