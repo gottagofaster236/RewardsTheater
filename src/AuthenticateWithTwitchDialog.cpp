@@ -47,10 +47,12 @@ void AuthenticateWithTwitchDialog::onAuthenticateWithAccessTokenClicked() {
     twitchAuth.authenticateWithToken(ui->accessTokenEdit->text().toStdString());
 }
 
-void AuthenticateWithTwitchDialog::showAuthenticationFailureMessage([[maybe_unused]] TwitchAuth::AuthenticationFailureReason reason) {
+void AuthenticateWithTwitchDialog::showAuthenticationFailureMessage(
+    [[maybe_unused]] TwitchAuth::AuthenticationFailureReason reason
+) {
     const char* errorLookupString = nullptr;
     switch (reason) {
-        case TwitchAuth::AuthenticationFailureReason::AUTH_TOKEN_INVALID: 
+        case TwitchAuth::AuthenticationFailureReason::AUTH_TOKEN_INVALID:
             errorLookupString = "TwitchAuthenticationFailedInvalid";
             break;
         case TwitchAuth::AuthenticationFailureReason::NETWORK_ERROR:

@@ -5,8 +5,8 @@
 
 #include <exception>
 
-#include "RewardsTheaterPlugin.h"
 #include "Log.h"
+#include "RewardsTheaterPlugin.h"
 
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE("RewardsTheater", "en-US")
