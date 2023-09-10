@@ -89,9 +89,18 @@ TwitchAuth::~TwitchAuth() {
     authServerThread.join();
 }
 
-std::optional<std::string> TwitchAuth::getAccessToken() {
+std::optional<std::string> TwitchAuth::getAccessToken() const {
     std::lock_guard guard(accessTokenMutex);
     return accessToken;
+}
+
+bool TwitchAuth::isAuthenticated() const {
+    std::lock_guard guard(accessTokenMutex);
+    return accessToken.has_value();
+}
+
+const std::string& TwitchAuth::getClientId() const {
+    return clientId;
 }
 
 static void openUrl(const std::string& url);
@@ -137,7 +146,8 @@ asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token, 
     if (isValidToken) {
         settings.setTwitchAccessToken(token);
         emit onAuthenticationSuccess();
-        emit onAuthenticationChanged();
+        std::optional<std::string> username = co_await asyncGetUsername(ioContext);
+        emit onUsernameChanged(username);
     } else {
         emit onAuthenticationFailure(failureReason);
     }
@@ -149,12 +159,13 @@ void TwitchAuth::logOut() {
         accessToken = {};
     }
     settings.setTwitchAccessToken({});
-    emit onAuthenticationChanged();
+    emit onUsernameChanged(std::nullopt);
 }
 
 asio::awaitable<std::chrono::seconds>
 TwitchAuth::asyncTokenExpiresIn(const std::string token, asio::io_context& ioContext) {
-    auto validateResponse = co_await TwitchApi::request("id.twitch.tv", "/oauth2/validate", token, ioContext);
+    TwitchApi::Response validateResponse =
+        co_await TwitchApi::request("id.twitch.tv", "/oauth2/validate", token, clientId, ioContext);
 
     if (validateResponse.status != http::status::ok) {
         co_return 0s;
@@ -174,6 +185,20 @@ bool TwitchAuth::tokenHasNeededScopes(const boost::property_tree::ptree& oauthVa
         tokenScopes.insert(scope.second.get_value<std::string>());
     }
     return tokenScopes == scopes;
+}
+
+asio::awaitable<std::optional<std::string>> TwitchAuth::asyncGetUsername(asio::io_context& ioContext) {
+    std::optional<std::string> tokenOptional = getAccessToken();
+    if (!tokenOptional) {
+        co_return std::nullopt;
+    }
+    const std::string& token = tokenOptional.value();
+    TwitchApi::Response response =
+        co_await TwitchApi::request("api.twitch.tv", "/helix/users", token, clientId, ioContext);
+    if (response.status != http::status::ok) {
+        co_return std::nullopt;
+    }
+    co_return response.json.get<std::string>("data..display_name");
 }
 
 static asio::awaitable<void> runAuthServer(TwitchAuth& auth, asio::io_context& ioContext, std::uint16_t port);

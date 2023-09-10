@@ -21,8 +21,9 @@ public:
     ~SettingsDialog();
 
 private slots:
-    void onAuthButtonClicked();
-    void onOpenRewardsQueueClicked();
+    void logInOrLogOut();
+    void openRewardsQueue();
+    void updateAuthButtonText(const std::optional<std::string>& username);
 
 private:
     RewardsTheaterPlugin& plugin;

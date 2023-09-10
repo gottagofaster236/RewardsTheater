@@ -16,6 +16,7 @@ asio::awaitable<Response> request(
     const std::string& host,
     const std::string& target,
     const std::string& accessToken,
+    const std::string& clientId,
     asio::io_context& ioContext
 ) {
     ssl::context sslContext{ssl::context::sslv23};
@@ -30,9 +31,10 @@ asio::awaitable<Response> request(
     co_await stream.async_handshake(ssl::stream_base::client, asio::use_awaitable);
 
     boost::beast::flat_buffer buffer;
-    http::request<http::empty_body> req{http::verb::get, "/oauth2/validate", 11};
+    http::request<http::empty_body> req{http::verb::get, target, 11};
     req.set(http::field::host, host);
-    req.set(http::field::authorization, "OAuth " + accessToken);
+    req.set(http::field::authorization, "Bearer " + accessToken);
+    req.set("Client-Id", clientId);
     co_await http::async_write(stream, req, asio::use_awaitable);
 
     http::response<http::dynamic_body> response;
