@@ -9,6 +9,6 @@
 #include <utility>
 
 template <typename... T>
-inline void log(decltype(LOG_INFO) logLevel, fmt::format_string<T...> fmt, T&&... args) {
+inline void log(decltype(LOG_DEBUG) logLevel, fmt::format_string<T...> fmt, T&&... args) {
     blog(logLevel, "[RewardsTheater] %s", fmt::format(fmt, std::forward<T>(args)...).c_str());
 }

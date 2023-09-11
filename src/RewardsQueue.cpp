@@ -3,14 +3,13 @@
 
 #include "RewardsQueue.h"
 
+#include <algorithm>
 #include <cstring>
 
 std::vector<RewardAndSource> RewardsQueue::getRewardsQueue() const {
     std::lock_guard<std::mutex> lock(rewardsMutex);
     auto rewardsQueueCopy = rewardsQueue;
-    return std::vector<RewardAndSource>(
-        std::make_move_iterator(rewardsQueueCopy.begin()), std::make_move_iterator(rewardsQueueCopy.end())
-    );
+    return std::vector<RewardAndSource>(rewardsQueueCopy.begin(), rewardsQueueCopy.end());
 }
 
 void RewardsQueue::queueReward(const RewardAndSource& reward) {

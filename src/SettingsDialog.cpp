@@ -17,6 +17,7 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
     : QDialog(parent), plugin(plugin), ui(std::make_unique<Ui::SettingsDialog>()),
       authenticateWithTwitchDialog(new AuthenticateWithTwitchDialog(this, plugin.getTwitchAuth())) {
     ui->setupUi(this);
+    setFixedSize(size());  // Forbid the dialog to be resized
     connect(ui->authButton, &QPushButton::clicked, this, &SettingsDialog::logInOrLogOut);
     connect(ui->openRewardsQueueButton, &QPushButton::clicked, this, &SettingsDialog::openRewardsQueue);
     connect(&plugin.getTwitchAuth(), &TwitchAuth::onUsernameChanged, this, &SettingsDialog::updateAuthButtonText);
@@ -27,7 +28,7 @@ void SettingsDialog::logInOrLogOut() {
     if (auth.isAuthenticated()) {
         auth.logOut();
     } else {
-        authenticateWithTwitchDialog->open();
+        authenticateWithTwitchDialog->show();
     }
 }
 

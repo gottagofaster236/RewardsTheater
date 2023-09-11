@@ -13,9 +13,6 @@
   <property name="windowTitle">
    <string>RewardsTheater</string>
   </property>
-  <property name="locale">
-   <locale language="English" country="UnitedStates"/>
-  </property>
   <widget class="QPushButton" name="openRewardsQueueButton">
    <property name="geometry">
     <rect>

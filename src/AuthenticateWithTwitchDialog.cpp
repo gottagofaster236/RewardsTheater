@@ -3,6 +3,7 @@
 
 #include "AuthenticateWithTwitchDialog.h"
 
+#include <fmt/core.h>
 #include <obs-module.h>
 #include <obs.h>
 
@@ -12,20 +13,26 @@
 #include "ui_AuthenticateWithTwitchDialog.h"
 
 AuthenticateWithTwitchDialog::AuthenticateWithTwitchDialog(QWidget* parent, TwitchAuth& twitchAuth)
-    : QDialog(parent), ui(std::make_unique<Ui::AuthenticateWithTwitchDialog>()), twitchAuth(twitchAuth) {
+    : QDialog(parent), twitchAuth(twitchAuth), ui(std::make_unique<Ui::AuthenticateWithTwitchDialog>()),
+      authMessageBox(new QMessageBox(this)) {
     ui->setupUi(this);
+    authMessageBox->setWindowTitle(obs_module_text("RewardsTheater"));
+    authMessageBox->setIcon(QMessageBox::Icon::Warning);
 
     connect(
         ui->authenticateInBrowserButton,
         &QPushButton::clicked,
         this,
-        &AuthenticateWithTwitchDialog::onAuthenticateInBrowserClicked
+        &AuthenticateWithTwitchDialog::authenticateInBrowser
     );
     connect(
         ui->authenticateWithAccessTokenButton,
         &QPushButton::clicked,
         this,
-        &AuthenticateWithTwitchDialog::onAuthenticateWithAccessTokenClicked
+        &AuthenticateWithTwitchDialog::authenticateWithAccessToken
+    );
+    connect(
+        authMessageBox, &QMessageBox::finished, this, &AuthenticateWithTwitchDialog::showOurselvesAfterAuthMessageBox
     );
 
     connect(&twitchAuth, &TwitchAuth::onAuthenticationSuccess, this, &AuthenticateWithTwitchDialog::hide);
@@ -35,15 +42,24 @@ AuthenticateWithTwitchDialog::AuthenticateWithTwitchDialog(QWidget* parent, Twit
         this,
         &AuthenticateWithTwitchDialog::showAuthenticationFailureMessage
     );
+    connect(
+        &twitchAuth,
+        &TwitchAuth::onAccessTokenAboutToExpire,
+        this,
+        &AuthenticateWithTwitchDialog::showAccessTokenAboutToExpireMessage
+    );
+
+    // Start TwitchAuth only after we have connected our slots
+    twitchAuth.startService();
 }
 
 AuthenticateWithTwitchDialog::~AuthenticateWithTwitchDialog() = default;
 
-void AuthenticateWithTwitchDialog::onAuthenticateInBrowserClicked() {
+void AuthenticateWithTwitchDialog::authenticateInBrowser() {
     twitchAuth.authenticate();
 }
 
-void AuthenticateWithTwitchDialog::onAuthenticateWithAccessTokenClicked() {
+void AuthenticateWithTwitchDialog::authenticateWithAccessToken() {
     twitchAuth.authenticateWithToken(ui->accessTokenEdit->text().toStdString());
 }
 
@@ -52,12 +68,41 @@ void AuthenticateWithTwitchDialog::showAuthenticationFailureMessage(
 ) {
     const char* errorLookupString = nullptr;
     switch (reason) {
-        case TwitchAuth::AuthenticationFailureReason::AUTH_TOKEN_INVALID:
-            errorLookupString = "TwitchAuthenticationFailedInvalid";
-            break;
-        case TwitchAuth::AuthenticationFailureReason::NETWORK_ERROR:
-            errorLookupString = "TwitchAuthenticationFailedNetwork";
-            break;
+    case TwitchAuth::AuthenticationFailureReason::AUTH_TOKEN_INVALID:
+        errorLookupString = "TwitchAuthenticationFailedInvalid";
+        break;
+    case TwitchAuth::AuthenticationFailureReason::NETWORK_ERROR:
+        errorLookupString = "TwitchAuthenticationFailedNetwork";
+        break;
     }
-    QMessageBox::warning(this, obs_module_text("RewardsTheater"), obs_module_text(errorLookupString));
+    showAuthenticationMessage(obs_module_text(errorLookupString));
+}
+
+void AuthenticateWithTwitchDialog::showAccessTokenAboutToExpireMessage(std::chrono::seconds expiresIn) {
+    int expiresInHours = std::ceil(expiresIn.count() / 3600);
+    std::string message = fmt::format(fmt::runtime(obs_module_text("TwitchTokenAboutToExpire")), expiresInHours);
+    showAuthenticationMessage(message);
+}
+
+void AuthenticateWithTwitchDialog::showAuthenticationMessage(const std::string& message) {
+    authMessageBox->setText(QString::fromStdString(message));
+    for (QAbstractButton* button : authMessageBox->buttons()) {
+        authMessageBox->removeButton(button);
+    }
+    if (isVisible()) {
+        authMessageBox->setStandardButtons(QMessageBox::Ok);
+    } else {
+        authMessageBox->addButton(obs_module_text("LogInAgain"), QMessageBox::AcceptRole);
+        authMessageBox->addButton(QMessageBox::Cancel);
+    }
+    authMessageBox->show();
+}
+
+void AuthenticateWithTwitchDialog::showOurselvesAfterAuthMessageBox() {
+    if (isVisible()) {
+        return;
+    }
+    if (authMessageBox->buttonRole(authMessageBox->clickedButton()) == QMessageBox::AcceptRole) {
+        show();
+    }
 }

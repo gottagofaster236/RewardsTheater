@@ -69,6 +69,9 @@ static const char* const AUTH_PAGE_HTML = R"(
     </html>
 )";
 
+static const auto TOKEN_VALIDATE_PERIOD = 30min;
+static const auto MINIMUM_TOKEN_TIME_LEFT = 48h;
+
 TwitchAuth::TwitchAuth(
     Settings& settings,
     const std::string& clientId,
@@ -76,17 +79,28 @@ TwitchAuth::TwitchAuth(
     std::uint16_t authServerPort
 )
     : settings(settings), clientId(clientId), scopes(scopes), authServerPort(authServerPort) {
-    std::optional<std::string> savedAccessToken = settings.getTwitchAccessToken();
-    if (savedAccessToken) {
-        authenticateWithToken(savedAccessToken.value());
-    }
-    startAuthServer(authServerPort);
-    log(LOG_INFO, "auth url: {}", getAuthUrl());
+    // All of these are not run before the call to startService()
+    asio::co_spawn(authIoContext, asyncRunAuthServer(authIoContext), asio::detached);
+    asio::co_spawn(authIoContext, asyncValidateTokenPeriodically(authIoContext), asio::detached);
+    authenticateWithSavedToken();
 }
 
 TwitchAuth::~TwitchAuth() {
-    authServerIoContext.stop();
-    authServerThread.join();
+    authIoContext.stop();
+    authThread.join();
+}
+
+void TwitchAuth::startService() {
+    if (authThread.joinable()) {
+        return;
+    }
+    authThread = std::thread([=, this]() {
+        try {
+            authIoContext.run();
+        } catch (const boost::system::system_error& error) {
+            log(LOG_INFO, "Auth server exception: {}", error.what());
+        }
+    });
 }
 
 std::optional<std::string> TwitchAuth::getAccessToken() const {
@@ -110,47 +124,12 @@ void TwitchAuth::authenticate() {
 }
 
 void openUrl(const std::string& url) {
+    log(LOG_INFO, "Opening url {}", url);
     QDesktopServices::openUrl(QUrl(QString::fromStdString(url), QUrl::TolerantMode));
 }
 
 void TwitchAuth::authenticateWithToken([[maybe_unused]] const std::string& token) {
-    asio::co_spawn(authServerIoContext, asyncAuthenticateWithToken(token, authServerIoContext), asio::detached);
-}
-
-asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token, asio::io_context& ioContext) {
-    std::chrono::seconds expiresIn;
-    AuthenticationFailureReason failureReason = AuthenticationFailureReason::AUTH_TOKEN_INVALID;
-
-    try {
-        expiresIn = co_await asyncTokenExpiresIn(token, ioContext);
-        log(LOG_INFO, "The token expires in {} seconds", expiresIn.count());
-    } catch (const boost::system::system_error& error) {
-        log(LOG_ERROR, "Network error in tokenExpiresIn: {}", error.what());
-        expiresIn = 0s;
-        failureReason = AuthenticationFailureReason::NETWORK_ERROR;
-    } catch (const boost::property_tree::ptree_error& error) {
-        log(LOG_ERROR, "Error parsing json: {}", error.what());
-        expiresIn = 0s;
-    }
-    bool isValidToken = expiresIn != 0s;
-
-    {
-        std::lock_guard guard(accessTokenMutex);
-        if (isValidToken) {
-            accessToken = token;
-        } else {
-            accessToken = {};
-        }
-    }
-
-    if (isValidToken) {
-        settings.setTwitchAccessToken(token);
-        emit onAuthenticationSuccess();
-        std::optional<std::string> username = co_await asyncGetUsername(ioContext);
-        emit onUsernameChanged(username);
-    } else {
-        emit onAuthenticationFailure(failureReason);
-    }
+    asio::co_spawn(authIoContext, asyncAuthenticateWithToken(token, authIoContext), asio::detached);
 }
 
 void TwitchAuth::logOut() {
@@ -159,7 +138,49 @@ void TwitchAuth::logOut() {
         accessToken = {};
     }
     settings.setTwitchAccessToken({});
-    emit onUsernameChanged(std::nullopt);
+    emit onUsernameChanged({});
+}
+
+void TwitchAuth::authenticateWithSavedToken() {
+    std::optional<std::string> savedAccessToken = settings.getTwitchAccessToken();
+    if (savedAccessToken) {
+        authenticateWithToken(savedAccessToken.value());
+    }
+}
+
+asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token, asio::io_context& ioContext) {
+    std::chrono::seconds expiresIn;
+    AuthenticationFailureReason failureReason = AuthenticationFailureReason::AUTH_TOKEN_INVALID;
+
+    try {
+        expiresIn = co_await asyncTokenExpiresIn(token, ioContext);
+    } catch (const boost::system::system_error& error) {
+        log(LOG_ERROR, "Network error in tokenExpiresIn: {}", error.what());
+        expiresIn = 0s;
+        failureReason = AuthenticationFailureReason::NETWORK_ERROR;
+    } catch (const boost::property_tree::ptree_error& error) {
+        log(LOG_ERROR, "Error parsing json in tokenExpiresIn: {}", error.what());
+        expiresIn = 0s;
+        failureReason = AuthenticationFailureReason::NETWORK_ERROR;
+    }
+
+    if (expiresIn == 0s) {
+        if (failureReason == AuthenticationFailureReason::AUTH_TOKEN_INVALID) {
+            logOut();
+        }
+        emit onAuthenticationFailure(failureReason);
+        co_return;
+    }
+
+    {
+        std::lock_guard guard(accessTokenMutex);
+        accessToken = token;
+    }
+    settings.setTwitchAccessToken(token);
+    emit onAuthenticationSuccess();
+    emitAccessTokenAboutToExpireIfNeeded(expiresIn);
+    std::optional<std::string> username = co_await asyncGetUsername(ioContext);
+    emit onUsernameChanged(username);
 }
 
 asio::awaitable<std::chrono::seconds>
@@ -167,13 +188,13 @@ TwitchAuth::asyncTokenExpiresIn(const std::string token, asio::io_context& ioCon
     TwitchApi::Response validateResponse =
         co_await TwitchApi::request("id.twitch.tv", "/oauth2/validate", token, clientId, ioContext);
 
-    if (validateResponse.status != http::status::ok) {
+    if (validateResponse.status == http::status::unauthorized) {
         co_return 0s;
     }
 
     // Check that the token has the necessary scopes.
     if (!tokenHasNeededScopes(validateResponse.json)) {
-        log(LOG_INFO, "Error: Token is missing necessary scopes.");
+        log(LOG_ERROR, "Error: Token is missing necessary scopes.");
         co_return 0s;
     }
     co_return std::chrono::seconds{validateResponse.json.get<int>("expires_in")};
@@ -185,74 +206,6 @@ bool TwitchAuth::tokenHasNeededScopes(const boost::property_tree::ptree& oauthVa
         tokenScopes.insert(scope.second.get_value<std::string>());
     }
     return tokenScopes == scopes;
-}
-
-asio::awaitable<std::optional<std::string>> TwitchAuth::asyncGetUsername(asio::io_context& ioContext) {
-    std::optional<std::string> tokenOptional = getAccessToken();
-    if (!tokenOptional) {
-        co_return std::nullopt;
-    }
-    const std::string& token = tokenOptional.value();
-    TwitchApi::Response response =
-        co_await TwitchApi::request("api.twitch.tv", "/helix/users", token, clientId, ioContext);
-    if (response.status != http::status::ok) {
-        co_return std::nullopt;
-    }
-    co_return response.json.get<std::string>("data..display_name");
-}
-
-static asio::awaitable<void> runAuthServer(TwitchAuth& auth, asio::io_context& ioContext, std::uint16_t port);
-
-void TwitchAuth::startAuthServer(std::uint16_t port) {
-    authServerThread = std::thread([=, this]() {
-        try {
-            auto authServer = runAuthServer(*this, authServerIoContext, port);
-            asio::co_spawn(authServerIoContext, std::move(authServer), asio::detached);
-            authServerIoContext.run();
-        } catch (const boost::system::system_error& error) {
-            log(LOG_INFO, "Auth server exception: {}", error.what());
-        }
-    });
-}
-
-static asio::awaitable<void> processRequest(TwitchAuth& auth, tcp::socket socket, asio::io_context& ioContext);
-
-asio::awaitable<void> runAuthServer(TwitchAuth& auth, asio::io_context& ioContext, std::uint16_t port) {
-    tcp::acceptor acceptor{ioContext, {tcp::v4(), port}};
-    while (true) {
-        try {
-            tcp::socket socket = co_await acceptor.async_accept(asio::use_awaitable);
-            asio::co_spawn(ioContext, processRequest(auth, std::move(socket), ioContext), asio::detached);
-        } catch (const boost::system::system_error& error) {
-            log(LOG_INFO, "Error: {}", error.what());
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-        }
-    }
-}
-
-asio::awaitable<void> processRequest(TwitchAuth& auth, tcp::socket socket, asio::io_context& ioContext) {
-    http::request<http::string_body> request;
-    http::response<http::string_body> response;
-    boost::beast::flat_buffer buffer;
-    co_await http::async_read(socket, buffer, request, asio::use_awaitable);
-
-    if (request.target() == "/") {
-        response.set(http::field::content_type, "text/html");
-        response.body() = AUTH_PAGE_HTML;
-        response.prepare_payload();
-    } else if (request.target() == "/accessToken") {
-        std::string accessToken = request.body();
-        if (accessToken.empty()) {
-            response.result(http::status::bad_request);
-        } else {
-            co_await auth.asyncAuthenticateWithToken(request.body(), ioContext);
-        }
-    } else {
-        response.body() = "RewardsTheater auth server";
-        response.prepare_payload();
-    }
-
-    co_await http::async_write(socket, response, asio::use_awaitable);
 }
 
 std::string TwitchAuth::getAuthUrl() {
@@ -273,4 +226,84 @@ std::string TwitchAuth::getAuthUrl() {
         {"force_verify", "true"},
     });
     return static_cast<boost::core::basic_string_view<char>>(authUrl);
+}
+
+asio::awaitable<std::optional<std::string>> TwitchAuth::asyncGetUsername(asio::io_context& ioContext) {
+    std::optional<std::string> tokenOptional = getAccessToken();
+    if (!tokenOptional) {
+        co_return std::nullopt;
+    }
+    const std::string& token = tokenOptional.value();
+    TwitchApi::Response response =
+        co_await TwitchApi::request("api.twitch.tv", "/helix/users", token, clientId, ioContext);
+    if (response.status != http::status::ok) {
+        co_return std::nullopt;
+    }
+    co_return response.json.get<std::string>("data..display_name");
+}
+
+asio::awaitable<void> TwitchAuth::asyncRunAuthServer(asio::io_context& ioContext) {
+    tcp::acceptor acceptor{ioContext, {tcp::v4(), authServerPort}};
+    while (true) {
+        try {
+            tcp::socket socket = co_await acceptor.async_accept(asio::use_awaitable);
+            asio::co_spawn(ioContext, asyncProcessRequest(std::move(socket), ioContext), asio::detached);
+        } catch (const boost::system::system_error& error) {
+            log(LOG_INFO, "Error: {}", error.what());
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+    }
+}
+
+asio::awaitable<void> TwitchAuth::asyncProcessRequest(tcp::socket socket, asio::io_context& ioContext) {
+    http::request<http::string_body> request;
+    http::response<http::string_body> response;
+    boost::beast::flat_buffer buffer;
+    co_await http::async_read(socket, buffer, request, asio::use_awaitable);
+
+    if (request.target() == "/") {
+        response.set(http::field::content_type, "text/html");
+        response.body() = AUTH_PAGE_HTML;
+        response.prepare_payload();
+    } else if (request.target() == "/accessToken") {
+        std::string responseAccessToken = request.body();
+        if (responseAccessToken.empty()) {
+            response.result(http::status::bad_request);
+        } else {
+            co_await asyncAuthenticateWithToken(responseAccessToken, ioContext);
+        }
+    } else {
+        response.body() = "RewardsTheater auth server";
+        response.prepare_payload();
+    }
+
+    co_await http::async_write(socket, response, asio::use_awaitable);
+}
+
+asio::awaitable<void> TwitchAuth::asyncValidateTokenPeriodically(asio::io_context& ioContext) {
+    for (;; co_await asio::steady_timer(ioContext, TOKEN_VALIDATE_PERIOD).async_wait(asio::use_awaitable)) {
+        try {
+            std::optional<std::string> tokenOptional = getAccessToken();
+            if (!tokenOptional) {
+                continue;
+            }
+            const std::string& token = tokenOptional.value();
+            auto expiresIn = co_await asyncTokenExpiresIn(token, ioContext);
+            emitAccessTokenAboutToExpireIfNeeded(expiresIn);
+        } catch ([[maybe_unused]] const boost::system::system_error& error) {
+            continue;
+        } catch ([[maybe_unused]] const boost::property_tree::ptree_error& error) {
+            continue;
+        }
+    }
+}
+
+void TwitchAuth::emitAccessTokenAboutToExpireIfNeeded(std::chrono::seconds expiresIn) {
+    log(LOG_INFO, "Twitch auth token expires in {} seconds", expiresIn.count());
+    if (expiresIn == 0s) {
+        logOut();
+        emit onAuthenticationFailure(AuthenticationFailureReason::AUTH_TOKEN_INVALID);
+    } else if (expiresIn < MINIMUM_TOKEN_TIME_LEFT) {
+        emit onAccessTokenAboutToExpire(expiresIn);
+    }
 }

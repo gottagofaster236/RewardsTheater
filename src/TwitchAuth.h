@@ -39,13 +39,14 @@ public:
     );
     ~TwitchAuth();
 
+    void startService();
+
     std::optional<std::string> getAccessToken() const;
     bool isAuthenticated() const;
     const std::string& getClientId() const;
 
     void authenticate();
     void authenticateWithToken(const std::string& token);
-    boost::asio::awaitable<void> asyncAuthenticateWithToken(std::string token, boost::asio::io_context& ioContext);
     void logOut();
 
     enum class AuthenticationFailureReason {
@@ -56,22 +57,36 @@ public:
 signals:
     void onAuthenticationSuccess();
     void onAuthenticationFailure(AuthenticationFailureReason reason);
+    void onAccessTokenAboutToExpire(std::chrono::seconds expiresIn);
     void onUsernameChanged(std::optional<std::string> username);
 
 private:
+    void authenticateWithSavedToken();
+
+    boost::asio::awaitable<void> asyncAuthenticateWithToken(std::string token, boost::asio::io_context& ioContext);
+
     boost::asio::awaitable<std::chrono::seconds>
     asyncTokenExpiresIn(std::string token, boost::asio::io_context& ioContext);
 
     bool tokenHasNeededScopes(const boost::property_tree::ptree& oauthValidateResponse);
-    boost::asio::awaitable<std::optional<std::string>> asyncGetUsername(boost::asio::io_context& ioContext);
-    void startAuthServer(std::uint16_t port);
+
     std::string getAuthUrl();
+
+    boost::asio::awaitable<std::optional<std::string>> asyncGetUsername(boost::asio::io_context& ioContext);
+
+    boost::asio::awaitable<void> asyncRunAuthServer(boost::asio::io_context& ioContext);
+
+    boost::asio::awaitable<void>
+    asyncProcessRequest(boost::asio::ip::tcp::socket socket, boost::asio::io_context& ioContext);
+
+    boost::asio::awaitable<void> asyncValidateTokenPeriodically(boost::asio::io_context& ioContext);
+    void emitAccessTokenAboutToExpireIfNeeded(std::chrono::seconds expiresIn);
 
     std::optional<std::string> accessToken;
     mutable std::mutex accessTokenMutex;
 
-    std::thread authServerThread;
-    boost::asio::io_context authServerIoContext;
+    std::thread authThread;
+    boost::asio::io_context authIoContext;
 
     Settings& settings;
     std::string clientId;

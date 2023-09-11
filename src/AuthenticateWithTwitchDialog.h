@@ -5,6 +5,7 @@
 
 #include <QDialog>
 #include <QMessageBox>
+#include <chrono>
 #include <memory>
 #include <thread>
 
@@ -23,11 +24,17 @@ public:
     ~AuthenticateWithTwitchDialog();
 
 private slots:
-    void onAuthenticateInBrowserClicked();
-    void onAuthenticateWithAccessTokenClicked();
+    void authenticateInBrowser();
+    void authenticateWithAccessToken();
     void showAuthenticationFailureMessage(TwitchAuth::AuthenticationFailureReason reason);
+    void showAccessTokenAboutToExpireMessage(std::chrono::seconds expiresIn);
 
 private:
-    std::unique_ptr<Ui::AuthenticateWithTwitchDialog> ui;
+    void showAuthenticationMessage(const std::string& message);
+    void showOurselvesAfterAuthMessageBox();
+
+private:
     TwitchAuth& twitchAuth;
+    std::unique_ptr<Ui::AuthenticateWithTwitchDialog> ui;
+    QMessageBox* authMessageBox;
 };
