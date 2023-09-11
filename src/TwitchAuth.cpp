@@ -183,8 +183,7 @@ asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token, 
     emit onUsernameChanged(username);
 }
 
-asio::awaitable<std::chrono::seconds>
-TwitchAuth::asyncTokenExpiresIn(const std::string token, asio::io_context& ioContext) {
+asio::awaitable<std::chrono::seconds> TwitchAuth::asyncTokenExpiresIn(std::string token, asio::io_context& ioContext) {
     TwitchApi::Response validateResponse =
         co_await TwitchApi::request("id.twitch.tv", "/oauth2/validate", token, clientId, ioContext);
 
@@ -290,9 +289,9 @@ asio::awaitable<void> TwitchAuth::asyncValidateTokenPeriodically(asio::io_contex
             const std::string& token = tokenOptional.value();
             auto expiresIn = co_await asyncTokenExpiresIn(token, ioContext);
             emitAccessTokenAboutToExpireIfNeeded(expiresIn);
-        } catch ([[maybe_unused]] const boost::system::system_error& error) {
+        } catch (boost::system::system_error&) {
             continue;
-        } catch ([[maybe_unused]] const boost::property_tree::ptree_error& error) {
+        } catch (boost::property_tree::ptree_error&) {
             continue;
         }
     }
