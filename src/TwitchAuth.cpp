@@ -3,27 +3,17 @@
 
 #include "TwitchAuth.h"
 
-#include <QDesktopServices>
-#include <QUrl>
-
-#include "Log.h"
-#include "TwitchApi.h"
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4702)
-#endif
-#include <boost/asio/ssl.hpp>
-#include <boost/beast.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/url.hpp>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 #include <fmt/core.h>
 
+#include <QDesktopServices>
+#include <QUrl>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/url.hpp>
 #include <cstdint>
+
+#include "BoostAsio.h"
+#include "Log.h"
+#include "TwitchApi.h"
 
 using namespace std::chrono_literals;
 namespace http = boost::beast::http;

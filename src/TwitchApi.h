@@ -3,21 +3,12 @@
 
 #pragma once
 
+#include <boost/property_tree/json_parser.hpp>
 #include <functional>
 #include <utility>
 
+#include "BoostAsio.h"
 #include "TwitchAuth.h"
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4702)
-#endif
-#include <boost/asio.hpp>
-#include <boost/beast.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 namespace TwitchApi {
 

@@ -3,7 +3,7 @@
 
 #include "TwitchApi.h"
 
-#include <boost/asio/ssl.hpp>
+#include "BoostAsio.h"
 
 namespace asio = boost::asio;
 namespace ssl = asio::ssl;

@@ -3,17 +3,8 @@
 
 #pragma once
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4702)
-#endif
-#include <boost/asio.hpp>
-#include <boost/property_tree/ptree.hpp>
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 #include <QObject>
+#include <boost/property_tree/ptree.hpp>
 #include <chrono>
 #include <exception>
 #include <mutex>
@@ -22,6 +13,7 @@
 #include <string>
 #include <thread>
 
+#include "BoostAsio.h"
 #include "Settings.h"
 
 /**
