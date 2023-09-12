@@ -9,8 +9,8 @@
 
 class TwitchRewardsApi {
 public:
-    TwitchRewardsApi(const TwitchAuth& twitchAuth);
+    TwitchRewardsApi(TwitchAuth& twitchAuth);
 
 private:
-    const TwitchAuth& twitchAuth;
+    TwitchAuth& twitchAuth;
 };

@@ -194,6 +194,9 @@ jobs:
     defaults:
       run:
         shell: bash
+    env:
+      CC: gcc-12
+      CXX: g++-12
     steps:
       - name: Checkout
         uses: actions/checkout@v3

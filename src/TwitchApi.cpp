@@ -47,4 +47,19 @@ asio::awaitable<Response> request(
     co_return Response{response.result(), jsonTree};
 }
 
+boost::asio::awaitable<Response> request(
+    const std::string& host,
+    const std::string& target,
+    TwitchAuth& auth,
+    boost::asio::io_context& ioContext
+) {
+    std::string accessToken = auth.getAccessTokenOrThrow();
+    Response response = co_await request(host, target, accessToken, auth.getClientId(), ioContext);
+    if (response.status == http::status::unauthorized) {
+        auth.logOutAndEmitAuthenticationFailure();
+        throw TwitchAuth::UnauthenticatedException();
+    }
+    co_return response;
+}
+
 }  // namespace TwitchApi

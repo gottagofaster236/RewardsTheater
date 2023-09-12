@@ -15,6 +15,7 @@
 
 #include <QObject>
 #include <chrono>
+#include <exception>
 #include <mutex>
 #include <optional>
 #include <set>
@@ -42,12 +43,20 @@ public:
     void startService();
 
     std::optional<std::string> getAccessToken() const;
+    std::string getAccessTokenOrThrow() const;
     bool isAuthenticated() const;
+    std::optional<std::string> getUserId();
     const std::string& getClientId() const;
 
     void authenticate();
     void authenticateWithToken(const std::string& token);
     void logOut();
+    void logOutAndEmitAuthenticationFailure();
+
+    class UnauthenticatedException : public std::exception {
+    public:
+        const char* what() const noexcept override;
+    };
 
     enum class AuthenticationFailureReason {
         AUTH_TOKEN_INVALID,
@@ -62,27 +71,33 @@ signals:
 
 private:
     void authenticateWithSavedToken();
-
     boost::asio::awaitable<void> asyncAuthenticateWithToken(std::string token, boost::asio::io_context& ioContext);
 
-    boost::asio::awaitable<std::chrono::seconds>
-    asyncTokenExpiresIn(std::string token, boost::asio::io_context& ioContext);
-
-    bool tokenHasNeededScopes(const boost::property_tree::ptree& oauthValidateResponse);
+    struct ValidateTokenResponse {
+        std::chrono::seconds expiresIn{0};
+        std::string userId;
+    };
+    boost::asio::awaitable<ValidateTokenResponse> asyncValidateToken(
+        std::string token,
+        boost::asio::io_context& ioContext
+    );
+    bool tokenHasNeededScopes(const boost::property_tree::ptree& validateTokenResponse);
 
     std::string getAuthUrl();
 
     boost::asio::awaitable<std::optional<std::string>> asyncGetUsername(boost::asio::io_context& ioContext);
 
     boost::asio::awaitable<void> asyncRunAuthServer(boost::asio::io_context& ioContext);
-
-    boost::asio::awaitable<void>
-    asyncProcessRequest(boost::asio::ip::tcp::socket socket, boost::asio::io_context& ioContext);
+    boost::asio::awaitable<void> asyncProcessRequest(
+        boost::asio::ip::tcp::socket socket,
+        boost::asio::io_context& ioContext
+    );
 
     boost::asio::awaitable<void> asyncValidateTokenPeriodically(boost::asio::io_context& ioContext);
     void emitAccessTokenAboutToExpireIfNeeded(std::chrono::seconds expiresIn);
 
     std::optional<std::string> accessToken;
+    std::optional<std::string> userId;
     mutable std::mutex accessTokenMutex;
 
     std::thread authThread;

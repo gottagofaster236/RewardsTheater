@@ -6,6 +6,8 @@
 #include <functional>
 #include <utility>
 
+#include "TwitchAuth.h"
+
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4702)
@@ -29,6 +31,13 @@ boost::asio::awaitable<Response> request(
     const std::string& target,
     const std::string& accessToken,
     const std::string& clientId,
+    boost::asio::io_context& ioContext
+);
+
+boost::asio::awaitable<Response> request(
+    const std::string& host,
+    const std::string& target,
+    TwitchAuth& auth,
     boost::asio::io_context& ioContext
 );
 
