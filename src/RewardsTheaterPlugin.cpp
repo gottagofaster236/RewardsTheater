@@ -24,7 +24,7 @@ RewardsTheaterPlugin::RewardsTheaterPlugin()
           {"channel:read:redemptions", "channel:manage:redemptions"},
           AUTH_SERVER_PORT
       ),
-      twitchRewardsApi(twitchAuth) {
+      twitchRewardsApi(twitchAuth), rewardsQueue(settings) {
     QMainWindow* mainWindow = (QMainWindow*) obs_frontend_get_main_window();
     QAction* action = (QAction*) obs_frontend_add_tools_menu_qaction(obs_module_text("RewardsTheater"));
 
@@ -46,4 +46,8 @@ TwitchAuth& RewardsTheaterPlugin::getTwitchAuth() {
 
 TwitchRewardsApi& RewardsTheaterPlugin::getTwitchRewardsApi() {
     return twitchRewardsApi;
+}
+
+RewardsQueue& RewardsTheaterPlugin::getRewardsQueue() {
+    return rewardsQueue;
 }

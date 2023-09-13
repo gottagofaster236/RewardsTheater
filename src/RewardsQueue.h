@@ -10,12 +10,15 @@
 #include <vector>
 
 #include "Reward.h"
+#include "Settings.h"
 
 class RewardsQueue {
 public:
-    std::vector<RewardAndSource> getRewardsQueue() const;
-    void queueReward(const RewardAndSource& reward);
-    void removeReward(const RewardAndSource& reward);
+    RewardsQueue(const Settings& settings);
+
+    std::vector<Reward> getRewardsQueue() const;
+    void queueReward(const Reward& reward);
+    void removeReward(const Reward& reward);
     void playNextReward();
 
     static void playObsSource(const std::string& obsSourceName);
@@ -28,10 +31,12 @@ private:
     static void stopObsSource(const obs_source_t* source);
     static bool isMediaSource(const obs_source_t* source);
 
-    std::optional<RewardAndSource> popNextReward();
+    std::optional<OBSSourceAutoRelease> popNextReward();
     static void onMediaEnded(void* param, calldata_t* data);
 
-    std::deque<RewardAndSource> rewardsQueue;
+    std::deque<Reward> rewardsQueue;
     mutable std::mutex rewardsMutex;
     OBSSignal mediaEndSignal;
+
+    const Settings& settings;
 };

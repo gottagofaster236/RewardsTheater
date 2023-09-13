@@ -6,13 +6,15 @@
 #include <algorithm>
 #include <cstring>
 
-std::vector<RewardAndSource> RewardsQueue::getRewardsQueue() const {
+RewardsQueue::RewardsQueue(const Settings& settings) : settings(settings) {}
+
+std::vector<Reward> RewardsQueue::getRewardsQueue() const {
     std::lock_guard<std::mutex> lock(rewardsMutex);
     auto rewardsQueueCopy = rewardsQueue;
-    return std::vector<RewardAndSource>(rewardsQueueCopy.begin(), rewardsQueueCopy.end());
+    return std::vector<Reward>(rewardsQueueCopy.begin(), rewardsQueueCopy.end());
 }
 
-void RewardsQueue::queueReward(const RewardAndSource& reward) {
+void RewardsQueue::queueReward(const Reward& reward) {
     bool playImmediately;
     {
         std::lock_guard<std::mutex> lock(rewardsMutex);
@@ -24,7 +26,7 @@ void RewardsQueue::queueReward(const RewardAndSource& reward) {
     }
 }
 
-void RewardsQueue::removeReward(const RewardAndSource& reward) {
+void RewardsQueue::removeReward(const Reward& reward) {
     std::lock_guard<std::mutex> lock(rewardsMutex);
     auto position = std::find(rewardsQueue.begin(), rewardsQueue.end(), reward);
     if (position != rewardsQueue.end()) {
@@ -33,12 +35,11 @@ void RewardsQueue::removeReward(const RewardAndSource& reward) {
 }
 
 void RewardsQueue::playNextReward() {
-    std::optional<RewardAndSource> rewardOptional = popNextReward();
-    if (!rewardOptional) {
+    std::optional<OBSSourceAutoRelease> sourceOptional = popNextReward();
+    if (!sourceOptional) {
         return;
     }
-    RewardAndSource reward = *rewardOptional;
-    OBSSourceAutoRelease source = obs_get_source_by_name(reward.obsSourceName.c_str());
+    const OBSSourceAutoRelease& source = sourceOptional.value();
 
     signal_handler_t* sh = obs_source_get_signal_handler(source);
     mediaEndSignal = OBSSignal(sh, "media_ended", &onMediaEnded, this);
@@ -63,25 +64,40 @@ OBSSourceAutoRelease RewardsQueue::getObsSource(const std::string& obsSourceName
 }
 
 void RewardsQueue::playObsSource(const obs_source_t* source) {
+    if (!source) {
+        return;
+    }
     proc_handler_call(obs_source_get_proc_handler(source), "restart", nullptr);
 }
 
 void RewardsQueue::stopObsSource(const obs_source_t* source) {
+    if (!source) {
+        return;
+    }
     proc_handler_call(obs_source_get_proc_handler(source), "stop", nullptr);
 }
 
 bool RewardsQueue::isMediaSource(const obs_source_t* source) {
+    if (!source) {
+        return false;
+    }
     return std::strcmp(obs_source_get_id(source), "ffmpeg_source") == 0;
 }
 
-std::optional<RewardAndSource> RewardsQueue::popNextReward() {
+std::optional<OBSSourceAutoRelease> RewardsQueue::popNextReward() {
     std::lock_guard<std::mutex> lock(rewardsMutex);
     while (!rewardsQueue.empty()) {
-        RewardAndSource nextReward = rewardsQueue.front();
+        Reward nextReward = rewardsQueue.front();
         rewardsQueue.pop_front();
-        if (isMediaSource(nextReward.obsSourceName)) {
-            return nextReward;
+        std::optional<std::string> obsSourceName = settings.getObsSourceName(nextReward.id);
+        if (!obsSourceName) {
+            continue;
         }
+        OBSSourceAutoRelease source = obs_get_source_by_name(obsSourceName.value().c_str());
+        if (!isMediaSource(source)) {
+            continue;
+        }
+        return source;
     }
     return {};
 }

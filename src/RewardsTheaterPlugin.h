@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "RewardsQueue.h"
 #include "Settings.h"
 #include "TwitchAuth.h"
 #include "TwitchRewardsApi.h"
@@ -13,9 +14,11 @@ public:
     Settings& getSettings();
     TwitchAuth& getTwitchAuth();
     TwitchRewardsApi& getTwitchRewardsApi();
+    RewardsQueue& getRewardsQueue();
 
 private:
     Settings settings;
     TwitchAuth twitchAuth;
     TwitchRewardsApi twitchRewardsApi;
+    RewardsQueue rewardsQueue;
 };

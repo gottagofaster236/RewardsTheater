@@ -27,10 +27,3 @@ struct Reward {
 
     bool operator==(const Reward& other) const = default;
 };
-
-struct RewardAndSource {
-    Reward reward;
-    std::string obsSourceName;
-
-    bool operator==(const RewardAndSource& other) const = default;
-};

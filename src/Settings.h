@@ -21,8 +21,8 @@ public:
     std::int32_t getIntervalBetweenRewardsSeconds() const;
     void setIntervalBetweenRewardsSeconds(std::int32_t intervalBetweenRewardsSeconds);
 
-    std::string getObsSourceName(const std::string& rewardId) const;
-    void setObsSourceName(const std::string& rewardId, const std::string& obsSourceName);
+    std::optional<std::string> getObsSourceName(const std::string& rewardId) const;
+    void setObsSourceName(const std::string& rewardId, const std::optional<std::string>& obsSourceName);
 
     std::optional<std::string> getTwitchAccessToken() const;
     void setTwitchAccessToken(const std::optional<std::string>& accessToken);

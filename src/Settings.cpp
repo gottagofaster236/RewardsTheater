@@ -28,13 +28,24 @@ void Settings::setIntervalBetweenRewardsSeconds(std::int32_t intervalBetweenRewa
     config_set_int(config, PLUGIN_NAME, INTERVAL_BETWEEN_REWARDS_SECONDS_KEY, intervalBetweenRewardsSeconds);
 }
 
-std::string Settings::getObsSourceName(const std::string& rewardId) const {
+std::optional<std::string> Settings::getObsSourceName(const std::string& rewardId) const {
     config_set_default_string(config, PLUGIN_NAME, rewardId.c_str(), "");
-    return config_get_string(config, PLUGIN_NAME, rewardId.c_str());
+    std::string result = config_get_string(config, PLUGIN_NAME, rewardId.c_str());
+    if (result.empty()) {
+        return {};
+    } else {
+        return result;
+    }
 }
 
-void Settings::setObsSourceName(const std::string& rewardId, const std::string& obsSourceName) {
-    config_set_string(config, PLUGIN_NAME, rewardId.c_str(), obsSourceName.c_str());
+void Settings::setObsSourceName(const std::string& rewardId, const std::optional<std::string>& obsSourceName) {
+    const char* value;
+    if (obsSourceName) {
+        value = obsSourceName.value().c_str();
+    } else {
+        value = "";
+    }
+    config_set_string(config, PLUGIN_NAME, rewardId.c_str(), value);
 }
 
 std::optional<std::string> Settings::getTwitchAccessToken() const {
