@@ -132,7 +132,7 @@ void openUrl(const std::string& url) {
     QDesktopServices::openUrl(QUrl(QString::fromStdString(url), QUrl::TolerantMode));
 }
 
-void TwitchAuth::authenticateWithToken([[maybe_unused]] const std::string& token) {
+void TwitchAuth::authenticateWithToken(const std::string& token) {
     asio::co_spawn(authIoContext, asyncAuthenticateWithToken(token, authIoContext), asio::detached);
 }
 
