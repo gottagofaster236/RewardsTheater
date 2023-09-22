@@ -112,7 +112,7 @@ bool TwitchAuth::isAuthenticated() const {
     return accessToken.has_value();
 }
 
-std::optional<std::string> TwitchAuth::getUserId() {
+std::optional<std::string> TwitchAuth::getUserId() const {
     std::lock_guard guard(accessTokenMutex);
     return userId;
 }
