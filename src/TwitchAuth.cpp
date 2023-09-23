@@ -7,9 +7,11 @@
 
 #include <QDesktopServices>
 #include <QUrl>
+#include <algorithm>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/url.hpp>
 #include <cstdint>
+#include <ranges>
 
 #include "BoostAsio.h"
 #include "Log.h"
@@ -219,10 +221,10 @@ asio::awaitable<TwitchAuth::ValidateTokenResponse> TwitchAuth::asyncValidateToke
 }
 
 bool TwitchAuth::tokenHasNeededScopes(const boost::property_tree::ptree& validateTokenResponse) {
-    std::set<std::string> tokenScopes;
-    for (const auto& scope : validateTokenResponse.get_child("scopes")) {
-        tokenScopes.insert(scope.second.get_value<std::string>());
-    }
+    auto tokenScopes =
+        validateTokenResponse.get_child("scopes") |
+        std::views::transform([](const auto& scope) { return scope.second.template get_value<std::string>(); }) |
+        std::ranges::to<std::set<std::string>>();
     return tokenScopes == scopes;
 }
 

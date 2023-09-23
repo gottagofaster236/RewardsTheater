@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16...3.18)
+cmake_minimum_required(VERSION 3.20)
 cmake_policy(SET CMP0111 OLD)
 
 project(RewardsTheater VERSION 1.0.0)
@@ -43,8 +43,8 @@ target_sources(
           src/Log.h
           src/BoostAsio.h)
 
-set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)
-set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED 20)
+set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 23)
+set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 
 # Libraries from vcpkg
 find_package(Boost REQUIRED COMPONENTS system url)
