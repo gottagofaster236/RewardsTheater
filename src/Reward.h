@@ -17,13 +17,13 @@ struct Reward {
     };
 
     std::string id;
-    std::wstring title;
-    std::int64_t cost;
+    std::string title;
+    std::int32_t cost;
     bool isEnabled;
     Color backgroundColor;
-    std::optional<std::int32_t> maxRedemptionsPerStream;
-    std::optional<std::int32_t> maxRedemptionsPerUserPerStream;
-    std::optional<std::int32_t> globalCooldownSeconds;
+    std::optional<std::int64_t> maxRedemptionsPerStream;
+    std::optional<std::int64_t> maxRedemptionsPerUserPerStream;
+    std::optional<std::int64_t> globalCooldownSeconds;
 
     bool operator==(const Reward& other) const = default;
 };

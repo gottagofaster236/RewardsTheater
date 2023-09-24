@@ -18,9 +18,13 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
       authenticateWithTwitchDialog(new AuthenticateWithTwitchDialog(this, plugin.getTwitchAuth())) {
     ui->setupUi(this);
     setFixedSize(size());  // Forbid the dialog to be resized
+
     connect(ui->authButton, &QPushButton::clicked, this, &SettingsDialog::logInOrLogOut);
     connect(ui->openRewardsQueueButton, &QPushButton::clicked, this, &SettingsDialog::openRewardsQueue);
     connect(&plugin.getTwitchAuth(), &TwitchAuth::onUsernameChanged, this, &SettingsDialog::updateAuthButtonText);
+    connect(&plugin.getTwitchRewardsApi(), &TwitchRewardsApi::onRewardsUpdated, this, &SettingsDialog::showRewards);
+
+    plugin.getTwitchRewardsApi().startService();
 }
 
 void SettingsDialog::logInOrLogOut() {
@@ -52,4 +56,8 @@ void SettingsDialog::updateAuthButtonText(const std::optional<std::string>& user
         newText = obs_module_text("LogIn");
     }
     ui->authButton->setText(QString::fromStdString(newText));
+}
+
+void SettingsDialog::showRewards(const std::vector<Reward>& rewards) {
+    log(LOG_INFO, "Rewards count: {}", rewards.size());
 }

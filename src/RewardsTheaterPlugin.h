@@ -11,6 +11,7 @@
 class RewardsTheaterPlugin {
 public:
     RewardsTheaterPlugin();
+    ~RewardsTheaterPlugin();
     Settings& getSettings();
     TwitchAuth& getTwitchAuth();
     TwitchRewardsApi& getTwitchRewardsApi();

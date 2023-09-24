@@ -32,9 +32,13 @@ RewardsTheaterPlugin::RewardsTheaterPlugin()
     SettingsDialog* settingsDialog = new SettingsDialog(*this, mainWindow);
     obs_frontend_pop_ui_translation();
 
-    auto menuCallback = [=] { settingsDialog->setVisible(!settingsDialog->isVisible()); };
+    auto menuCallback = [=] {
+        settingsDialog->setVisible(!settingsDialog->isVisible());
+    };
     action->connect(action, &QAction::triggered, menuCallback);
 }
+
+RewardsTheaterPlugin::~RewardsTheaterPlugin() = default;
 
 Settings& RewardsTheaterPlugin::getSettings() {
     return settings;

@@ -57,8 +57,8 @@ public:
 signals:
     void onAuthenticationSuccess();
     void onAuthenticationFailure(AuthenticationFailureReason reason);
-    void onAccessTokenAboutToExpire(std::chrono::seconds expiresIn);
-    void onUsernameChanged(std::optional<std::string> username);
+    void onAccessTokenAboutToExpire(const std::chrono::seconds& expiresIn);
+    void onUsernameChanged(const std::optional<std::string>& username);
 
 private:
     void authenticateWithSavedToken();

@@ -11,7 +11,9 @@ IoService::IoService() = default;
 
 IoService::~IoService() {
     ioContext.stop();
-    ioThread.join();
+    if (ioThread.joinable()) {
+        ioThread.join();
+    }
 }
 
 void IoService::startService() {
@@ -22,8 +24,8 @@ void IoService::startService() {
         auto workGuard = asio::make_work_guard(ioContext);  // Run forever until stop()
         try {
             ioContext.run();
-        } catch (const boost::system::system_error& error) {
-            log(LOG_ERROR, "I/O exception: {}", error.what());
+        } catch (const std::exception& exception) {
+            log(LOG_ERROR, "Error in IoService: {}", exception.what());
         }
     });
 }

@@ -24,6 +24,7 @@ private slots:
     void logInOrLogOut();
     void openRewardsQueue();
     void updateAuthButtonText(const std::optional<std::string>& username);
+    void showRewards(const std::vector<Reward>& rewards);
 
 private:
     RewardsTheaterPlugin& plugin;

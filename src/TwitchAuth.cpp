@@ -228,7 +228,7 @@ std::string TwitchAuth::getAuthUrl() {
         {"response_type", "token"},
         {"force_verify", "true"},
     });
-    return static_cast<boost::core::basic_string_view<char>>(authUrl);
+    return authUrl.buffer();
 }
 
 asio::awaitable<std::optional<std::string>> TwitchAuth::asyncGetUsername() {
@@ -245,8 +245,8 @@ asio::awaitable<void> TwitchAuth::asyncRunAuthServer() {
         try {
             tcp::socket socket = co_await acceptor.async_accept(asio::use_awaitable);
             asio::co_spawn(ioContext, asyncProcessRequest(std::move(socket)), asio::detached);
-        } catch (const boost::system::system_error& error) {
-            log(LOG_INFO, "Error: {}", error.what());
+        } catch (const std::exception& exception) {
+            log(LOG_INFO, "Error: {}", exception.what());
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }
@@ -287,9 +287,8 @@ asio::awaitable<void> TwitchAuth::asyncValidateTokenPeriodically() {
             const std::string& token = tokenOptional.value();
             auto validateTokenResponse = co_await asyncValidateToken(token);
             emitAccessTokenAboutToExpireIfNeeded(validateTokenResponse.expiresIn);
-        } catch (boost::system::system_error&) {
-            continue;
-        } catch (boost::property_tree::ptree_error&) {
+        } catch (const std::exception& exception) {
+            log(LOG_ERROR, "Error in asyncValidateTokenPeriodically: {}", exception.what());
             continue;
         }
     }
