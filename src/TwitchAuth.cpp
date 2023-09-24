@@ -221,10 +221,10 @@ asio::awaitable<TwitchAuth::ValidateTokenResponse> TwitchAuth::asyncValidateToke
 }
 
 bool TwitchAuth::tokenHasNeededScopes(const boost::property_tree::ptree& validateTokenResponse) {
-    auto tokenScopes =
-        validateTokenResponse.get_child("scopes") |
-        std::views::transform([](const auto& scope) { return scope.second.template get_value<std::string>(); }) |
-        std::ranges::to<std::set<std::string>>();
+    auto tokenScopesView = validateTokenResponse.get_child("scopes") | std::views::transform([](const auto& scope) {
+                               return scope.second.template get_value<std::string>();
+                           });
+    std::set tokenScopes(tokenScopesView.begin(), tokenScopesView.end());
     return tokenScopes == scopes;
 }
 
