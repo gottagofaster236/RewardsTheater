@@ -14,13 +14,14 @@
 #include <thread>
 
 #include "BoostAsio.h"
+#include "IoService.h"
 #include "Settings.h"
 
 /**
  * A class for Twitch authentication using the Implicit grant flow.
  * Read more here: https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#implicit-grant-flow
  */
-class TwitchAuth : public QObject {
+class TwitchAuth : public QObject, public IoService {
     Q_OBJECT
 
 public:
@@ -31,8 +32,6 @@ public:
         std::uint16_t authServerPort
     );
     ~TwitchAuth();
-
-    void startService();
 
     std::optional<std::string> getAccessToken() const;
     std::string getAccessTokenOrThrow() const;
@@ -63,37 +62,28 @@ signals:
 
 private:
     void authenticateWithSavedToken();
-    boost::asio::awaitable<void> asyncAuthenticateWithToken(std::string token, boost::asio::io_context& ioContext);
+    boost::asio::awaitable<void> asyncAuthenticateWithToken(std::string token);
 
     struct ValidateTokenResponse {
         std::chrono::seconds expiresIn{0};
         std::string userId;
     };
-    boost::asio::awaitable<ValidateTokenResponse> asyncValidateToken(
-        std::string token,
-        boost::asio::io_context& ioContext
-    );
+    boost::asio::awaitable<ValidateTokenResponse> asyncValidateToken(std::string token);
     bool tokenHasNeededScopes(const boost::property_tree::ptree& validateTokenResponse);
 
     std::string getAuthUrl();
 
-    boost::asio::awaitable<std::optional<std::string>> asyncGetUsername(boost::asio::io_context& ioContext);
+    boost::asio::awaitable<std::optional<std::string>> asyncGetUsername();
 
-    boost::asio::awaitable<void> asyncRunAuthServer(boost::asio::io_context& ioContext);
-    boost::asio::awaitable<void> asyncProcessRequest(
-        boost::asio::ip::tcp::socket socket,
-        boost::asio::io_context& ioContext
-    );
+    boost::asio::awaitable<void> asyncRunAuthServer();
+    boost::asio::awaitable<void> asyncProcessRequest(boost::asio::ip::tcp::socket socket);
 
-    boost::asio::awaitable<void> asyncValidateTokenPeriodically(boost::asio::io_context& ioContext);
+    boost::asio::awaitable<void> asyncValidateTokenPeriodically();
     void emitAccessTokenAboutToExpireIfNeeded(std::chrono::seconds expiresIn);
 
     std::optional<std::string> accessToken;
     std::optional<std::string> userId;
     mutable std::mutex accessTokenMutex;
-
-    std::thread authThread;
-    boost::asio::io_context authIoContext;
 
     Settings& settings;
     std::string clientId;

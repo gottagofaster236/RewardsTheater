@@ -41,7 +41,9 @@ target_sources(
           src/TwitchApi.h
           src/TwitchApi.cpp
           src/Log.h
-          src/BoostAsio.h)
+          src/BoostAsio.h
+		  src/IoService.h
+          src/IoService.cpp)
 
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
