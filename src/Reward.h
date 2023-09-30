@@ -16,7 +16,7 @@ struct Reward {
         bool operator==(const Color& other) const = default;
     };
 
-    std::string id;
+    std::optional<std::string> id;
     std::string title;
     std::int32_t cost;
     bool isEnabled;

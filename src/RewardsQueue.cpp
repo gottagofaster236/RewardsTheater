@@ -4,6 +4,7 @@
 #include "RewardsQueue.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cstring>
 
 RewardsQueue::RewardsQueue(const Settings& settings) : settings(settings) {}
@@ -15,6 +16,7 @@ std::vector<Reward> RewardsQueue::getRewardsQueue() const {
 }
 
 void RewardsQueue::queueReward(const Reward& reward) {
+    assert(reward.id.has_value());
     bool playImmediately;
     {
         std::lock_guard<std::mutex> lock(rewardsMutex);
@@ -89,7 +91,7 @@ std::optional<OBSSourceAutoRelease> RewardsQueue::popNextReward() {
     while (!rewardsQueue.empty()) {
         Reward nextReward = rewardsQueue.front();
         rewardsQueue.pop_front();
-        std::optional<std::string> obsSourceName = settings.getObsSourceName(nextReward.id);
+        std::optional<std::string> obsSourceName = settings.getObsSourceName(nextReward.id.value());
         if (!obsSourceName) {
             continue;
         }
