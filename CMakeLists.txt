@@ -43,7 +43,9 @@ target_sources(
           src/Log.h
           src/BoostAsio.h
           src/IoService.h
-          src/IoService.cpp)
+          src/IoService.cpp
+          src/EditRewardDialog.h
+          src/EditRewardDialog.cpp)
 
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
