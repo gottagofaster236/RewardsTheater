@@ -37,17 +37,13 @@ asio::awaitable<void> TwitchRewardsApi::asyncUpdateRewards() {
 }
 
 asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards() {
-    std::optional<std::string> userId = twitchAuth.getUserId();
-    if (!userId) {
-        co_return std::vector<Reward>{};
-    }
-
-    boost::urls::url target = boost::urls::parse_origin_form("/helix/channel_points/custom_rewards").value();
-    target.set_params({
-        {"broadcaster_id", userId.value()},
-    });
-
-    TwitchApi::Response response = co_await TwitchApi::request("api.twitch.tv", target.buffer(), twitchAuth, ioContext);
+    TwitchApi::Response response = co_await TwitchApi::request(
+        twitchAuth,
+        ioContext,
+        "api.twitch.tv",
+        "/helix/channel_points/custom_rewards",
+        {{"broadcaster_id", twitchAuth.getUserIdOrThrow()}}
+    );
     if (response.status != http::status::ok) {
         co_return std::vector<Reward>{};
     }

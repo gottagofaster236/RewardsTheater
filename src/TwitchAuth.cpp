@@ -103,6 +103,15 @@ std::optional<std::string> TwitchAuth::getUserId() const {
     return userId;
 }
 
+std::string TwitchAuth::getUserIdOrThrow() const {
+    std::lock_guard guard(accessTokenMutex);
+    if (!userId) {
+        throw UnauthenticatedException();
+    } else {
+        return userId.value();
+    }
+}
+
 const std::string& TwitchAuth::getClientId() const {
     return clientId;
 }
@@ -184,7 +193,7 @@ asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token) 
 
 asio::awaitable<TwitchAuth::ValidateTokenResponse> TwitchAuth::asyncValidateToken(std::string token) {
     TwitchApi::Response validateTokenResponse =
-        co_await TwitchApi::request("id.twitch.tv", "/oauth2/validate", token, clientId, ioContext);
+        co_await TwitchApi::request(token, clientId, ioContext, "id.twitch.tv", "/oauth2/validate");
 
     if (validateTokenResponse.status == http::status::unauthorized) {
         co_return TwitchAuth::ValidateTokenResponse{};
@@ -232,7 +241,7 @@ std::string TwitchAuth::getAuthUrl() {
 }
 
 asio::awaitable<std::optional<std::string>> TwitchAuth::asyncGetUsername() {
-    TwitchApi::Response response = co_await TwitchApi::request("api.twitch.tv", "/helix/users", *this, ioContext);
+    TwitchApi::Response response = co_await TwitchApi::request(*this, ioContext, "api.twitch.tv", "/helix/users");
     if (response.status != http::status::ok) {
         co_return std::nullopt;
     }

@@ -13,11 +13,12 @@ namespace http = boost::beast::http;
 namespace TwitchApi {
 
 asio::awaitable<Response> request(
-    const std::string& host,
-    const std::string& target,
     const std::string& accessToken,
     const std::string& clientId,
-    asio::io_context& ioContext
+    asio::io_context& ioContext,
+    const std::string& host,
+    const std::string& target,
+    std::initializer_list<boost::urls::param_view> urlParams
 ) {
     ssl::context sslContext{ssl::context::sslv23};
     sslContext.set_default_verify_paths();
@@ -30,13 +31,15 @@ asio::awaitable<Response> request(
     );
     co_await stream.async_handshake(ssl::stream_base::client, asio::use_awaitable);
 
-    boost::beast::flat_buffer buffer;
-    http::request<http::empty_body> req{http::verb::get, target, 11};
+    boost::urls::url targetWithParams = boost::urls::parse_origin_form(target).value();
+    targetWithParams.set_params(urlParams);
+    http::request<http::empty_body> req{http::verb::get, targetWithParams.buffer(), 11};
     req.set(http::field::host, host);
     req.set(http::field::authorization, "Bearer " + accessToken);
     req.set("Client-Id", clientId);
     co_await http::async_write(stream, req, asio::use_awaitable);
 
+    boost::beast::flat_buffer buffer;
     http::response<http::dynamic_body> response;
     co_await http::async_read(stream, buffer, response, asio::use_awaitable);
     std::string body = boost::beast::buffers_to_string(response.body().data());
@@ -48,13 +51,14 @@ asio::awaitable<Response> request(
 }
 
 boost::asio::awaitable<Response> request(
+    TwitchAuth& auth,
+    boost::asio::io_context& ioContext,
     const std::string& host,
     const std::string& target,
-    TwitchAuth& auth,
-    boost::asio::io_context& ioContext
+    std::initializer_list<boost::urls::param_view> urlParams
 ) {
-    std::string accessToken = auth.getAccessTokenOrThrow();
-    Response response = co_await request(host, target, accessToken, auth.getClientId(), ioContext);
+    Response response =
+        co_await request(auth.getAccessTokenOrThrow(), auth.getClientId(), ioContext, host, target, urlParams);
     if (response.status == http::status::unauthorized) {
         auth.logOutAndEmitAuthenticationFailure();
         throw TwitchAuth::UnauthenticatedException();

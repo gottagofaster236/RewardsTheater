@@ -4,6 +4,7 @@
 #pragma once
 
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/url.hpp>
 #include <functional>
 #include <utility>
 
@@ -18,18 +19,20 @@ struct Response {
 };
 
 boost::asio::awaitable<Response> request(
-    const std::string& host,
-    const std::string& target,
     const std::string& accessToken,
     const std::string& clientId,
-    boost::asio::io_context& ioContext
+    boost::asio::io_context& ioContext,
+    const std::string& host,
+    const std::string& target,
+    std::initializer_list<boost::urls::param_view> urlParams = {}
 );
 
 boost::asio::awaitable<Response> request(
+    TwitchAuth& auth,
+    boost::asio::io_context& ioContext,
     const std::string& host,
     const std::string& target,
-    TwitchAuth& auth,
-    boost::asio::io_context& ioContext
+    std::initializer_list<boost::urls::param_view> urlParams = {}
 );
 
 template <typename Callable, typename... Params>

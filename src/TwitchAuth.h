@@ -37,6 +37,7 @@ public:
     std::string getAccessTokenOrThrow() const;
     bool isAuthenticated() const;
     std::optional<std::string> getUserId() const;
+    std::string getUserIdOrThrow() const;
     const std::string& getClientId() const;
 
     void authenticate();
