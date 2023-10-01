@@ -25,6 +25,10 @@ private slots:
     void openRewardsQueue();
     void updateAuthButtonText(const std::optional<std::string>& username);
     void showRewards(const std::vector<Reward>& rewards);
+    void showUpdateAvailableTextIfNeeded();
+
+private:
+    bool isUpdateAvailable();
 
 private:
     RewardsTheaterPlugin& plugin;

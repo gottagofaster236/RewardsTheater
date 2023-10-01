@@ -18,6 +18,7 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
       authenticateWithTwitchDialog(new AuthenticateWithTwitchDialog(this, plugin.getTwitchAuth())) {
     ui->setupUi(this);
     setFixedSize(size());
+    showUpdateAvailableTextIfNeeded();  // TODO remove
 
     connect(ui->authButton, &QPushButton::clicked, this, &SettingsDialog::logInOrLogOut);
     connect(ui->openRewardsQueueButton, &QPushButton::clicked, this, &SettingsDialog::openRewardsQueue);
@@ -60,4 +61,28 @@ void SettingsDialog::updateAuthButtonText(const std::optional<std::string>& user
 
 void SettingsDialog::showRewards(const std::vector<Reward>& rewards) {
     log(LOG_INFO, "Rewards count: {}", rewards.size());
+}
+
+void SettingsDialog::showUpdateAvailableTextIfNeeded() {
+    // TODO make this an asynchronous thing instead.
+    if (!isUpdateAvailable()) {
+        return;
+    }
+
+    const char* updateUrl = "https://github.com/gottagofaster236/RewardsTheater/releases/latest";
+    const char* updateAvailableText = obs_module_text("UpdateAvailable");
+    std::string updateAvailableLink = fmt::format(" <a href=\"{}\">{}</a>", updateUrl, updateAvailableText);
+
+    ui->titleLabel->setText(ui->titleLabel->text() + QString::fromStdString(updateAvailableLink));
+    ui->titleLabel->setTextFormat(Qt::RichText);
+    ui->titleLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    ui->titleLabel->setOpenExternalLinks(true);
+}
+
+bool SettingsDialog::isUpdateAvailable() {
+    // TODO query https://api.github.com/repos/gottagofaster236/RewardsTheater/releases/latest
+    // And compare it from the version from CMakeLists.txt by splitting the version into three numbers (?)
+    // And then comparing lexicographically. Or maybe boost has something like this.
+    // Refactor a https request function from TwitchApi::request and use it here (think about the namespace??)
+    return true;
 }
