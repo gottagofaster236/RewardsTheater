@@ -17,7 +17,7 @@ class RewardWidget : public QWidget {
     Q_OBJECT
 
 public:
-    RewardWidget(const Reward& reward, TwitchRewardsApi& twitchRewardsApi, QWidget* parent);
+    RewardWidget(const Reward& reward, TwitchRewardsApi& twitchRewardsApi, QWidget* parent = nullptr);
     ~RewardWidget();
 
 private:

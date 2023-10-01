@@ -15,8 +15,7 @@ namespace asio = boost::asio;
 namespace http = boost::beast::http;
 
 TwitchRewardsApi::TwitchRewardsApi(TwitchAuth& twitchAuth) : twitchAuth(twitchAuth) {
-    connect(&twitchAuth, &TwitchAuth::onAuthenticationSuccess, this, &TwitchRewardsApi::updateRewards);
-    connect(&twitchAuth, &TwitchAuth::onAuthenticationFailure, this, &TwitchRewardsApi::updateRewards);
+    connect(&twitchAuth, &TwitchAuth::onUserChanged, this, &TwitchRewardsApi::updateRewards);
 }
 
 TwitchRewardsApi::~TwitchRewardsApi() = default;

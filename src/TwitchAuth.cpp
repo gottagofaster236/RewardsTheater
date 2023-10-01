@@ -137,6 +137,7 @@ void TwitchAuth::logOut() {
         userId = {};
     }
     settings.setTwitchAccessToken({});
+    emit onUserChanged();
     emit onUsernameChanged({});
 }
 
@@ -186,6 +187,7 @@ asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token) 
     settings.setTwitchAccessToken(token);
     emit onAuthenticationSuccess();
     emitAccessTokenAboutToExpireIfNeeded(validateTokenResponse.expiresIn);
+    emit onUserChanged();
     std::optional<std::string> username = co_await asyncGetUsername();
     emit onUsernameChanged(username);
 }

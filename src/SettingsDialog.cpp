@@ -6,18 +6,19 @@
 #include <obs-module.h>
 #include <obs.h>
 
+#include <algorithm>
 #include <format>
 #include <iostream>
 #include <obs.hpp>
 
 #include "Log.h"
+#include "RewardWidget.h"
 #include "ui_SettingsDialog.h"
 
 SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
     : QDialog(parent), plugin(plugin), ui(std::make_unique<Ui::SettingsDialog>()),
       authenticateWithTwitchDialog(new AuthenticateWithTwitchDialog(this, plugin.getTwitchAuth())) {
     ui->setupUi(this);
-    setFixedSize(size());
     showUpdateAvailableTextIfNeeded();  // TODO remove
 
     connect(ui->authButton, &QPushButton::clicked, this, &SettingsDialog::logInOrLogOut);
@@ -60,7 +61,18 @@ void SettingsDialog::updateAuthButtonText(const std::optional<std::string>& user
 }
 
 void SettingsDialog::showRewards(const std::vector<Reward>& rewards) {
-    log(LOG_INFO, "Rewards count: {}", rewards.size());
+    // todo remove previous widgets???
+
+    std::vector<Reward> rewardsSorted = rewards;
+    std::ranges::sort(rewardsSorted, {}, [](const Reward& reward) {
+        return reward.cost;
+    });
+
+    const int REWARDS_PER_ROW = 3;
+    for (int i = 0; i < static_cast<int>(rewards.size()); i++) {
+        RewardWidget* rewardWidget = new RewardWidget(rewardsSorted[i], plugin.getTwitchRewardsApi());
+        ui->rewardsGridLayout->addWidget(rewardWidget, i / REWARDS_PER_ROW, i % REWARDS_PER_ROW);
+    }
 }
 
 void SettingsDialog::showUpdateAvailableTextIfNeeded() {

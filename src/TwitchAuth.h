@@ -58,6 +58,7 @@ public:
 signals:
     void onAuthenticationSuccess();
     void onAuthenticationFailure(AuthenticationFailureReason reason);
+    void onUserChanged();
     void onAccessTokenAboutToExpire(const std::chrono::seconds& expiresIn);
     void onUsernameChanged(const std::optional<std::string>& username);
 

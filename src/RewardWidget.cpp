@@ -13,7 +13,7 @@ RewardWidget::RewardWidget(const Reward& reward, TwitchRewardsApi& twitchRewards
     setFixedSize(size());
 
     ui->costLabel->setText(QString::number(reward.cost));
-    ui->costLabel->setText(QString::fromStdString(reward.title));
+    ui->titleLabel->setText(QString::fromStdString(reward.title));
     // TODO load icon from rewards api asynchronously
 }
 
