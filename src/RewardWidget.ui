@@ -28,7 +28,7 @@
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
-   <widget class="QLabel" name="image">
+   <widget class="QLabel" name="imageLabel">
     <property name="geometry">
      <rect>
       <x>30</x>
@@ -41,7 +41,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="cost">
+   <widget class="QLabel" name="costLabel">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -58,7 +58,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="QLabel" name="title">
+  <widget class="QLabel" name="titleLabel">
    <property name="geometry">
     <rect>
      <x>20</x>
