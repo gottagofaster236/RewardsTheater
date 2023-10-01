@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <fmt/core.h>
 #include <util/base.h>
 
+#include <format>
 #include <utility>
 
 template <typename... T>
-inline void log(decltype(LOG_DEBUG) logLevel, fmt::format_string<T...> fmt, T&&... args) {
-    blog(logLevel, "[RewardsTheater] %s", fmt::format(fmt, std::forward<T>(args)...).c_str());
+inline void log(decltype(LOG_DEBUG) logLevel, std::format_string<T...> fmt, T&&... args) {
+    blog(logLevel, "[RewardsTheater] %s", std::format(fmt, std::forward<T>(args)...).c_str());
 }

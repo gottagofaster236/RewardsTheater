@@ -55,10 +55,9 @@ set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 # Libraries from vcpkg
 find_package(Boost REQUIRED COMPONENTS system url)
 find_package(OpenSSL REQUIRED)
-find_package(fmt REQUIRED)
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC Boost::system Boost::url OpenSSL::SSL
-                                                   OpenSSL::Crypto fmt::fmt)
+                                                   OpenSSL::Crypto)
 
 # Import libobs as main plugin dependency
 find_package(libobs REQUIRED)

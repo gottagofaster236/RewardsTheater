@@ -3,14 +3,13 @@
 
 #include "TwitchAuth.h"
 
-#include <fmt/core.h>
-
 #include <QDesktopServices>
 #include <QUrl>
 #include <algorithm>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/url.hpp>
 #include <cstdint>
+#include <format>
 #include <ranges>
 
 #include "BoostAsio.h"
@@ -232,7 +231,7 @@ std::string TwitchAuth::getAuthUrl() {
 
     authUrl.set_params({
         {"client_id", clientId},
-        {"redirect_uri", fmt::format("http://localhost:{}", authServerPort)},
+        {"redirect_uri", std::format("http://localhost:{}", authServerPort)},
         {"scope", scopesString},
         {"response_type", "token"},
         {"force_verify", "true"},

@@ -3,10 +3,10 @@
 
 #include "SettingsDialog.h"
 
-#include <fmt/core.h>
 #include <obs-module.h>
 #include <obs.h>
 
+#include <format>
 #include <iostream>
 #include <obs.hpp>
 
@@ -52,7 +52,7 @@ void SettingsDialog::updateAuthButtonText(const std::optional<std::string>& user
         } else {
             usernameShown = obs_module_text("ErrorUsername");
         }
-        newText = fmt::format(fmt::runtime(obs_module_text("LogOut")), usernameShown);
+        newText = std::vformat(obs_module_text("LogOut"), std::make_format_args(usernameShown));
     } else {
         newText = obs_module_text("LogIn");
     }
@@ -71,7 +71,7 @@ void SettingsDialog::showUpdateAvailableTextIfNeeded() {
 
     const char* updateUrl = "https://github.com/gottagofaster236/RewardsTheater/releases/latest";
     const char* updateAvailableText = obs_module_text("UpdateAvailable");
-    std::string updateAvailableLink = fmt::format(" <a href=\"{}\">{}</a>", updateUrl, updateAvailableText);
+    std::string updateAvailableLink = std::format(" <a href=\"{}\">{}</a>", updateUrl, updateAvailableText);
 
     ui->titleLabel->setText(ui->titleLabel->text() + QString::fromStdString(updateAvailableLink));
     ui->titleLabel->setTextFormat(Qt::RichText);

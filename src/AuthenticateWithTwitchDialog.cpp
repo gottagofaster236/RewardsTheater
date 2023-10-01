@@ -3,10 +3,10 @@
 
 #include "AuthenticateWithTwitchDialog.h"
 
-#include <fmt/core.h>
 #include <obs-module.h>
 #include <obs.h>
 
+#include <format>
 #include <iostream>
 #include <obs.hpp>
 
@@ -78,7 +78,8 @@ void AuthenticateWithTwitchDialog::showAuthenticationFailureMessage(TwitchAuth::
 
 void AuthenticateWithTwitchDialog::showAccessTokenAboutToExpireMessage(std::chrono::seconds expiresIn) {
     int expiresInHours = std::ceil(expiresIn.count() / 3600);
-    std::string message = fmt::format(fmt::runtime(obs_module_text("TwitchTokenAboutToExpire")), expiresInHours);
+    std::string message =
+        std::vformat(obs_module_text("TwitchTokenAboutToExpire"), std::make_format_args(expiresInHours));
     showAuthenticationMessage(message);
 }
 
