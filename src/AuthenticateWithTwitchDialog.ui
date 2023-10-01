@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>AuthenticateWithTwitch</string>
+   <string>AuthenticateRewardsTheaterWithTwitch</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -28,7 +28,11 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QLineEdit" name="accessTokenEdit"/>
+       <widget class="QLineEdit" name="accessTokenEdit">
+        <property name="echoMode">
+         <enum>QLineEdit::Password</enum>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="authenticateWithAccessTokenButton">

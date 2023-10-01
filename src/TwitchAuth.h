@@ -73,15 +73,19 @@ private:
     boost::asio::awaitable<ValidateTokenResponse> asyncValidateToken(std::string token);
     bool tokenHasNeededScopes(const boost::property_tree::ptree& validateTokenResponse);
 
-    std::string getAuthUrl();
-
     boost::asio::awaitable<std::optional<std::string>> asyncGetUsername();
+
+    boost::asio::awaitable<void> asyncValidateTokenPeriodically();
+    void emitAccessTokenAboutToExpireIfNeeded(std::chrono::seconds expiresIn);
 
     boost::asio::awaitable<void> asyncRunAuthServer();
     boost::asio::awaitable<void> asyncProcessRequest(boost::asio::ip::tcp::socket socket);
 
-    boost::asio::awaitable<void> asyncValidateTokenPeriodically();
-    void emitAccessTokenAboutToExpireIfNeeded(std::chrono::seconds expiresIn);
+    std::string getDoNotShowOnStreamPageUrl();
+    std::string getDoNotShowOnStreamPageHtml();
+    std::string getAuthPageUrl();
+    std::string getAuthRedirectPageUrl();
+    std::string getAuthRedirectPageHtml();
 
     std::optional<std::string> accessToken;
     std::optional<std::string> userId;
