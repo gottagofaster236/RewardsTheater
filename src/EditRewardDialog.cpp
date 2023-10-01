@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// Copyright (c) 2023, Lev Leontev
+
 #include "EditRewardDialog.h"
 
 #include "ui_EditRewardDialog.h"
@@ -14,4 +17,4 @@ EditRewardDialog::EditRewardDialog(
     (void) this->twitchRewardsApi;
 }
 
-EditRewardDialog::~EditRewardDialog() {}
+EditRewardDialog::~EditRewardDialog() = default;

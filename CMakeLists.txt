@@ -45,7 +45,9 @@ target_sources(
           src/IoService.h
           src/IoService.cpp
           src/EditRewardDialog.h
-          src/EditRewardDialog.cpp)
+          src/EditRewardDialog.cpp
+          src/RewardWidget.h
+          src/RewardWidget.cpp)
 
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
