@@ -25,7 +25,7 @@
      <property name="widgetResizable">
       <bool>true</bool>
      </property>
-     <widget class="QWidget" name="rewardsScrollAreaWidgetContents">
+     <widget class="QWidget" name="rewardsGrid">
       <property name="geometry">
        <rect>
         <x>0</x>

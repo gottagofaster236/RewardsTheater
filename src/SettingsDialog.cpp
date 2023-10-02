@@ -61,7 +61,10 @@ void SettingsDialog::updateAuthButtonText(const std::optional<std::string>& user
 }
 
 void SettingsDialog::showRewards(const std::vector<Reward>& rewards) {
-    // todo remove previous widgets???
+    // Remove old rewards
+    for (int i = 0; i < ui->rewardsGridLayout->count(); i++) {
+        ui->rewardsGridLayout[0].itemAt(i)->widget()->deleteLater();
+    }
 
     std::vector<Reward> rewardsSorted = rewards;
     std::ranges::sort(rewardsSorted, {}, [](const Reward& reward) {
@@ -70,7 +73,7 @@ void SettingsDialog::showRewards(const std::vector<Reward>& rewards) {
 
     const int REWARDS_PER_ROW = 3;
     for (int i = 0; i < static_cast<int>(rewards.size()); i++) {
-        RewardWidget* rewardWidget = new RewardWidget(rewardsSorted[i], plugin.getTwitchRewardsApi());
+        RewardWidget* rewardWidget = new RewardWidget(rewardsSorted[i], plugin.getTwitchRewardsApi(), ui->rewardsGrid);
         ui->rewardsGridLayout->addWidget(rewardWidget, i / REWARDS_PER_ROW, i % REWARDS_PER_ROW);
     }
 }
