@@ -23,7 +23,7 @@ boost::asio::awaitable<Response> request(
     const std::string& clientId,
     boost::asio::io_context& ioContext,
     const std::string& host,
-    const std::string& target,
+    const std::string& path,
     std::initializer_list<boost::urls::param_view> urlParams = {}
 );
 
@@ -31,7 +31,7 @@ boost::asio::awaitable<Response> request(
     TwitchAuth& auth,
     boost::asio::io_context& ioContext,
     const std::string& host,
-    const std::string& target,
+    const std::string& path,
     std::initializer_list<boost::urls::param_view> urlParams = {}
 );
 

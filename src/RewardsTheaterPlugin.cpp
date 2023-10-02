@@ -13,8 +13,10 @@
 
 #include "SettingsDialog.h"
 
+// https://dev.twitch.tv/docs/authentication/register-app/
 static const char* const TWITCH_CLIENT_ID = "2u4jgrdekf0pwdpq7cmqcarifv93z3";
-static const int AUTH_SERVER_PORT = 19918;
+// Use several ports to minimize the probability of collision between several running OBS instances.
+static const std::array<int, 10> AUTH_SERVER_PORTS = {19910, 19911, 19912, 19913, 19914, 19915, 19916, 19917, 19918, 19919};
 
 RewardsTheaterPlugin::RewardsTheaterPlugin()
     : settings(Settings(obs_frontend_get_global_config())),
@@ -22,7 +24,7 @@ RewardsTheaterPlugin::RewardsTheaterPlugin()
           settings,
           TWITCH_CLIENT_ID,
           {"channel:read:redemptions", "channel:manage:redemptions"},
-          AUTH_SERVER_PORT
+          AUTH_SERVER_PORTS[std::random_device()() % AUTH_SERVER_PORTS.size()]
       ),
       twitchRewardsApi(twitchAuth), rewardsQueue(settings) {
     QMainWindow* mainWindow = (QMainWindow*) obs_frontend_get_main_window();

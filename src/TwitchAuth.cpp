@@ -12,6 +12,7 @@
 #include <boost/url.hpp>
 #include <cstdint>
 #include <format>
+#include <iterator>
 #include <ranges>
 
 #include "BoostAsio.h"
@@ -32,7 +33,8 @@ TwitchAuth::TwitchAuth(
     const std::set<std::string>& scopes,
     std::uint16_t authServerPort
 )
-    : settings(settings), clientId(clientId), scopes(scopes), authServerPort(authServerPort) {
+    : settings(settings), clientId(clientId), scopes(scopes), authServerPort(authServerPort),
+      randomEngine(std::random_device()()) {
     // All of these are not run before the call to startService()
     asio::co_spawn(ioContext, asyncRunAuthServer(), asio::detached);
     asio::co_spawn(ioContext, asyncValidateTokenPeriodically(), asio::detached);
@@ -225,7 +227,7 @@ asio::awaitable<void> TwitchAuth::asyncRunAuthServer() {
             tcp::socket socket = co_await acceptor.async_accept(asio::use_awaitable);
             asio::co_spawn(ioContext, asyncProcessRequest(std::move(socket)), asio::detached);
         } catch (const std::exception& exception) {
-            log(LOG_INFO, "Error: {}", exception.what());
+            log(LOG_ERROR, "Error: {}", exception.what());
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }
@@ -233,38 +235,58 @@ asio::awaitable<void> TwitchAuth::asyncRunAuthServer() {
 
 asio::awaitable<void> TwitchAuth::asyncProcessRequest(tcp::socket socket) {
     http::request<http::string_body> request;
-    http::response<http::string_body> response;
     boost::beast::flat_buffer buffer;
-    co_await http::async_read(socket, buffer, request, asio::use_awaitable);
+    try {
+        co_await http::async_read(socket, buffer, request, asio::use_awaitable);
+        http::response<http::string_body> response = getResponse(request);
+        co_await http::async_write(socket, response, asio::use_awaitable);
+    } catch (std::exception& exception) {
+        log(LOG_ERROR, "Error: {}", exception.what());
+    }
+}
 
-    if (request.target() == "/doNotShowOnStream") {
+http::response<http::string_body> TwitchAuth::getResponse(const http::request<http::string_body>& request) {
+    http::response<http::string_body> response;
+
+    boost::urls::url target = boost::urls::parse_origin_form(request.target()).value();
+    std::string path = target.path();
+    auto params = target.params();
+    auto csrfStateIterator = params.find("state");
+    std::string csrfState;
+    if (csrfStateIterator != params.end()) {
+        csrfState = (*csrfStateIterator).value;
+    }
+
+    if (path == "/doNotShowOnStream") {
         response.set(http::field::content_type, "text/html");
-        response.body() = getDoNotShowOnStreamPageHtml();
+        response.body() = getDoNotShowOnStreamPageHtml(csrfState);
         response.prepare_payload();
-    } else if (request.target() == "/authRedirect") {
+    } else if (path == "/authRedirect") {
         response.set(http::field::content_type, "text/html");
         response.body() = getAuthRedirectPageHtml();
         response.prepare_payload();
-    } else if (request.target() == "/accessToken") {
+    } else if (path == "/accessToken") {
         std::string responseAccessToken = request.body();
-        if (responseAccessToken.empty()) {
+        if (!isValidCsrfState(csrfState) || responseAccessToken.empty()) {
             response.result(http::status::bad_request);
-        } else {
-            co_await asyncAuthenticateWithToken(responseAccessToken);
+            return response;
         }
+        asio::co_spawn(ioContext, asyncAuthenticateWithToken(responseAccessToken), asio::detached);
     } else {
         response.body() = "RewardsTheater auth server";
         response.prepare_payload();
     }
-
-    co_await http::async_write(socket, response, asio::use_awaitable);
+    return response;
 }
 
 std::string TwitchAuth::getDoNotShowOnStreamPageUrl() {
-    return std::format("http://localhost:{}/doNotShowOnStream", authServerPort);
+    boost::urls::url authUrl = boost::urls::parse_uri_reference("http://localhost/doNotShowOnStream").value();
+    authUrl.set_port_number(authServerPort);
+    authUrl.set_params({{"state", generateCsrfState()}});
+    return authUrl.buffer();
 }
 
-std::string TwitchAuth::getDoNotShowOnStreamPageHtml() {
+std::string TwitchAuth::getDoNotShowOnStreamPageHtml(const std::string& csrfState) {
     auto doNotShowOnStreamTemplate = R"(
         <!DOCTYPE html>
         <html>
@@ -303,13 +325,13 @@ std::string TwitchAuth::getDoNotShowOnStreamPageHtml() {
         std::make_format_args(
             obs_module_text("RewardsTheater"),
             obs_module_text("DoNotShowOnStream"),
-            getAuthPageUrl(),
+            getAuthPageUrl(csrfState),
             obs_module_text("AuthenticateWithTwitch")
         )
     );
 }
 
-std::string TwitchAuth::getAuthPageUrl() {
+std::string TwitchAuth::getAuthPageUrl(const std::string& csrfState) {
     boost::urls::url authUrl = boost::urls::parse_uri_reference("https://id.twitch.tv/oauth2/authorize").value();
     std::string scopesString = "";
     for (const std::string& scope : scopes) {
@@ -321,10 +343,11 @@ std::string TwitchAuth::getAuthPageUrl() {
 
     authUrl.set_params({
         {"client_id", clientId},
-        {"redirect_uri", getAuthRedirectPageUrl()},
-        {"scope", scopesString},
-        {"response_type", "token"},
         {"force_verify", "true"},
+        {"redirect_uri", getAuthRedirectPageUrl()},
+        {"response_type", "token"},
+        {"scope", scopesString},
+        {"state", csrfState},
     });
     return authUrl.buffer();
 }
@@ -350,25 +373,25 @@ std::string TwitchAuth::getAuthRedirectPageHtml() {
                 let message = document.getElementById('message');
                 let fragment = window.location.hash;
                 window.location.hash = '';  // Hide the access token in case if the user opens the page again.
-                let accessTokenParameter = '#access_token=';
-                if (!fragment.startsWith(accessTokenParameter)) {{
+                let fragmentParsed = new URLSearchParams(fragment.substring(1));
+                let accessToken = fragmentParsed.get('access_token');
+                let csrfState = fragmentParsed.get('state');
+                if (accessToken == null || csrfState == null) {{
                   message.textContent = '{}';  // TwitchAuthenticationFailedNoAccessToken
                   return;
                 }}
-                let accessToken = fragment.substr(accessTokenParameter.length).split('&')[0];
                 let xhr = new XMLHttpRequest();
-                xhr.open('POST', '/accessToken');
+                xhr.open('POST', '/accessToken?state=' + csrfState);
                 xhr.setRequestHeader('Content-Type', 'text/plain');
-                let errorMessage = '{}' + accessToken;  // PleasePasteThisToken
                 xhr.onload = function() {{
                   if (xhr.status === 200) {{
                     message.textContent = '{}';  // TwitchAuthenticationSuccessful
                   }} else {{
-                    message.textContent = errorMessage;
+                    message.textContent = '{}';  // TwitchAuthenticationFailedTryAgain
                   }}
                 }};
                 xhr.onerror = function() {{
-                  message.textContent = errorMessage;
+                  message.textContent = '{}' + accessToken;  // PleasePasteThisToken
                 }};
                 xhr.send(accessToken);
               }}
@@ -385,10 +408,35 @@ std::string TwitchAuth::getAuthRedirectPageHtml() {
         std::make_format_args(
             obs_module_text("RewardsTheater"),
             obs_module_text("TwitchAuthenticationFailedNoAccessToken"),
-            obs_module_text("PleasePasteThisToken"),
             obs_module_text("TwitchAuthenticationSuccessful"),
+            obs_module_text("TwitchAuthenticationFailedTryAgain"),
+            obs_module_text("PleasePasteThisToken"),
             obs_module_text("RewardsTheater"),
             obs_module_text("TwitchAuthenticationInProgress")
         )
     );
+}
+
+std::string TwitchAuth::generateCsrfState() {
+    std::lock_guard guard(csrfStatesMutex);
+
+    std::string csrfState;
+    auto inserter = std::back_inserter(csrfState);
+    std::string allowedChars = "0123456789abcdefghijklmnopqrstuvwxyz";
+    for (int i = 0; i < 32; i++) {
+        std::ranges::sample(allowedChars, inserter, 1, randomEngine);
+    }
+
+    csrfStates.insert(csrfState);
+
+    return csrfState;
+}
+
+bool TwitchAuth::isValidCsrfState(const std::string& csrfState) {
+    std::lock_guard guard(csrfStatesMutex);
+    if (csrfStates.contains(csrfState)) {
+        csrfStates.erase(csrfState);
+        return true;
+    }
+    return false;
 }

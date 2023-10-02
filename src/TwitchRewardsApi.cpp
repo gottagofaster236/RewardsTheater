@@ -35,6 +35,7 @@ asio::awaitable<void> TwitchRewardsApi::asyncUpdateRewards() {
     emit onRewardsUpdated({});
 }
 
+// https://dev.twitch.tv/docs/api/reference/#get-custom-reward
 asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards() {
     TwitchApi::Response response = co_await TwitchApi::request(
         twitchAuth,

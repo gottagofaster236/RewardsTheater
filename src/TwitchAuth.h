@@ -9,6 +9,7 @@
 #include <exception>
 #include <mutex>
 #include <optional>
+#include <random>
 #include <set>
 #include <string>
 #include <thread>
@@ -80,19 +81,29 @@ private:
 
     boost::asio::awaitable<void> asyncRunAuthServer();
     boost::asio::awaitable<void> asyncProcessRequest(boost::asio::ip::tcp::socket socket);
+    boost::beast::http::response<boost::beast::http::string_body> getResponse(
+        const boost::beast::http::request<boost::beast::http::string_body>& request
+    );
 
     std::string getDoNotShowOnStreamPageUrl();
-    std::string getDoNotShowOnStreamPageHtml();
-    std::string getAuthPageUrl();
+    std::string getDoNotShowOnStreamPageHtml(const std::string& csrfState);
+    std::string getAuthPageUrl(const std::string& csrfState);
     std::string getAuthRedirectPageUrl();
     std::string getAuthRedirectPageHtml();
 
-    std::optional<std::string> accessToken;
-    std::optional<std::string> userId;
-    mutable std::mutex accessTokenMutex;
+    std::string generateCsrfState();
+    bool isValidCsrfState(const std::string& csrfState);
 
     Settings& settings;
     std::string clientId;
     std::set<std::string> scopes;
     std::uint16_t authServerPort;
+
+    std::optional<std::string> accessToken;
+    std::optional<std::string> userId;
+    mutable std::mutex accessTokenMutex;
+
+    std::set<std::string> csrfStates;
+    std::default_random_engine randomEngine;
+    std::mutex csrfStatesMutex;
 };
