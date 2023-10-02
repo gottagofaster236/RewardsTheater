@@ -16,7 +16,8 @@
 // https://dev.twitch.tv/docs/authentication/register-app/
 static const char* const TWITCH_CLIENT_ID = "2u4jgrdekf0pwdpq7cmqcarifv93z3";
 // Use several ports to minimize the probability of collision between several running OBS instances.
-static const std::array<int, 10> AUTH_SERVER_PORTS = {19910, 19911, 19912, 19913, 19914, 19915, 19916, 19917, 19918, 19919};
+static const std::array<int, 10> AUTH_SERVER_PORTS =
+    {19910, 19911, 19912, 19913, 19914, 19915, 19916, 19917, 19918, 19919};
 
 RewardsTheaterPlugin::RewardsTheaterPlugin()
     : settings(Settings(obs_frontend_get_global_config())),
