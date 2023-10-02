@@ -297,6 +297,8 @@ std::string TwitchAuth::getDoNotShowOnStreamPageHtml(const std::string& csrfStat
             body {{
               text-align: center;
               font-size: 24px;
+              color: white;
+              background-color: #181818;
             }}
             .red-bold {{
               color: red;
@@ -366,6 +368,8 @@ std::string TwitchAuth::getAuthRedirectPageHtml() {
               body {{
                 text-align: center;
                 font-size: 24px;
+                color: white;
+                background-color: #181818;
               }}
             </style>
             <script>
