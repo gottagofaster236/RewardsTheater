@@ -289,7 +289,7 @@ http::response<http::string_body> TwitchAuth::getResponse(const http::request<ht
 }
 
 std::string TwitchAuth::getDoNotShowOnStreamPageUrl() {
-    boost::urls::url authUrl = boost::urls::parse_uri_reference("http://localhost/doNotShowOnStream").value();
+    boost::urls::url authUrl = boost::urls::parse_uri("http://localhost/doNotShowOnStream").value();
     authUrl.set_port_number(authServerPort);
     authUrl.set_params({{"state", generateCsrfState()}});
     return authUrl.buffer();
@@ -343,7 +343,7 @@ std::string TwitchAuth::getDoNotShowOnStreamPageHtml(const std::string& csrfStat
 }
 
 std::string TwitchAuth::getAuthPageUrl(const std::string& csrfState) {
-    boost::urls::url authUrl = boost::urls::parse_uri_reference("https://id.twitch.tv/oauth2/authorize").value();
+    boost::urls::url authUrl = boost::urls::parse_uri("https://id.twitch.tv/oauth2/authorize").value();
     std::string scopesString = "";
     for (const std::string& scope : scopes) {
         if (!scopesString.empty()) {

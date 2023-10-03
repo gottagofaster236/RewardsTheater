@@ -60,6 +60,7 @@ Reward TwitchRewardsApi::parseReward(const boost::property_tree::ptree& reward) 
         reward.get<std::string>("id"),
         reward.get<std::string>("title"),
         reward.get<std::int32_t>("cost"),
+        getImageUrl(reward),
         reward.get<bool>("is_enabled"),
         hexColorToColor(reward.get<std::string>("background_color")),
         getOptionalSetting(reward.get_child("max_per_stream_setting"), "max_per_stream"),
@@ -78,6 +79,13 @@ Reward::Color TwitchRewardsApi::hexColorToColor(const std::string& hexColor) {
     std::uint32_t color;
     iss >> std::hex >> color;
     return Reward::Color((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
+}
+
+boost::urls::url TwitchRewardsApi::getImageUrl(const boost::property_tree::ptree& reward) {
+    std::string imageUrl = reward.get_optional<std::string>("image.url_4x").value_or_eval([&reward]() {
+        return reward.get<std::string>("default_image.url_4x");
+    });
+    return boost::urls::parse_uri(imageUrl).value();
 }
 
 std::optional<std::int64_t> TwitchRewardsApi::getOptionalSetting(

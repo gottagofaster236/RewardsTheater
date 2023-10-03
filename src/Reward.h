@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <boost/url.hpp>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -19,6 +20,7 @@ struct Reward {
     std::optional<std::string> id;
     std::string title;
     std::int32_t cost;
+    boost::urls::url imageUrl;
     bool isEnabled;
     Color backgroundColor;
     std::optional<std::int64_t> maxRedemptionsPerStream;
