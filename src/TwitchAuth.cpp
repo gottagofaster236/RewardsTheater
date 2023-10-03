@@ -34,8 +34,8 @@ TwitchAuth::TwitchAuth(
     std::uint16_t authServerPort,
     asio::io_context& ioContext
 )
-    : settings(settings), clientId(clientId), scopes(scopes), authServerPort(authServerPort),
-      randomEngine(std::random_device()()), ioContext(ioContext) {}
+    : settings(settings), clientId(clientId), scopes(scopes), authServerPort(authServerPort), ioContext(ioContext),
+      randomEngine(std::random_device()()) {}
 
 TwitchAuth::~TwitchAuth() = default;
 
