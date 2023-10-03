@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <boost/property_tree/ptree.hpp>
+#include <boost/json.hpp>
 #include <string>
 #include <vector>
 
@@ -27,13 +27,10 @@ private:
     boost::asio::awaitable<void> asyncUpdateRewards();
     boost::asio::awaitable<std::vector<Reward>> asyncGetRewards();
 
-    static Reward parseReward(const boost::property_tree::ptree& reward);
+    static Reward parseReward(const boost::json::value& reward);
     static Reward::Color hexColorToColor(const std::string& hexColor);
-    static boost::urls::url getImageUrl(const boost::property_tree::ptree& reward);
-    static std::optional<std::int64_t> getOptionalSetting(
-        const boost::property_tree::ptree& setting,
-        const std::string& key
-    );
+    static boost::urls::url getImageUrl(const boost::json::value& reward);
+    static std::optional<std::int64_t> getOptionalSetting(const boost::json::value& setting, const std::string& key);
 
     TwitchAuth& twitchAuth;
     boost::asio::io_context& ioContext;

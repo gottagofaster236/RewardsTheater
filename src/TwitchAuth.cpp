@@ -8,7 +8,6 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <algorithm>
-#include <boost/property_tree/json_parser.hpp>
 #include <boost/url.hpp>
 #include <cstdint>
 #include <format>
@@ -22,6 +21,7 @@
 using namespace std::chrono_literals;
 namespace http = boost::beast::http;
 namespace asio = boost::asio;
+namespace json = boost::json;
 using tcp = asio::ip::tcp;
 
 static const auto TOKEN_VALIDATE_PERIOD = 30min;
@@ -131,10 +131,7 @@ asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token) 
     try {
         validateTokenResponse = co_await asyncValidateToken(token);
     } catch (const boost::system::system_error& error) {
-        log(LOG_ERROR, "Network error in tokenExpiresIn: {}", error.what());
-        failureReason = AuthenticationFailureReason::NETWORK_ERROR;
-    } catch (const boost::property_tree::ptree_error& error) {
-        log(LOG_ERROR, "Error parsing json in tokenExpiresIn: {}", error.what());
+        log(LOG_ERROR, "Error in tokenExpiresIn: {}", error.what());
         failureReason = AuthenticationFailureReason::NETWORK_ERROR;
     }
 
@@ -173,17 +170,15 @@ asio::awaitable<TwitchAuth::ValidateTokenResponse> TwitchAuth::asyncValidateToke
         co_return TwitchAuth::ValidateTokenResponse{};
     }
     co_return TwitchAuth::ValidateTokenResponse{
-        std::chrono::seconds{validateTokenResponse.json.get<int>("expires_in")},
-        validateTokenResponse.json.get<std::string>("user_id"),
+        std::chrono::seconds{value_to<int>(validateTokenResponse.json.at("expires_in"))},
+        value_to<std::string>(validateTokenResponse.json.at("user_id")),
     };
 }
 
-bool TwitchAuth::tokenHasNeededScopes(const boost::property_tree::ptree& validateTokenResponse) {
-    auto tokenScopesView =
-        validateTokenResponse.get_child("scopes") | std::views::transform([](const auto& scopeElement) {
-            const boost::property_tree::ptree& scope = scopeElement.second;
-            return scope.get_value<std::string>();
-        });
+bool TwitchAuth::tokenHasNeededScopes(const json::value& validateTokenResponse) {
+    auto tokenScopesView = validateTokenResponse.at("scopes").as_array() | std::views::transform([](const auto& scope) {
+                               return value_to<std::string>(scope);
+                           });
     std::set tokenScopes(tokenScopesView.begin(), tokenScopesView.end());
     return tokenScopes == scopes;
 }
@@ -193,7 +188,7 @@ asio::awaitable<std::optional<std::string>> TwitchAuth::asyncGetUsername() {
     if (response.status != http::status::ok) {
         co_return std::nullopt;
     }
-    co_return response.json.get<std::string>("data..display_name");
+    co_return value_to<std::string>(response.json.at("data").at(0).at("display_name"));
 }
 
 asio::awaitable<void> TwitchAuth::asyncValidateTokenPeriodically() {

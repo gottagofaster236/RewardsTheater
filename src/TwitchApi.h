@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <boost/property_tree/json_parser.hpp>
+#include <boost/json.hpp>
 #include <boost/url.hpp>
 #include <functional>
 #include <utility>
@@ -15,7 +15,7 @@ namespace TwitchApi {
 
 struct Response {
     boost::beast::http::status status;
-    boost::property_tree::ptree json;
+    boost::json::value json;
 };
 
 boost::asio::awaitable<Response> request(

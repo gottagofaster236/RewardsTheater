@@ -13,6 +13,7 @@
 
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
+namespace json = boost::json;
 
 TwitchRewardsApi::TwitchRewardsApi(TwitchAuth& twitchAuth, asio::io_context& ioContext)
     : twitchAuth(twitchAuth), ioContext(ioContext) {
@@ -49,23 +50,23 @@ asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards() {
         co_return std::vector<Reward>{};
     }
 
-    auto rewards = response.json.get_child("data") | std::views::transform([this](const auto& rewardElement) {
-                       return parseReward(rewardElement.second);
+    auto rewards = response.json.at("data").as_array() | std::views::transform([this](const auto& reward) {
+                       return parseReward(reward);
                    });
     co_return std::vector<Reward>(rewards.begin(), rewards.end());
 }
 
-Reward TwitchRewardsApi::parseReward(const boost::property_tree::ptree& reward) {
+Reward TwitchRewardsApi::parseReward(const json::value& reward) {
     return Reward{
-        reward.get<std::string>("id"),
-        reward.get<std::string>("title"),
-        reward.get<std::int32_t>("cost"),
+        value_to<std::string>(reward.at("id")),
+        value_to<std::string>(reward.at("title")),
+        value_to<std::int32_t>(reward.at("cost")),
         getImageUrl(reward),
-        reward.get<bool>("is_enabled"),
-        hexColorToColor(reward.get<std::string>("background_color")),
-        getOptionalSetting(reward.get_child("max_per_stream_setting"), "max_per_stream"),
-        getOptionalSetting(reward.get_child("max_per_user_per_stream_setting"), "max_per_user_per_stream"),
-        getOptionalSetting(reward.get_child("global_cooldown_setting"), "global_cooldown_seconds"),
+        reward.at("is_enabled").as_bool(),
+        hexColorToColor(value_to<std::string>(reward.at("background_color"))),
+        getOptionalSetting(reward.at("max_per_stream_setting"), "max_per_stream"),
+        getOptionalSetting(reward.at("max_per_user_per_stream_setting"), "max_per_user_per_stream"),
+        getOptionalSetting(reward.at("global_cooldown_setting"), "global_cooldown_seconds"),
     };
 }
 
@@ -81,19 +82,19 @@ Reward::Color TwitchRewardsApi::hexColorToColor(const std::string& hexColor) {
     return Reward::Color((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
 }
 
-boost::urls::url TwitchRewardsApi::getImageUrl(const boost::property_tree::ptree& reward) {
-    std::string imageUrl = reward.get_optional<std::string>("image.url_4x").value_or_eval([&reward]() {
-        return reward.get<std::string>("default_image.url_4x");
-    });
+boost::urls::url TwitchRewardsApi::getImageUrl(const json::value& reward) {
+    std::string imageUrl;
+    if (reward.at("image").is_object()) {
+        imageUrl = value_to<std::string>(reward.at("image").at("url_4x"));
+    } else {
+        imageUrl = value_to<std::string>(reward.at("default_image").at("url_4x"));
+    }
     return boost::urls::parse_uri(imageUrl).value();
 }
 
-std::optional<std::int64_t> TwitchRewardsApi::getOptionalSetting(
-    const boost::property_tree::ptree& setting,
-    const std::string& key
-) {
-    if (!setting.get<bool>("is_enabled")) {
+std::optional<std::int64_t> TwitchRewardsApi::getOptionalSetting(const json::value& setting, const std::string& key) {
+    if (!setting.at("is_enabled").as_bool()) {
         return {};
     }
-    return setting.get<std::int64_t>(key);
+    return setting.at(key).as_int64();
 }

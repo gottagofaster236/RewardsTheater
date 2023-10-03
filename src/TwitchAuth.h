@@ -4,7 +4,7 @@
 #pragma once
 
 #include <QObject>
-#include <boost/property_tree/ptree.hpp>
+#include <boost/json.hpp>
 #include <chrono>
 #include <exception>
 #include <mutex>
@@ -73,7 +73,7 @@ private:
         std::string userId;
     };
     boost::asio::awaitable<ValidateTokenResponse> asyncValidateToken(std::string token);
-    bool tokenHasNeededScopes(const boost::property_tree::ptree& validateTokenResponse);
+    bool tokenHasNeededScopes(const boost::json::value& validateTokenResponse);
 
     boost::asio::awaitable<std::optional<std::string>> asyncGetUsername();
 

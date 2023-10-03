@@ -53,11 +53,11 @@ set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 
 # Libraries from vcpkg
-find_package(Boost REQUIRED COMPONENTS system url)
+find_package(Boost REQUIRED COMPONENTS system url json)
 find_package(OpenSSL REQUIRED)
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
-target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC Boost::system Boost::url OpenSSL::SSL
-                                                   OpenSSL::Crypto)
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC Boost::system Boost::url Boost::json
+                                                   OpenSSL::SSL OpenSSL::Crypto)
 
 # Import libobs as main plugin dependency
 find_package(libobs REQUIRED)
@@ -69,11 +69,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::obs-frontend-api)
 find_qt(COMPONENTS Widgets Core)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Qt::Core Qt::Widgets)
 
-set_target_properties(
-  ${CMAKE_PROJECT_NAME}
-  PROPERTIES AUTOMOC ON
-             AUTOUIC ON
-             AUTORCC ON)
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES AUTOMOC ON AUTOUIC ON AUTORCC ON)
 
 # /!\ TAKE NOTE: No need to edit things past this point /!\
 

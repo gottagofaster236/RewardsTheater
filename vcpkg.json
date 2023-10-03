@@ -1,10 +1,10 @@
 {
-    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-    "dependencies": [
-        "boost-asio",
-        "boost-url",
-        "boost-beast",
-        "boost-property-tree",
-        "openssl"
-    ]
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "dependencies": [
+    "boost-asio",
+    "boost-url",
+    "boost-beast",
+    "boost-json",
+    "openssl"
+  ]
 }

@@ -7,7 +7,6 @@
 
 namespace asio = boost::asio;
 namespace ssl = asio::ssl;
-namespace property_tree = boost::property_tree;
 namespace http = boost::beast::http;
 
 namespace TwitchApi {
@@ -43,11 +42,8 @@ asio::awaitable<Response> request(
     http::response<http::dynamic_body> response;
     co_await http::async_read(stream, buffer, response, asio::use_awaitable);
     std::string body = boost::beast::buffers_to_string(response.body().data());
-    boost::property_tree::ptree jsonTree;
-    std::istringstream is{body};
-    boost::property_tree::read_json(is, jsonTree);
 
-    co_return Response{response.result(), jsonTree};
+    co_return Response{response.result(), boost::json::parse(body)};
 }
 
 boost::asio::awaitable<Response> request(
