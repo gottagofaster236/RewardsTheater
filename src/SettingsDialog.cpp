@@ -25,8 +25,6 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
     connect(ui->openRewardsQueueButton, &QPushButton::clicked, this, &SettingsDialog::openRewardsQueue);
     connect(&plugin.getTwitchAuth(), &TwitchAuth::onUsernameChanged, this, &SettingsDialog::updateAuthButtonText);
     connect(&plugin.getTwitchRewardsApi(), &TwitchRewardsApi::onRewardsUpdated, this, &SettingsDialog::showRewards);
-
-    plugin.getTwitchRewardsApi().startService();
 }
 
 void SettingsDialog::logInOrLogOut() {
@@ -39,6 +37,10 @@ void SettingsDialog::logInOrLogOut() {
 }
 
 SettingsDialog::~SettingsDialog() = default;
+
+void SettingsDialog::toggleVisibility() {
+    setVisible(!isVisible());
+}
 
 void SettingsDialog::openRewardsQueue() {
     log(LOG_INFO, "onOpenRewardsQueueClicked");

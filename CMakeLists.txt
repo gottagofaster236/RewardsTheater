@@ -42,8 +42,8 @@ target_sources(
           src/TwitchApi.cpp
           src/Log.h
           src/BoostAsio.h
-          src/IoService.h
-          src/IoService.cpp
+          src/IoThreadPool.h
+          src/IoThreadPool.cpp
           src/EditRewardDialog.h
           src/EditRewardDialog.cpp
           src/RewardWidget.h

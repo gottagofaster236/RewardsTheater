@@ -20,6 +20,9 @@ public:
     SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent);
     ~SettingsDialog();
 
+public slots:
+    void toggleVisibility();
+
 private slots:
     void logInOrLogOut();
     void openRewardsQueue();

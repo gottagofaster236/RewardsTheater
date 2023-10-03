@@ -15,14 +15,13 @@
 #include <thread>
 
 #include "BoostAsio.h"
-#include "IoService.h"
 #include "Settings.h"
 
 /**
  * A class for Twitch authentication using the Implicit grant flow.
  * Read more here: https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#implicit-grant-flow
  */
-class TwitchAuth : public QObject, public IoService {
+class TwitchAuth : public QObject {
     Q_OBJECT
 
 public:
@@ -30,9 +29,11 @@ public:
         Settings& settings,
         const std::string& clientId,
         const std::set<std::string>& scopes,
-        std::uint16_t authServerPort
+        std::uint16_t authServerPort,
+        boost::asio::io_context& ioContext
     );
     ~TwitchAuth();
+    void startService();
 
     std::optional<std::string> getAccessToken() const;
     std::string getAccessTokenOrThrow() const;
@@ -98,6 +99,7 @@ private:
     std::string clientId;
     std::set<std::string> scopes;
     std::uint16_t authServerPort;
+    boost::asio::io_context& ioContext;
 
     std::optional<std::string> accessToken;
     std::optional<std::string> userId;

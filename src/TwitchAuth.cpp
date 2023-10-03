@@ -31,17 +31,19 @@ TwitchAuth::TwitchAuth(
     Settings& settings,
     const std::string& clientId,
     const std::set<std::string>& scopes,
-    std::uint16_t authServerPort
+    std::uint16_t authServerPort,
+    asio::io_context& ioContext
 )
     : settings(settings), clientId(clientId), scopes(scopes), authServerPort(authServerPort),
-      randomEngine(std::random_device()()) {
-    // All of these are not run before the call to startService()
+      randomEngine(std::random_device()()), ioContext(ioContext) {}
+
+TwitchAuth::~TwitchAuth() = default;
+
+void TwitchAuth::startService() {
     asio::co_spawn(ioContext, asyncRunAuthServer(), asio::detached);
     asio::co_spawn(ioContext, asyncValidateTokenPeriodically(), asio::detached);
     authenticateWithSavedToken();
 }
-
-TwitchAuth::~TwitchAuth() = default;
 
 std::optional<std::string> TwitchAuth::getAccessToken() const {
     std::lock_guard guard(accessTokenMutex);
@@ -231,7 +233,7 @@ asio::awaitable<void> TwitchAuth::asyncRunAuthServer() {
             log(LOG_ERROR, "Error: {}", exception.what());
             exceptionThrown = true;
         }
-        
+
         if (exceptionThrown) {
             // co_await isn't allowed in a catch clause.
             // Wait in order to avoid a busy while loop.

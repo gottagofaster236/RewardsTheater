@@ -14,7 +14,8 @@
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
 
-TwitchRewardsApi::TwitchRewardsApi(TwitchAuth& twitchAuth) : twitchAuth(twitchAuth) {
+TwitchRewardsApi::TwitchRewardsApi(TwitchAuth& twitchAuth, asio::io_context& ioContext)
+    : twitchAuth(twitchAuth), ioContext(ioContext) {
     connect(&twitchAuth, &TwitchAuth::onUserChanged, this, &TwitchRewardsApi::updateRewards);
 }
 
@@ -48,7 +49,7 @@ asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards() {
         co_return std::vector<Reward>{};
     }
 
-    auto rewards = response.json.get_child("data") | std::views::transform([=, this](const auto& rewardElement) {
+    auto rewards = response.json.get_child("data") | std::views::transform([this](const auto& rewardElement) {
                        return parseReward(rewardElement.second);
                    });
     co_return std::vector<Reward>(rewards.begin(), rewards.end());

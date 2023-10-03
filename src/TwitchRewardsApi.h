@@ -8,15 +8,14 @@
 #include <vector>
 
 #include "BoostAsio.h"
-#include "IoService.h"
 #include "Reward.h"
 #include "TwitchAuth.h"
 
-class TwitchRewardsApi : public QObject, public IoService {
+class TwitchRewardsApi : public QObject {
     Q_OBJECT
 
 public:
-    TwitchRewardsApi(TwitchAuth& twitchAuth);
+    TwitchRewardsApi(TwitchAuth& twitchAuth, boost::asio::io_context& ioContext);
     ~TwitchRewardsApi();
 
     void updateRewards();
@@ -36,4 +35,5 @@ private:
     );
 
     TwitchAuth& twitchAuth;
+    boost::asio::io_context& ioContext;
 };

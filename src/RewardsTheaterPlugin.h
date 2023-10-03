@@ -7,6 +7,7 @@
 #include "Settings.h"
 #include "TwitchAuth.h"
 #include "TwitchRewardsApi.h"
+#include "IoThreadPool.h"
 
 class RewardsTheaterPlugin {
 public:
@@ -19,6 +20,7 @@ public:
 
 private:
     Settings settings;
+    IoThreadPool ioThreadPool;
     TwitchAuth twitchAuth;
     TwitchRewardsApi twitchRewardsApi;
     RewardsQueue rewardsQueue;

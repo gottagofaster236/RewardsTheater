@@ -48,9 +48,6 @@ AuthenticateWithTwitchDialog::AuthenticateWithTwitchDialog(QWidget* parent, Twit
         this,
         &AuthenticateWithTwitchDialog::showAccessTokenAboutToExpireMessage
     );
-
-    // Start TwitchAuth only after we have connected our slots
-    twitchAuth.startService();
 }
 
 AuthenticateWithTwitchDialog::~AuthenticateWithTwitchDialog() = default;
