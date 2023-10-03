@@ -4,8 +4,3 @@ repos:
     hooks:
     - id: clang-format
       files: ^src/
--   repo: https://github.com/cheshirekow/cmake-format-precommit
-    rev: v0.6.10
-    hooks:
-    - id: cmake-format
-      files: CMakeLists.txt
