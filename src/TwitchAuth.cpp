@@ -223,12 +223,19 @@ void TwitchAuth::emitAccessTokenAboutToExpireIfNeeded(std::chrono::seconds expir
 asio::awaitable<void> TwitchAuth::asyncRunAuthServer() {
     tcp::acceptor acceptor{ioContext, {tcp::v4(), authServerPort}};
     while (true) {
+        bool exceptionThrown = false;
         try {
             tcp::socket socket = co_await acceptor.async_accept(asio::use_awaitable);
             asio::co_spawn(ioContext, asyncProcessRequest(std::move(socket)), asio::detached);
         } catch (const std::exception& exception) {
             log(LOG_ERROR, "Error: {}", exception.what());
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            exceptionThrown = true;
+        }
+        
+        if (exceptionThrown) {
+            // co_await isn't allowed in a catch clause.
+            // Wait in order to avoid a busy while loop.
+            co_await asio::steady_timer(ioContext, 1s).async_wait(asio::use_awaitable);
         }
     }
 }
