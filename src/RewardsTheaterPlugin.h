@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include "IoThreadPool.h"
 #include "RewardsQueue.h"
 #include "Settings.h"
 #include "TwitchAuth.h"
 #include "TwitchRewardsApi.h"
-#include "IoThreadPool.h"
 
 class RewardsTheaterPlugin {
 public:
