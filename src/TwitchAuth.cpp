@@ -15,8 +15,8 @@
 #include <ranges>
 
 #include "BoostAsio.h"
+#include "HttpUtil.h"
 #include "Log.h"
-#include "TwitchApi.h"
 
 using namespace std::chrono_literals;
 namespace http = boost::beast::http;
@@ -157,8 +157,8 @@ asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token) 
 }
 
 asio::awaitable<TwitchAuth::ValidateTokenResponse> TwitchAuth::asyncValidateToken(std::string token) {
-    TwitchApi::Response validateTokenResponse =
-        co_await TwitchApi::request(token, clientId, ioContext, "id.twitch.tv", "/oauth2/validate");
+    HttpUtil::Response validateTokenResponse =
+        co_await HttpUtil::request(token, clientId, ioContext, "id.twitch.tv", "/oauth2/validate");
 
     if (validateTokenResponse.status == http::status::unauthorized) {
         co_return TwitchAuth::ValidateTokenResponse{};
@@ -184,7 +184,7 @@ bool TwitchAuth::tokenHasNeededScopes(const json::value& validateTokenResponse) 
 }
 
 asio::awaitable<std::optional<std::string>> TwitchAuth::asyncGetUsername() {
-    TwitchApi::Response response = co_await TwitchApi::request(*this, ioContext, "api.twitch.tv", "/helix/users");
+    HttpUtil::Response response = co_await HttpUtil::request(*this, ioContext, "api.twitch.tv", "/helix/users");
     if (response.status != http::status::ok) {
         co_return std::nullopt;
     }

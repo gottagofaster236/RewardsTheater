@@ -11,7 +11,7 @@
 #include "BoostAsio.h"
 #include "TwitchAuth.h"
 
-namespace TwitchApi {
+namespace HttpUtil {
 
 struct Response {
     boost::beast::http::status status;
@@ -35,15 +35,10 @@ boost::asio::awaitable<Response> request(
     std::initializer_list<boost::urls::param_view> urlParams = {}
 );
 
-template <typename Callable, typename... Params>
-auto runBlocking(Callable&& callable, Params&&... params) {
-    namespace asio = boost::asio;
-    asio::io_context ioContext;
-    auto awaitable = std::invoke(std::forward<Callable>(callable), std::forward<Params>(params)..., ioContext);
+boost::asio::awaitable<std::string> downloadFile(
+    boost::asio::io_context& ioContext,
+    const std::string& host,
+    const std::string& path
+);
 
-    auto future = asio::co_spawn(ioContext, std::move(awaitable), asio::use_future);
-    ioContext.run();
-    return future.get();
-}
-
-}  // namespace TwitchApi
+}  // namespace HttpUtil

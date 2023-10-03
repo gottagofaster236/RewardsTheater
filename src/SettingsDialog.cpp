@@ -97,9 +97,10 @@ void SettingsDialog::showUpdateAvailableTextIfNeeded() {
 }
 
 bool SettingsDialog::isUpdateAvailable() {
-    // TODO query https://api.github.com/repos/gottagofaster236/RewardsTheater/releases/latest
+    // TODO Create a class like GithubUpdateApi or something that would have a signal a la onUpdateAvailable().
+    // Here connect to it and the "update available" text to the string.
+    // Inside it query https://api.github.com/repos/gottagofaster236/RewardsTheater/releases/latest
     // And compare it from the version from CMakeLists.txt by splitting the version into three numbers (?)
     // And then comparing lexicographically. Or maybe boost has something like this.
-    // Refactor a https request function from TwitchApi::request and use it here (think about the namespace??)
     return true;
 }

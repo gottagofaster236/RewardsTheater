@@ -20,6 +20,8 @@ public:
     RewardWidget(const Reward& reward, TwitchRewardsApi& twitchRewardsApi, QWidget* parent);
     ~RewardWidget();
 
+    Q_INVOKABLE void showImage(const std::string& imageBytes);
+
 private:
     TwitchRewardsApi& twitchRewardsApi;
     std::unique_ptr<Ui::RewardWidget> ui;

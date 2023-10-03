@@ -3,13 +3,14 @@
 
 #include "TwitchRewardsApi.h"
 
+#include <QMetaType>
 #include <boost/url.hpp>
 #include <ranges>
 #include <sstream>
 #include <string>
 
+#include "HttpUtil.h"
 #include "Log.h"
-#include "TwitchApi.h"
 
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
@@ -26,6 +27,14 @@ void TwitchRewardsApi::updateRewards() {
     asio::co_spawn(ioContext, asyncUpdateRewards(), asio::detached);
 }
 
+void TwitchRewardsApi::downloadImage(const Reward& reward, QObject* receiver, const char* member) {
+    asio::co_spawn(
+        ioContext,
+        asyncDownloadImage(reward.imageUrl, *(new detail::QObjectCallback(this, receiver, member))),
+        asio::detached
+    );
+}
+
 asio::awaitable<void> TwitchRewardsApi::asyncUpdateRewards() {
     try {
         emit onRewardsUpdated(co_await asyncGetRewards());
@@ -39,7 +48,7 @@ asio::awaitable<void> TwitchRewardsApi::asyncUpdateRewards() {
 
 // https://dev.twitch.tv/docs/api/reference/#get-custom-reward
 asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards() {
-    TwitchApi::Response response = co_await TwitchApi::request(
+    HttpUtil::Response response = co_await HttpUtil::request(
         twitchAuth,
         ioContext,
         "api.twitch.tv",
@@ -97,4 +106,23 @@ std::optional<std::int64_t> TwitchRewardsApi::getOptionalSetting(const json::val
         return {};
     }
     return setting.at(key).as_int64();
+}
+
+boost::asio::awaitable<void> TwitchRewardsApi::asyncDownloadImage(
+    boost::urls::url url,
+    detail::QObjectCallback& callback
+) {
+    callback("std::string", co_await HttpUtil::downloadFile(ioContext, url.host(), url.path()));
+}
+
+detail::QObjectCallback::QObjectCallback(TwitchRewardsApi* parent, QObject* receiver, const char* member)
+    : QObject(parent), receiver(receiver), member(member) {
+    QObject::connect(
+        receiver, &QObject::destroyed, this, &QObjectCallback::clearReceiver, Qt::ConnectionType::DirectConnection
+    );
+}
+
+void detail::QObjectCallback::clearReceiver() {
+    std::lock_guard guard(receiverMutex);
+    receiver = nullptr;
 }

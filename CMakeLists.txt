@@ -38,8 +38,8 @@ target_sources(
           src/RewardsTheaterPlugin.h
           src/Settings.h
           src/Settings.cpp
-          src/TwitchApi.h
-          src/TwitchApi.cpp
+          src/HttpUtil.h
+          src/HttpUtil.cpp
           src/Log.h
           src/BoostAsio.h
           src/IoThreadPool.h
@@ -66,8 +66,8 @@ include(cmake/ObsPluginHelpers.cmake)
 find_package(obs-frontend-api REQUIRED)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::obs-frontend-api)
 
-find_qt(COMPONENTS Widgets Core)
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Qt::Core Qt::Widgets)
+find_qt(COMPONENTS Core Widgets Gui)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Qt::Core Qt::Widgets Qt::Gui)
 
 set_target_properties(
   ${CMAKE_PROJECT_NAME}
