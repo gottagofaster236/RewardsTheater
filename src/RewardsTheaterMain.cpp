@@ -4,6 +4,7 @@
 #include <obs-module.h>
 
 #include <exception>
+#include <memory>
 
 #include "Log.h"
 #include "RewardsTheaterPlugin.h"
@@ -11,11 +12,11 @@
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE("RewardsTheater", "en-US")
 
-static RewardsTheaterPlugin* plugin = nullptr;
+static std::unique_ptr<RewardsTheaterPlugin> plugin;
 
 bool obs_module_load(void) {
     try {
-        plugin = new RewardsTheaterPlugin();
+        plugin = std::make_unique<RewardsTheaterPlugin>();
         return true;
     } catch (const std::exception& exception) {
         log(LOG_ERROR, "Error while loading RewardsTheater: {}", exception.what());
@@ -24,6 +25,5 @@ bool obs_module_load(void) {
 }
 
 void obs_module_unload() {
-    delete plugin;
     plugin = nullptr;
 }
