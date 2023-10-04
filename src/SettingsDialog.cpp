@@ -69,11 +69,11 @@ void SettingsDialog::showRewards(const std::vector<Reward>& rewards) {
     }
 
     std::vector<Reward> rewardsSorted = rewards;
-    std::ranges::sort(rewardsSorted, {}, [](const Reward& reward) {
+    std::ranges::stable_sort(rewardsSorted, {}, [](const Reward& reward) {
         return reward.cost;
     });
 
-    const int REWARDS_PER_ROW = 3;
+    const int REWARDS_PER_ROW = 4;
     for (int i = 0; i < static_cast<int>(rewards.size()); i++) {
         RewardWidget* rewardWidget = new RewardWidget(rewardsSorted[i], plugin.getTwitchRewardsApi(), ui->rewardsGrid);
         ui->rewardsGridLayout->addWidget(rewardWidget, i / REWARDS_PER_ROW, i % REWARDS_PER_ROW);
