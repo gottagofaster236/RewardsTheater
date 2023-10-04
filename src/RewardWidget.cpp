@@ -16,6 +16,9 @@ RewardWidget::RewardWidget(const Reward& reward, TwitchRewardsApi& twitchRewards
     ui->setupUi(this);
     setFixedSize(size());
 
+    ui->deleteButton->setVisible(false);
+    ui->costAndImageFrame->installEventFilter(this);
+
     ui->costLabel->setText(QString::number(reward.cost));
     ui->titleLabel->setText(QString::fromStdString(reward.title));
     twitchRewardsApi.downloadImage(reward, this, "showImage");
@@ -36,4 +39,15 @@ void RewardWidget::showImage(const std::string& imageBytes) {
 
     QPixmap pixmap = QPixmap::fromImage(image);
     ui->imageLabel->setPixmap(pixmap);
+}
+
+bool RewardWidget::eventFilter(QObject* obj, QEvent* event) {
+    if (obj == ui->costAndImageFrame) {
+        if (event->type() == QEvent::Enter) {
+            ui->deleteButton->setVisible(true);
+        } else if (event->type() == QEvent::Leave) {
+            ui->deleteButton->setVisible(false);
+        }
+    }
+    return false;
 }

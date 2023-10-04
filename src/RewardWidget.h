@@ -21,6 +21,7 @@ public:
     ~RewardWidget();
 
     Q_INVOKABLE void showImage(const std::string& imageBytes);
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
     TwitchRewardsApi& twitchRewardsApi;

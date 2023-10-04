@@ -63,6 +63,25 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
+   <widget class="QPushButton" name="deleteButton">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>0</y>
+      <width>41</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: red; font-weight: bold;</string>
+    </property>
+    <property name="text">
+     <string>x</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QLabel" name="titleLabel">
    <property name="geometry">
