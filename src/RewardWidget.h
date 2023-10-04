@@ -6,6 +6,7 @@
 #include <QWidget>
 #include <memory>
 
+#include "EditRewardDialog.h"
 #include "Reward.h"
 #include "TwitchRewardsApi.h"
 
@@ -24,6 +25,12 @@ public:
     bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
+    void showEditRewardDialog();
+
+private:
+    Reward reward;
     TwitchRewardsApi& twitchRewardsApi;
+
     std::unique_ptr<Ui::RewardWidget> ui;
+    EditRewardDialog* editRewardDialog;
 };

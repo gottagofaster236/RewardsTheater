@@ -13,6 +13,7 @@ EditRewardDialog::EditRewardDialog(
     : QDialog(parent), rewardId(rewardId), twitchRewardsApi(twitchRewardsApi),
       ui(std::make_unique<Ui::EditRewardDialog>()) {
     ui->setupUi(this);
+    setFixedSize(size());
     (void) this->rewardId;
     (void) this->twitchRewardsApi;
 }

@@ -3,6 +3,9 @@
 
 #include "RewardWidget.h"
 
+#include <obs-frontend-api.h>
+#include <obs-module.h>
+
 #include <QBuffer>
 #include <QImageReader>
 #include <QPixmap>
@@ -12,7 +15,8 @@
 #include "ui_RewardWidget.h"
 
 RewardWidget::RewardWidget(const Reward& reward, TwitchRewardsApi& twitchRewardsApi, QWidget* parent)
-    : QWidget(parent), twitchRewardsApi(twitchRewardsApi), ui(std::make_unique<Ui::RewardWidget>()) {
+    : QWidget(parent), reward(reward), twitchRewardsApi(twitchRewardsApi), ui(std::make_unique<Ui::RewardWidget>()),
+      editRewardDialog(nullptr) {
     ui->setupUi(this);
     setFixedSize(size());
 
@@ -47,7 +51,18 @@ bool RewardWidget::eventFilter(QObject* obj, QEvent* event) {
             ui->deleteButton->setVisible(true);
         } else if (event->type() == QEvent::Leave) {
             ui->deleteButton->setVisible(false);
+        } else if (event->type() == QEvent::MouseButtonRelease) {
+            showEditRewardDialog();
         }
     }
     return false;
+}
+
+void RewardWidget::showEditRewardDialog() {
+    if (editRewardDialog == nullptr) {
+        obs_frontend_push_ui_translation(obs_module_get_string);
+        editRewardDialog = new EditRewardDialog(reward.id, twitchRewardsApi, this);
+        obs_frontend_pop_ui_translation();
+    }
+    editRewardDialog->setVisible(true);
 }
