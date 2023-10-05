@@ -29,6 +29,15 @@ public:
     void updateRewards();
     void downloadImage(const Reward& reward, QObject* receiver, const char* member);
 
+    enum class Result {
+        OK,
+        NETWORK_ERROR,
+        INVALID_REWARD,
+        UNAUTHORIZED,
+        NOT_AFFILIATE,
+        REWARD_NOT_FOUND,
+    };
+
 signals:
     void onRewardsUpdated(const std::vector<Reward>& rewards);
 
