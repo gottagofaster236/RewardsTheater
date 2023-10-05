@@ -20,7 +20,7 @@ RewardWidget::RewardWidget(const Reward& reward, TwitchRewardsApi& twitchRewards
     ui->setupUi(this);
     setFixedSize(size());
 
-    ui->deleteButton->setVisible(false);
+    ui->deleteButton->hide();
     ui->costAndImageFrame->installEventFilter(this);
     showReward();
 }
@@ -57,9 +57,9 @@ void RewardWidget::showImage(const std::string& imageBytes) {
 bool RewardWidget::eventFilter(QObject* obj, QEvent* event) {
     if (obj == ui->costAndImageFrame) {
         if (event->type() == QEvent::Enter) {
-            ui->deleteButton->setVisible(true);
+            ui->deleteButton->show();
         } else if (event->type() == QEvent::Leave) {
-            ui->deleteButton->setVisible(false);
+            ui->deleteButton->hide();
         } else if (event->type() == QEvent::MouseButtonRelease) {
             showEditRewardDialog();
         }
@@ -77,7 +77,8 @@ void RewardWidget::showEditRewardDialog() {
     if (editRewardDialog == nullptr) {
         obs_frontend_push_ui_translation(obs_module_get_string);
         editRewardDialog = new EditRewardDialog(reward.id, twitchRewardsApi, this);
+        editRewardDialog->setAttribute(Qt::WA_DeleteOnClose);
         obs_frontend_pop_ui_translation();
     }
-    editRewardDialog->setVisible(true);
+    editRewardDialog->show();
 }

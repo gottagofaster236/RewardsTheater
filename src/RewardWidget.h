@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <QPointer>
 #include <QWidget>
 #include <memory>
 
@@ -37,5 +38,5 @@ private:
     TwitchRewardsApi& twitchRewardsApi;
 
     std::unique_ptr<Ui::RewardWidget> ui;
-    EditRewardDialog* editRewardDialog;
+    QPointer<EditRewardDialog> editRewardDialog;
 };
