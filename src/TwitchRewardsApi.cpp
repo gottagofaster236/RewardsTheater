@@ -5,6 +5,7 @@
 
 #include <QMetaType>
 #include <boost/url.hpp>
+#include <format>
 #include <ranges>
 #include <sstream>
 #include <string>
@@ -17,14 +18,16 @@ namespace http = boost::beast::http;
 namespace json = boost::json;
 
 TwitchRewardsApi::TwitchRewardsApi(TwitchAuth& twitchAuth, asio::io_context& ioContext)
-    : twitchAuth(twitchAuth), ioContext(ioContext) {
-    connect(&twitchAuth, &TwitchAuth::onUserChanged, this, &TwitchRewardsApi::updateRewards);
-}
+    : twitchAuth(twitchAuth), ioContext(ioContext) {}
 
 TwitchRewardsApi::~TwitchRewardsApi() = default;
 
-void TwitchRewardsApi::updateRewards() {
-    asio::co_spawn(ioContext, asyncUpdateRewards(), asio::detached);
+void TwitchRewardsApi::getRewards(bool onlyManageableRewards, QObject* receiver, const char* member) {
+    asio::co_spawn(
+        ioContext,
+        asyncGetRewards(onlyManageableRewards, *(new detail::QObjectCallback(this, receiver, member))),
+        asio::detached
+    );
 }
 
 void TwitchRewardsApi::downloadImage(const Reward& reward, QObject* receiver, const char* member) {
@@ -35,25 +38,29 @@ void TwitchRewardsApi::downloadImage(const Reward& reward, QObject* receiver, co
     );
 }
 
-asio::awaitable<void> TwitchRewardsApi::asyncUpdateRewards() {
+asio::awaitable<void> TwitchRewardsApi::asyncGetRewards(bool onlyManageableRewards, detail::QObjectCallback& callback) {
+    const char* typeName = "std::vector<Reward>";
     try {
-        emit onRewardsUpdated(co_await asyncGetRewards());
+        callback(typeName, co_await asyncGetRewards(onlyManageableRewards));
         co_return;
     } catch (const TwitchAuth::UnauthenticatedException&) {
     } catch (const std::exception& exception) {
         log(LOG_ERROR, "Error in asyncUpdateRewards: {}", exception.what());
     }
-    emit onRewardsUpdated({});
+    callback(typeName, std::vector<Reward>{});
 }
 
 // https://dev.twitch.tv/docs/api/reference/#get-custom-reward
-asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards() {
+asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards(bool onlyManageableRewards) {
     HttpUtil::Response response = co_await HttpUtil::request(
         twitchAuth,
         ioContext,
         "api.twitch.tv",
         "/helix/channel_points/custom_rewards",
-        {{"broadcaster_id", twitchAuth.getUserIdOrThrow()}}
+        {
+            {"broadcaster_id", twitchAuth.getUserIdOrThrow()},
+            {"only_manageable_rewards", std::format("{}", onlyManageableRewards)},
+        }
     );
     if (response.status != http::status::ok) {
         co_return std::vector<Reward>{};
@@ -112,7 +119,11 @@ boost::asio::awaitable<void> TwitchRewardsApi::asyncDownloadImage(
     boost::urls::url url,
     detail::QObjectCallback& callback
 ) {
-    callback("std::string", co_await HttpUtil::downloadFile(ioContext, url.host(), url.path()));
+    callback("std::string", co_await asyncDownloadImage(url));
+}
+
+boost::asio::awaitable<std::string> TwitchRewardsApi::asyncDownloadImage(const boost::urls::url& url) {
+    co_return co_await HttpUtil::downloadFile(ioContext, url.host(), url.path());
 }
 
 detail::QObjectCallback::QObjectCallback(TwitchRewardsApi* parent, QObject* receiver, const char* member)

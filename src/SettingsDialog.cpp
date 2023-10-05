@@ -24,12 +24,22 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
 
     connect(ui->authButton, &QPushButton::clicked, this, &SettingsDialog::logInOrLogOut);
     connect(ui->openRewardsQueueButton, &QPushButton::clicked, this, &SettingsDialog::openRewardsQueue);
-    connect(
-        ui->reloadRewardsButton, &QPushButton::clicked, &plugin.getTwitchRewardsApi(), &TwitchRewardsApi::updateRewards
-    );
+    connect(ui->reloadRewardsButton, &QPushButton::clicked, this, &SettingsDialog::updateRewards);
 
     connect(&plugin.getTwitchAuth(), &TwitchAuth::onUsernameChanged, this, &SettingsDialog::updateAuthButtonText);
-    connect(&plugin.getTwitchRewardsApi(), &TwitchRewardsApi::onRewardsUpdated, this, &SettingsDialog::showRewards);
+    connect(&plugin.getTwitchAuth(), &TwitchAuth::onUserChanged, this, &SettingsDialog::updateRewards);
+}
+
+SettingsDialog::~SettingsDialog() = default;
+
+void SettingsDialog::toggleVisibility() {
+    setVisible(!isVisible());
+}
+
+void SettingsDialog::showRewards(const std::vector<Reward>& newRewards) {
+    rewards = newRewards;
+    updateRewardWidgets();
+    showRewardWidgets();
 }
 
 void SettingsDialog::logInOrLogOut() {
@@ -41,14 +51,12 @@ void SettingsDialog::logInOrLogOut() {
     }
 }
 
-SettingsDialog::~SettingsDialog() = default;
-
-void SettingsDialog::toggleVisibility() {
-    setVisible(!isVisible());
-}
-
 void SettingsDialog::openRewardsQueue() {
     log(LOG_INFO, "onOpenRewardsQueueClicked");
+}
+
+void SettingsDialog::updateRewards() {
+    plugin.getTwitchRewardsApi().getRewards(false, this, "showRewards");
 }
 
 void SettingsDialog::updateAuthButtonText(const std::optional<std::string>& username) {
@@ -65,12 +73,6 @@ void SettingsDialog::updateAuthButtonText(const std::optional<std::string>& user
         newText = obs_module_text("LogIn");
     }
     ui->authButton->setText(QString::fromStdString(newText));
-}
-
-void SettingsDialog::showRewards(const std::vector<Reward>& newRewards) {
-    rewards = newRewards;
-    updateRewardWidgets();
-    showRewardWidgets();
 }
 
 void SettingsDialog::showUpdateAvailableTextIfNeeded() {

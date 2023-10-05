@@ -26,9 +26,6 @@ public:
     TwitchRewardsApi(TwitchAuth& twitchAuth, boost::asio::io_context& ioContext);
     ~TwitchRewardsApi();
 
-    void updateRewards();
-    void downloadImage(const Reward& reward, QObject* receiver, const char* member);
-
     enum class Result {
         OK,
         NETWORK_ERROR,
@@ -38,18 +35,22 @@ public:
         REWARD_NOT_FOUND,
     };
 
-signals:
-    void onRewardsUpdated(const std::vector<Reward>& rewards);
+    /// Calls the receiver with rewards as const std::vector<Reward>& rewards.
+    void getRewards(bool onlyManageableRewards, QObject* receiver, const char* member);
+
+    /// Calls the receiver with the downloaded bytes as a const std::string&.
+    void downloadImage(const Reward& reward, QObject* receiver, const char* member);
 
 private:
-    boost::asio::awaitable<void> asyncUpdateRewards();
-    boost::asio::awaitable<std::vector<Reward>> asyncGetRewards();
+    boost::asio::awaitable<void> asyncGetRewards(bool onlyManageableRewards, detail::QObjectCallback& callback);
+    boost::asio::awaitable<std::vector<Reward>> asyncGetRewards(bool onlyManageableRewards);
     static Reward parseReward(const boost::json::value& reward);
     static Color hexColorToColor(const std::string& hexColor);
     static boost::urls::url getImageUrl(const boost::json::value& reward);
     static std::optional<std::int64_t> getOptionalSetting(const boost::json::value& setting, const std::string& key);
 
     boost::asio::awaitable<void> asyncDownloadImage(boost::urls::url url, detail::QObjectCallback& callback);
+    boost::asio::awaitable<std::string> asyncDownloadImage(const boost::urls::url& url);
 
     TwitchAuth& twitchAuth;
     boost::asio::io_context& ioContext;
@@ -57,7 +58,7 @@ private:
 
 namespace detail {
 
-// Calls a method on a QObject, or does nothing if the QObject no longer exists.
+/// Calls a method on a QObject, or does nothing if the QObject no longer exists.
 class QObjectCallback : public QObject {
     Q_OBJECT
 

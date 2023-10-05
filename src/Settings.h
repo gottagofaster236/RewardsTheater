@@ -13,11 +13,11 @@ class Settings {
 public:
     Settings(config_t* config);
 
-    // Whether to play a reward immediately (possibly simultaneously with other rewards) or put it in a queue
+    /// Whether to play a reward immediately (possibly simultaneously with other rewards) or put it in a queue.
     bool getPutRewardsInQueue() const;
     void setPutRewardsInQueue(bool putRewardsInQueue);
 
-    // How much to wait between two rewards in a queue (if putRewardsInQueue is true)
+    /// How much to wait between two rewards in a queue (if putRewardsInQueue() is true)
     std::int32_t getIntervalBetweenRewardsSeconds() const;
     void setIntervalBetweenRewardsSeconds(std::int32_t intervalBetweenRewardsSeconds);
 

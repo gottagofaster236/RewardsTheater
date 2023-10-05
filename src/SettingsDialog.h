@@ -24,12 +24,13 @@ public:
 
 public slots:
     void toggleVisibility();
+    void showRewards(const std::vector<Reward>& newRewards);
 
 private slots:
     void logInOrLogOut();
     void openRewardsQueue();
+    void updateRewards();
     void updateAuthButtonText(const std::optional<std::string>& username);
-    void showRewards(const std::vector<Reward>& newRewards);
     void showUpdateAvailableTextIfNeeded();
 
 private:

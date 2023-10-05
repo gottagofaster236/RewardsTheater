@@ -25,9 +25,10 @@ public:
     const Reward& getReward() const;
     void setReward(const Reward& newReward);
 
-    Q_INVOKABLE void showImage(const std::string& imageBytes);
-
     bool eventFilter(QObject* obj, QEvent* event) override;
+
+public slots:
+    void showImage(const std::string& imageBytes);
 
 private:
     void showReward();

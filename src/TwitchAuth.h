@@ -17,10 +17,8 @@
 #include "BoostAsio.h"
 #include "Settings.h"
 
-/**
- * A class for Twitch authentication using the Implicit grant flow.
- * Read more here: https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#implicit-grant-flow
- */
+/// A class for Twitch authentication using the Implicit grant flow.
+/// Read more here: https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#implicit-grant-flow
 class TwitchAuth : public QObject {
     Q_OBJECT
 
