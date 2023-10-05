@@ -10,6 +10,7 @@
 #include <format>
 #include <iostream>
 #include <obs.hpp>
+#include <ranges>
 
 #include "Log.h"
 #include "RewardWidget.h"
@@ -66,22 +67,10 @@ void SettingsDialog::updateAuthButtonText(const std::optional<std::string>& user
     ui->authButton->setText(QString::fromStdString(newText));
 }
 
-void SettingsDialog::showRewards(const std::vector<Reward>& rewards) {
-    // Remove old rewards
-    for (int i = 0; i < ui->rewardsGridLayout->count(); i++) {
-        ui->rewardsGridLayout[0].itemAt(i)->widget()->deleteLater();
-    }
-
-    std::vector<Reward> rewardsSorted = rewards;
-    std::ranges::stable_sort(rewardsSorted, {}, [](const Reward& reward) {
-        return reward.cost;
-    });
-
-    const int REWARDS_PER_ROW = 4;
-    for (int i = 0; i < static_cast<int>(rewards.size()); i++) {
-        RewardWidget* rewardWidget = new RewardWidget(rewardsSorted[i], plugin.getTwitchRewardsApi(), ui->rewardsGrid);
-        ui->rewardsGridLayout->addWidget(rewardWidget, i / REWARDS_PER_ROW, i % REWARDS_PER_ROW);
-    }
+void SettingsDialog::showRewards(const std::vector<Reward>& newRewards) {
+    rewards = newRewards;
+    updateRewardWidgets();
+    showRewardWidgets();
 }
 
 void SettingsDialog::showUpdateAvailableTextIfNeeded() {
@@ -98,6 +87,45 @@ void SettingsDialog::showUpdateAvailableTextIfNeeded() {
     ui->titleLabel->setTextFormat(Qt::RichText);
     ui->titleLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
     ui->titleLabel->setOpenExternalLinks(true);
+}
+
+void SettingsDialog::updateRewardWidgets() {
+    auto rewardIdsView = rewards | std::views::transform(&Reward::id);
+    std::set<std::string> rewardIds(rewardIdsView.begin(), rewardIdsView.end());
+
+    // Delete widgets for rewards that no longer exist.
+    // We can't reuse them, because they may have a child EditRewardDialog.
+    for (auto it = rewardWidgetByRewardId.begin(); it != rewardWidgetByRewardId.end();) {
+        const std::string& rewardId = it->first;
+        RewardWidget* rewardWidget = it->second;
+        if (!rewardIds.contains(rewardId)) {
+            rewardWidget->deleteLater();
+            it = rewardWidgetByRewardId.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    for (const Reward& reward : rewards) {
+        RewardWidget* existingWidget = rewardWidgetByRewardId[reward.id];
+        if (existingWidget) {
+            existingWidget->setReward(reward);
+        } else {
+            rewardWidgetByRewardId[reward.id] = new RewardWidget(reward, plugin.getTwitchRewardsApi(), ui->rewardsGrid);
+        }
+    }
+}
+
+void SettingsDialog::showRewardWidgets() {
+    std::ranges::stable_sort(rewards, {}, [](const Reward& reward) {
+        return reward.cost;
+    });
+
+    const int REWARDS_PER_ROW = 4;
+    for (int i = 0; i < static_cast<int>(rewards.size()); i++) {
+        RewardWidget* rewardWidget = rewardWidgetByRewardId[rewards[i].id];
+        ui->rewardsGridLayout->addWidget(rewardWidget, i / REWARDS_PER_ROW, i % REWARDS_PER_ROW);
+    }
 }
 
 bool SettingsDialog::isUpdateAvailable() {

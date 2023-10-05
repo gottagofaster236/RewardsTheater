@@ -36,7 +36,7 @@ private:
     boost::asio::awaitable<void> asyncUpdateRewards();
     boost::asio::awaitable<std::vector<Reward>> asyncGetRewards();
     static Reward parseReward(const boost::json::value& reward);
-    static Reward::Color hexColorToColor(const std::string& hexColor);
+    static Color hexColorToColor(const std::string& hexColor);
     static boost::urls::url getImageUrl(const boost::json::value& reward);
     static std::optional<std::int64_t> getOptionalSetting(const boost::json::value& setting, const std::string& key);
 

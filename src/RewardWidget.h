@@ -21,10 +21,15 @@ public:
     RewardWidget(const Reward& reward, TwitchRewardsApi& twitchRewardsApi, QWidget* parent);
     ~RewardWidget();
 
+    const Reward& getReward() const;
+    void setReward(const Reward& newReward);
+
     Q_INVOKABLE void showImage(const std::string& imageBytes);
+
     bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
+    void showReward();
     void showEditRewardDialog();
 
 private:

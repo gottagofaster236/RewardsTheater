@@ -4,9 +4,11 @@
 #pragma once
 
 #include <QDialog>
+#include <map>
 #include <memory>
 
 #include "AuthenticateWithTwitchDialog.h"
+#include "RewardWidget.h"
 #include "RewardsTheaterPlugin.h"
 
 namespace Ui {
@@ -27,14 +29,19 @@ private slots:
     void logInOrLogOut();
     void openRewardsQueue();
     void updateAuthButtonText(const std::optional<std::string>& username);
-    void showRewards(const std::vector<Reward>& rewards);
+    void showRewards(const std::vector<Reward>& newRewards);
     void showUpdateAvailableTextIfNeeded();
 
 private:
+    void updateRewardWidgets();
+    void showRewardWidgets();
     bool isUpdateAvailable();
 
 private:
     RewardsTheaterPlugin& plugin;
     std::unique_ptr<Ui::SettingsDialog> ui;
     AuthenticateWithTwitchDialog* authenticateWithTwitchDialog;
+
+    std::vector<Reward> rewards;
+    std::map<std::string, RewardWidget*> rewardWidgetByRewardId;
 };

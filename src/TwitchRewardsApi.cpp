@@ -79,16 +79,16 @@ Reward TwitchRewardsApi::parseReward(const json::value& reward) {
     };
 }
 
-Reward::Color TwitchRewardsApi::hexColorToColor(const std::string& hexColor) {
+Color TwitchRewardsApi::hexColorToColor(const std::string& hexColor) {
     if (hexColor.empty()) {
-        return Reward::Color{0, 0, 0};
+        return Color{0, 0, 0};
     }
     std::string withoutHash = hexColor.substr(1);
     std::istringstream iss(withoutHash);
     iss.exceptions(std::istringstream::failbit | std::istringstream::badbit);
     std::uint32_t color;
     iss >> std::hex >> color;
-    return Reward::Color((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
+    return Color((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
 }
 
 boost::urls::url TwitchRewardsApi::getImageUrl(const json::value& reward) {
