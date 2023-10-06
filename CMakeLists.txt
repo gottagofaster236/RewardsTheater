@@ -18,6 +18,9 @@ set(MACOS_BUNDLEID "com.gottagofaster.RewardsTheater")
 # Replace `me@contoso.com` with the maintainer email address you want to put in Linux packages
 set(LINUX_MAINTAINER_EMAIL "lr.soft.now@gmail.com")
 
+set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)
+set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+
 # Add your custom source files here - header files are optional and only required for visibility
 # e.g. in Xcode or Visual Studio
 target_sources(
@@ -49,10 +52,10 @@ target_sources(
           src/RewardWidget.h
           src/RewardWidget.cpp)
 
-target_precompile_headers(${CMAKE_PROJECT_NAME} PRIVATE src/BoostAsio.h)
-
-set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)
-set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+# GCC ignores the "pragma GCC diagnostic ignored" in precompiled headers
+if(MSVC)
+  target_precompile_headers(${CMAKE_PROJECT_NAME} PRIVATE src/BoostAsio.h)
+endif()
 
 # Libraries from vcpkg
 find_package(Boost REQUIRED COMPONENTS system url json)
