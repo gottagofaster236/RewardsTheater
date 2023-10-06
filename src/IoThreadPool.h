@@ -12,6 +12,8 @@ public:
     IoThreadPool(unsigned nThreads);
     ~IoThreadPool();
 
+    void stop();
+
     boost::asio::io_context ioContext;
 
 private:

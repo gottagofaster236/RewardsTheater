@@ -21,8 +21,14 @@ IoThreadPool::IoThreadPool(unsigned nThreads) {
 }
 
 IoThreadPool::~IoThreadPool() {
+    stop();
+}
+
+void IoThreadPool::stop() {
     ioContext.stop();
     for (std::thread& thread : threads) {
-        thread.join();
+        if (thread.joinable()) {
+            thread.join();
+        }
     }
 }

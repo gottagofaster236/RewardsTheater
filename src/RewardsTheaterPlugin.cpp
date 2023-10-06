@@ -44,7 +44,11 @@ RewardsTheaterPlugin::RewardsTheaterPlugin()
     twitchAuth.startService();
 }
 
-RewardsTheaterPlugin::~RewardsTheaterPlugin() = default;
+RewardsTheaterPlugin::~RewardsTheaterPlugin() {
+    // Stop the thread pool before destructing TwitchAuth and TwitchRewardsApi,
+    // so that no callbacks are called on destructed objects.
+    ioThreadPool.stop();
+}
 
 Settings& RewardsTheaterPlugin::getSettings() {
     return settings;
