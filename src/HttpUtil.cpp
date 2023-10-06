@@ -11,6 +11,12 @@ namespace http = boost::beast::http;
 
 namespace HttpUtil {
 
+InternalServerErrorException::InternalServerErrorException(const std::string& message) : message(message) {}
+
+const char* InternalServerErrorException::what() const noexcept {
+    return message.c_str();
+}
+
 static asio::awaitable<ssl::stream<asio::ip::tcp::socket>> resolveHost(
     asio::io_context& ioContext,
     const std::string& host
@@ -39,6 +45,9 @@ asio::awaitable<Response> request(
 
     http::response<http::dynamic_body> response = co_await getResponse(request, stream);
     std::string body = boost::beast::buffers_to_string(response.body().data());
+    if (response.result() == http::status::internal_server_error) {
+        throw InternalServerErrorException(body);
+    }
     co_return Response{response.result(), boost::json::parse(body)};
 }
 

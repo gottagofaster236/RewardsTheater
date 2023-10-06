@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+﻿// SPDX-License-Identifier: GPL-2.0-or-later
 // Copyright (c) 2023, Lev Leontev
 
 #include "TwitchAuth.h"
@@ -110,11 +110,11 @@ void TwitchAuth::logOut() {
 
 void TwitchAuth::logOutAndEmitAuthenticationFailure() {
     logOut();
-    emit onAuthenticationFailure(AuthenticationFailureReason::AUTH_TOKEN_INVALID);
+    emit onAuthenticationFailure(std::make_exception_ptr(UnauthenticatedException()));
 }
 
 const char* TwitchAuth::UnauthenticatedException::what() const noexcept {
-    return "Unauthenticated from Twitch";
+    return "UnauthenticatedException";
 }
 
 void TwitchAuth::authenticateWithSavedToken() {
@@ -126,18 +126,19 @@ void TwitchAuth::authenticateWithSavedToken() {
 
 asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token) {
     ValidateTokenResponse validateTokenResponse;
-    AuthenticationFailureReason failureReason = AuthenticationFailureReason::AUTH_TOKEN_INVALID;
+    std::exception_ptr failureReason;
 
     try {
         validateTokenResponse = co_await asyncValidateToken(token);
-    } catch (const boost::system::system_error& error) {
-        log(LOG_ERROR, "Error in tokenExpiresIn: {}", error.what());
-        failureReason = AuthenticationFailureReason::NETWORK_ERROR;
+    } catch (const std::exception& exception) {
+        log(LOG_ERROR, "Exception in tokenExpiresIn: {}", exception.what());
+        failureReason = std::current_exception();
     }
 
     if (validateTokenResponse.expiresIn == 0s) {
-        if (failureReason == AuthenticationFailureReason::AUTH_TOKEN_INVALID) {
+        if (failureReason == nullptr) {
             logOut();
+            failureReason = std::make_exception_ptr(UnauthenticatedException());
         }
         emit onAuthenticationFailure(failureReason);
         co_return;
@@ -184,11 +185,16 @@ bool TwitchAuth::tokenHasNeededScopes(const json::value& validateTokenResponse) 
 }
 
 asio::awaitable<std::optional<std::string>> TwitchAuth::asyncGetUsername() {
-    HttpUtil::Response response = co_await HttpUtil::request(*this, ioContext, "api.twitch.tv", "/helix/users");
-    if (response.status != http::status::ok) {
+    try {
+        HttpUtil::Response response = co_await HttpUtil::request(*this, ioContext, "api.twitch.tv", "/helix/users");
+        if (response.status != http::status::ok) {
+            co_return std::nullopt;
+        }
+        co_return value_to<std::string>(response.json.at("data").at(0).at("display_name"));
+    } catch (const std::exception& exception) {
+        log(LOG_ERROR, "Exception in asyncGetUsername: {}", exception.what());
         co_return std::nullopt;
     }
-    co_return value_to<std::string>(response.json.at("data").at(0).at("display_name"));
 }
 
 asio::awaitable<void> TwitchAuth::asyncValidateTokenPeriodically() {
@@ -202,7 +208,7 @@ asio::awaitable<void> TwitchAuth::asyncValidateTokenPeriodically() {
             auto validateTokenResponse = co_await asyncValidateToken(token);
             emitAccessTokenAboutToExpireIfNeeded(validateTokenResponse.expiresIn);
         } catch (const std::exception& exception) {
-            log(LOG_ERROR, "Error in asyncValidateTokenPeriodically: {}", exception.what());
+            log(LOG_ERROR, "Exception in asyncValidateTokenPeriodically: {}", exception.what());
             continue;
         }
     }

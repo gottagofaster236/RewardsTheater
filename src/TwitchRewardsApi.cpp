@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+﻿// SPDX-License-Identifier: GPL-2.0-or-later
 // Copyright (c) 2023, Lev Leontev
 
 #include "TwitchRewardsApi.h"
@@ -9,6 +9,7 @@
 #include <ranges>
 #include <sstream>
 #include <string>
+#include <variant>
 
 #include "HttpUtil.h"
 #include "Log.h"
@@ -30,6 +31,12 @@ void TwitchRewardsApi::getRewards(bool onlyManageableRewards, QObject* receiver,
     );
 }
 
+void TwitchRewardsApi::deleteReward(const std::string& rewardId, QObject* receiver, const char* member) {
+    (void) rewardId;
+    (void) receiver;
+    (void) member;
+}
+
 void TwitchRewardsApi::downloadImage(const Reward& reward, QObject* receiver, const char* member) {
     asio::co_spawn(
         ioContext,
@@ -38,16 +45,52 @@ void TwitchRewardsApi::downloadImage(const Reward& reward, QObject* receiver, co
     );
 }
 
+TwitchRewardsApi::InvalidRewardParametersException::InvalidRewardParametersException(const json::value& response)
+    : message(json::serialize(response)) {}
+
+const char* TwitchRewardsApi::InvalidRewardParametersException::what() const noexcept {
+    return message.c_str();
+}
+
+const char* TwitchRewardsApi::NotAffiliateException::what() const noexcept {
+    return "NotAffiliateException";
+}
+
+TwitchRewardsApi::UnexpectedHttpStatusException::UnexpectedHttpStatusException(const boost::json::value& response)
+    : message(json::serialize(response)) {}
+
+const char* TwitchRewardsApi::UnexpectedHttpStatusException::what() const noexcept {
+    return message.c_str();
+}
+
 asio::awaitable<void> TwitchRewardsApi::asyncGetRewards(bool onlyManageableRewards, detail::QObjectCallback& callback) {
-    const char* typeName = "std::vector<Reward>";
+    std::variant<std::exception_ptr, std::vector<Reward>> result;
     try {
-        callback(typeName, co_await asyncGetRewards(onlyManageableRewards));
-        co_return;
-    } catch (const TwitchAuth::UnauthenticatedException&) {
+        result = co_await asyncGetRewards(onlyManageableRewards);
     } catch (const std::exception& exception) {
-        log(LOG_ERROR, "Error in asyncUpdateRewards: {}", exception.what());
+        log(LOG_ERROR, "Exception in asyncGetRewards: {}", exception.what());
+        result = std::current_exception();
     }
-    callback(typeName, std::vector<Reward>{});
+    callback("std::variant<std::exception_ptr, std::vector<Reward>>", result);
+}
+
+asio::awaitable<void> TwitchRewardsApi::asyncDeleteReward(std::string rewardId, detail::QObjectCallback& callback) {
+    std::exception_ptr result;
+    try {
+        co_await asyncDeleteReward(rewardId);
+    } catch (const std::exception& exception) {
+        log(LOG_ERROR, "Exception in asyncDeleteReward: {}", exception.what());
+        result = std::current_exception();
+    }
+    callback("std::exception_ptr", result);
+}
+
+asio::awaitable<void> TwitchRewardsApi::asyncDownloadImage(boost::urls::url url, detail::QObjectCallback& callback) {
+    try {
+        callback("std::string", co_await asyncDownloadImage(url));
+    } catch (const std::exception& exception) {
+        log(LOG_ERROR, "Exception in asyncDownloadImage: {}", exception.what());
+    }
 }
 
 // https://dev.twitch.tv/docs/api/reference/#get-custom-reward
@@ -62,8 +105,11 @@ asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards(bool only
             {"only_manageable_rewards", std::format("{}", onlyManageableRewards)},
         }
     );
-    if (response.status != http::status::ok) {
-        co_return std::vector<Reward>{};
+
+    switch (response.status) {
+    case http::status::ok: break;
+    case http::status::forbidden: throw NotAffiliateException();
+    default: throw UnexpectedHttpStatusException(response.json);
     }
 
     auto rewards = response.json.at("data").as_array() | std::views::transform([this](const auto& reward) {
@@ -115,14 +161,12 @@ std::optional<std::int64_t> TwitchRewardsApi::getOptionalSetting(const json::val
     return setting.at(key).as_int64();
 }
 
-boost::asio::awaitable<void> TwitchRewardsApi::asyncDownloadImage(
-    boost::urls::url url,
-    detail::QObjectCallback& callback
-) {
-    callback("std::string", co_await asyncDownloadImage(url));
+asio::awaitable<void> TwitchRewardsApi::asyncDeleteReward(const std::string& rewardId) {
+    (void) rewardId;
+    return asio::awaitable<void>();
 }
 
-boost::asio::awaitable<std::string> TwitchRewardsApi::asyncDownloadImage(const boost::urls::url& url) {
+asio::awaitable<std::string> TwitchRewardsApi::asyncDownloadImage(const boost::urls::url& url) {
     co_return co_await HttpUtil::downloadFile(ioContext, url.host(), url.path());
 }
 

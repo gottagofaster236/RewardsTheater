@@ -1,9 +1,10 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+﻿// SPDX-License-Identifier: GPL-2.0-or-later
 // Copyright (c) 2023, Lev Leontev
 
 #pragma once
 
 #include <boost/json.hpp>
+#include <boost/system/system_error.hpp>
 #include <boost/url.hpp>
 #include <functional>
 #include <utility>
@@ -16,6 +17,17 @@ namespace HttpUtil {
 struct Response {
     boost::beast::http::status status;
     boost::json::value json;
+};
+
+using NetworkException = boost::system::system_error;
+
+class InternalServerErrorException : public std::exception {
+public:
+    InternalServerErrorException(const std::string& message);
+    const char* what() const noexcept override;
+
+private:
+    std::string message;
 };
 
 boost::asio::awaitable<Response> request(

@@ -26,7 +26,7 @@ public:
 private slots:
     void authenticateInBrowser();
     void authenticateWithAccessToken();
-    void showAuthenticationFailureMessage(TwitchAuth::AuthenticationFailureReason reason);
+    void showAuthenticationFailureMessage(std::exception_ptr reason);
     void showAccessTokenAboutToExpireMessage(std::chrono::seconds expiresIn);
 
 private:

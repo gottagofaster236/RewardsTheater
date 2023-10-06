@@ -50,14 +50,9 @@ public:
         const char* what() const noexcept override;
     };
 
-    enum class AuthenticationFailureReason {
-        AUTH_TOKEN_INVALID,
-        NETWORK_ERROR,
-    };
-
 signals:
     void onAuthenticationSuccess();
-    void onAuthenticationFailure(AuthenticationFailureReason reason);
+    void onAuthenticationFailure(std::exception_ptr reason);
     void onUserChanged();
     void onAccessTokenAboutToExpire(const std::chrono::seconds& expiresIn);
     void onUsernameChanged(const std::optional<std::string>& username);

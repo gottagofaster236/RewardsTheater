@@ -11,7 +11,7 @@ IoThreadPool::IoThreadPool(unsigned nThreads) {
         try {
             ioContext.run();
         } catch (const std::exception& exception) {
-            log(LOG_ERROR, "Error in IoThreadPool: {}", exception.what());
+            log(LOG_ERROR, "Exception in IoThreadPool: {}", exception.what());
         }
     };
 

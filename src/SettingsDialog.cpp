@@ -12,15 +12,20 @@
 #include <obs.hpp>
 #include <ranges>
 
+#include "HttpUtil.h"
 #include "Log.h"
 #include "RewardWidget.h"
 #include "ui_SettingsDialog.h"
 
 SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
     : QDialog(parent), plugin(plugin), ui(std::make_unique<Ui::SettingsDialog>()),
-      authenticateWithTwitchDialog(new AuthenticateWithTwitchDialog(this, plugin.getTwitchAuth())) {
+      authenticateWithTwitchDialog(new AuthenticateWithTwitchDialog(this, plugin.getTwitchAuth())),
+      errorMessageBox(new QMessageBox(this)) {
     ui->setupUi(this);
-    showUpdateAvailableTextIfNeeded();  // TODO remove
+    errorMessageBox->setWindowTitle(obs_module_text("RewardsTheater"));
+    errorMessageBox->setIcon(QMessageBox::Icon::Warning);
+    errorMessageBox->setStandardButtons(QMessageBox::Ok);
+    showRewardTheaterLink();
 
     connect(ui->authButton, &QPushButton::clicked, this, &SettingsDialog::logInOrLogOut);
     connect(ui->openRewardsQueueButton, &QPushButton::clicked, this, &SettingsDialog::openRewardsQueue);
@@ -36,8 +41,13 @@ void SettingsDialog::toggleVisibility() {
     setVisible(!isVisible());
 }
 
-void SettingsDialog::showRewards(const std::vector<Reward>& newRewards) {
-    rewards = newRewards;
+void SettingsDialog::showRewards(const std::variant<std::exception_ptr, std::vector<Reward>>& newRewards) {
+    if (std::holds_alternative<std::vector<Reward>>(newRewards)) {
+        rewards = std::get<std::vector<Reward>>(newRewards);
+    } else {
+        rewards = {};
+        showRewardLoadException(std::get<std::exception_ptr>(newRewards));
+    }
     updateRewardWidgets();
     showRewardWidgets();
 }
@@ -75,15 +85,19 @@ void SettingsDialog::updateAuthButtonText(const std::optional<std::string>& user
     ui->authButton->setText(QString::fromStdString(newText));
 }
 
-void SettingsDialog::showUpdateAvailableTextIfNeeded() {
-    // TODO make this an asynchronous thing instead.
-    if (!isUpdateAvailable()) {
-        return;
+void SettingsDialog::showRewardTheaterLink() {
+    const char* linkText;
+    const char* url;
+
+    if (updateAvailable) {
+        linkText = obs_module_text("UpdateAvailable");
+        url = "https://github.com/gottagofaster236/RewardsTheater/releases/latest";
+    } else {
+        linkText = obs_module_text("GitHub");
+        url = "https://github.com/gottagofaster236/RewardsTheater";
     }
 
-    const char* updateUrl = "https://github.com/gottagofaster236/RewardsTheater/releases/latest";
-    const char* updateAvailableText = obs_module_text("UpdateAvailable");
-    std::string updateAvailableLink = std::format(" <a href=\"{}\">{}</a>", updateUrl, updateAvailableText);
+    std::string updateAvailableLink = std::format(" <a href=\"{}\">{}</a>", url, linkText);
 
     ui->titleLabel->setText(ui->titleLabel->text() + QString::fromStdString(updateAvailableLink));
     ui->titleLabel->setTextFormat(Qt::RichText);
@@ -130,11 +144,30 @@ void SettingsDialog::showRewardWidgets() {
     }
 }
 
-bool SettingsDialog::isUpdateAvailable() {
-    // TODO Create a class like GithubUpdateApi or something that would have a signal a la onUpdateAvailable().
-    // Here connect to it and the "update available" text to the string.
-    // Inside it query https://api.github.com/repos/gottagofaster236/RewardsTheater/releases/latest
-    // And compare it from the version from CMakeLists.txt by splitting the version into three numbers (?)
-    // And then comparing lexicographically. Or maybe boost has something like this.
-    return true;
+void SettingsDialog::showRewardLoadException(std::exception_ptr exception) {
+    std::string message;
+    try {
+        std::rethrow_exception(exception);
+    } catch (const TwitchAuth::UnauthenticatedException&) {
+        // It's going to be shown by AuthenticateWithTwitchDialog, anyway.
+        return;
+    } catch (const TwitchRewardsApi::NotAffiliateException&) {
+        message = obs_module_text("CouldNotLoadRewardsNotAffiliate");
+    } catch (const HttpUtil::NetworkException&) {
+        message = obs_module_text("CouldNotLoadRewardsNetwork");
+    } catch (const std::exception& otherException) {
+        message =
+            std::vformat(obs_module_text("CouldNotLoadRewardsOther"), std::make_format_args(otherException.what()));
+    }
+    errorMessageBox->setText(QString::fromStdString(message));
+    errorMessageBox->show();
 }
+
+// bool SettingsDialog::isUpdateAvailable() {
+//  TODO Create a class like GithubUpdateApi or something that would have a signal a la onUpdateAvailable().
+//  Here connect to it and the "update available" text to the string.
+//  Inside it query https://api.github.com/repos/gottagofaster236/RewardsTheater/releases/latest
+//  And compare it from the version from CMakeLists.txt by splitting the version into three numbers (?)
+//  And then comparing lexicographically. Or maybe boost has something like this.
+//    return true;
+//}

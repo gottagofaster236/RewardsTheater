@@ -4,8 +4,10 @@
 #pragma once
 
 #include <QDialog>
+#include <QMessageBox>
 #include <map>
 #include <memory>
+#include <variant>
 
 #include "AuthenticateWithTwitchDialog.h"
 #include "RewardWidget.h"
@@ -24,25 +26,27 @@ public:
 
 public slots:
     void toggleVisibility();
-    void showRewards(const std::vector<Reward>& newRewards);
+    void showRewards(const std::variant<std::exception_ptr, std::vector<Reward>>& newRewards);
 
 private slots:
     void logInOrLogOut();
     void openRewardsQueue();
     void updateRewards();
     void updateAuthButtonText(const std::optional<std::string>& username);
-    void showUpdateAvailableTextIfNeeded();
+    void showRewardTheaterLink();
 
 private:
     void updateRewardWidgets();
     void showRewardWidgets();
-    bool isUpdateAvailable();
+    void showRewardLoadException(std::exception_ptr exception);
 
 private:
     RewardsTheaterPlugin& plugin;
     std::unique_ptr<Ui::SettingsDialog> ui;
     AuthenticateWithTwitchDialog* authenticateWithTwitchDialog;
+    QMessageBox* errorMessageBox;
 
     std::vector<Reward> rewards;
     std::map<std::string, RewardWidget*> rewardWidgetByRewardId;
+    bool updateAvailable = true;  // TODO make false
 };

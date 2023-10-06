@@ -10,6 +10,7 @@
 #include <iostream>
 #include <obs.hpp>
 
+#include "HttpUtil.h"
 #include "ui_AuthenticateWithTwitchDialog.h"
 
 AuthenticateWithTwitchDialog::AuthenticateWithTwitchDialog(QWidget* parent, TwitchAuth& twitchAuth)
@@ -60,17 +61,21 @@ void AuthenticateWithTwitchDialog::authenticateWithAccessToken() {
     twitchAuth.authenticateWithToken(ui->accessTokenEdit->text().toStdString());
 }
 
-void AuthenticateWithTwitchDialog::showAuthenticationFailureMessage(TwitchAuth::AuthenticationFailureReason reason) {
-    const char* errorLookupString = nullptr;
-    switch (reason) {
-    case TwitchAuth::AuthenticationFailureReason::AUTH_TOKEN_INVALID:
-        errorLookupString = "TwitchAuthenticationFailedInvalid";
-        break;
-    case TwitchAuth::AuthenticationFailureReason::NETWORK_ERROR:
-        errorLookupString = "TwitchAuthenticationFailedNetwork";
-        break;
+void AuthenticateWithTwitchDialog::showAuthenticationFailureMessage(std::exception_ptr reason) {
+    std::string message;
+    try {
+        std::rethrow_exception(reason);
+    } catch (const TwitchAuth::UnauthenticatedException&) {
+        message = obs_module_text("TwitchAuthenticationFailedInvalid");
+    } catch (const HttpUtil::NetworkException&) {
+        message = obs_module_text("TwitchAuthenticationFailedNetwork");
+    } catch (const std::exception& otherException) {
+        message = std::vformat(
+            obs_module_text("TwitchAuthenticationFailedOther"), std::make_format_args(otherException.what())
+        );
     }
-    showAuthenticationMessage(obs_module_text(errorLookupString));
+
+    showAuthenticationMessage(message);
 }
 
 void AuthenticateWithTwitchDialog::showAccessTokenAboutToExpireMessage(std::chrono::seconds expiresIn) {
