@@ -6,12 +6,13 @@
 #include <QObject>
 
 #include "BoostAsio.h"
+#include "HttpClient.h"
 
 class GithubUpdateApi : public QObject {
     Q_OBJECT
 
 public:
-    GithubUpdateApi(boost::asio::io_context& ioContext);
+    GithubUpdateApi(HttpClient& httpClient, boost::asio::io_context& ioContext);
     ~GithubUpdateApi();
     void checkForUpdates();
 
@@ -25,5 +26,6 @@ private:
     std::vector<int> parseVersion(const std::string& versionString);
 
 private:
+    HttpClient& httpClient;
     boost::asio::io_context& ioContext;
 };

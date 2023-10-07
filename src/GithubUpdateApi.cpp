@@ -5,13 +5,14 @@
 
 #include <sstream>
 
-#include "HttpUtil.h"
+#include "HttpClient.h"
 #include "Log.h"
 #include "RewardsTheaterVersion.generated.h"
 
 namespace asio = boost::asio;
 
-GithubUpdateApi::GithubUpdateApi(asio::io_context& ioContext) : ioContext(ioContext) {}
+GithubUpdateApi::GithubUpdateApi(HttpClient& httpClient, asio::io_context& ioContext)
+    : httpClient(httpClient), ioContext(ioContext) {}
 
 GithubUpdateApi::~GithubUpdateApi() = default;
 
@@ -36,8 +37,7 @@ asio::awaitable<bool> GithubUpdateApi::isUpdateAvailable() {
 }
 
 asio::awaitable<std::string> GithubUpdateApi::getLatestReleaseVersion() {
-    HttpUtil::Response response = co_await HttpUtil::request(
-        ioContext,
+    HttpClient::Response response = co_await httpClient.request(
         "api.github.com",
         "/repos/gottagofaster236/RewardsTheater/releases/latest",
         {{"User-Agent", "https://github.com/gottagofaster236/RewardsTheater"}}

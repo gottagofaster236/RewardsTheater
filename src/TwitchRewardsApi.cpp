@@ -11,15 +11,15 @@
 #include <string>
 #include <variant>
 
-#include "HttpUtil.h"
+#include "HttpClient.h"
 #include "Log.h"
 
 namespace asio = boost::asio;
 namespace http = boost::beast::http;
 namespace json = boost::json;
 
-TwitchRewardsApi::TwitchRewardsApi(TwitchAuth& twitchAuth, asio::io_context& ioContext)
-    : twitchAuth(twitchAuth), ioContext(ioContext) {}
+TwitchRewardsApi::TwitchRewardsApi(TwitchAuth& twitchAuth, HttpClient& httpClient, asio::io_context& ioContext)
+    : twitchAuth(twitchAuth), httpClient(httpClient), ioContext(ioContext) {}
 
 TwitchRewardsApi::~TwitchRewardsApi() = default;
 
@@ -95,8 +95,7 @@ asio::awaitable<void> TwitchRewardsApi::asyncDownloadImage(boost::urls::url url,
 
 // https://dev.twitch.tv/docs/api/reference/#get-custom-reward
 asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards(bool onlyManageableRewards) {
-    HttpUtil::Response response = co_await HttpUtil::request(
-        ioContext,
+    HttpClient::Response response = co_await httpClient.request(
         "api.twitch.tv",
         "/helix/channel_points/custom_rewards",
         twitchAuth,
@@ -167,7 +166,7 @@ asio::awaitable<void> TwitchRewardsApi::asyncDeleteReward(const std::string& rew
 }
 
 asio::awaitable<std::string> TwitchRewardsApi::asyncDownloadImage(const boost::urls::url& url) {
-    co_return co_await HttpUtil::downloadFile(ioContext, url.host(), url.path());
+    co_return co_await httpClient.downloadFile(url.host(), url.path());
 }
 
 detail::QObjectCallback::QObjectCallback(TwitchRewardsApi* parent, QObject* receiver, const char* member)

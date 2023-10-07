@@ -41,8 +41,8 @@ target_sources(
           src/RewardsTheaterPlugin.h
           src/Settings.h
           src/Settings.cpp
-          src/HttpUtil.h
-          src/HttpUtil.cpp
+          src/HttpClient.h
+          src/HttpClient.cpp
           src/Log.h
           src/BoostAsio.h
           src/IoThreadPool.h

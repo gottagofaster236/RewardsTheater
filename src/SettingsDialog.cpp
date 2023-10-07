@@ -12,7 +12,7 @@
 #include <obs.hpp>
 #include <ranges>
 
-#include "HttpUtil.h"
+#include "HttpClient.h"
 #include "Log.h"
 #include "RewardWidget.h"
 #include "ui_SettingsDialog.h"
@@ -145,7 +145,7 @@ void SettingsDialog::showRewardLoadException(std::exception_ptr exception) {
         return;
     } catch (const TwitchRewardsApi::NotAffiliateException&) {
         message = obs_module_text("CouldNotLoadRewardsNotAffiliate");
-    } catch (const HttpUtil::NetworkException&) {
+    } catch (const HttpClient::NetworkException&) {
         message = obs_module_text("CouldNotLoadRewardsNetwork");
     } catch (const std::exception& otherException) {
         message =

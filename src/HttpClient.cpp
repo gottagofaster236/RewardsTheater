@@ -1,40 +1,32 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Copyright (c) 2023, Lev Leontev
 
-#include "HttpUtil.h"
+#include "HttpClient.h"
 
 #include "BoostAsio.h"
+#include "TwitchAuth.h"
 
 namespace asio = boost::asio;
 namespace ssl = asio::ssl;
 namespace http = boost::beast::http;
 
-namespace HttpUtil {
+HttpClient::HttpClient(boost::asio::io_context& ioContext) : ioContext(ioContext) {}
 
-InternalServerErrorException::InternalServerErrorException(const std::string& message) : message(message) {}
+HttpClient::~HttpClient() = default;
 
-const char* InternalServerErrorException::what() const noexcept {
+HttpClient::InternalServerErrorException::InternalServerErrorException(const std::string& message) : message(message) {}
+
+const char* HttpClient::InternalServerErrorException::what() const noexcept {
     return message.c_str();
 }
 
-static asio::awaitable<ssl::stream<asio::ip::tcp::socket>> resolveHost(
-    asio::io_context& ioContext,
-    const std::string& host
-);
-
-static asio::awaitable<http::response<http::dynamic_body>> getResponse(
-    const http::request<http::empty_body>& request,
-    ssl::stream<asio::ip::tcp::socket>& stream
-);
-
-boost::asio::awaitable<Response> request(
-    boost::asio::io_context& ioContext,
+asio::awaitable<HttpClient::Response> HttpClient::request(
     const std::string& host,
     const std::string& path,
-    const std::map<std::string, std::string> headers,
+    const std::map<std::string, std::string>& headers,
     std::initializer_list<boost::urls::param_view> urlParams
 ) {
-    ssl::stream<asio::ip::tcp::socket> stream = co_await resolveHost(ioContext, host);
+    ssl::stream<asio::ip::tcp::socket> stream = co_await resolveHost(host);
     boost::urls::url pathWithParams = boost::urls::parse_origin_form(path).value();
     pathWithParams.set_params(urlParams);
     http::request<http::empty_body> request{http::verb::get, pathWithParams.buffer(), 11};
@@ -46,13 +38,12 @@ boost::asio::awaitable<Response> request(
     http::response<http::dynamic_body> response = co_await getResponse(request, stream);
     std::string body = boost::beast::buffers_to_string(response.body().data());
     if (response.result() == http::status::internal_server_error) {
-        throw InternalServerErrorException(body);
+        throw HttpClient::InternalServerErrorException(body);
     }
-    co_return Response{response.result(), boost::json::parse(body)};
+    co_return HttpClient::Response{response.result(), boost::json::parse(body)};
 }
 
-asio::awaitable<Response> request(
-    asio::io_context& ioContext,
+asio::awaitable<HttpClient::Response> HttpClient::request(
     const std::string& host,
     const std::string& path,
     const std::string& accessToken,
@@ -60,19 +51,18 @@ asio::awaitable<Response> request(
     std::initializer_list<boost::urls::param_view> urlParams
 ) {
     co_return co_await request(
-        ioContext, host, path, {{"Authorization", "Bearer " + accessToken}, {"Client-Id", clientId}}, urlParams
+        host, path, {{"Authorization", "Bearer " + accessToken}, {"Client-Id", clientId}}, urlParams
     );
 }
 
-asio::awaitable<Response> request(
-    asio::io_context& ioContext,
+asio::awaitable<HttpClient::Response> HttpClient::request(
     const std::string& host,
     const std::string& path,
     TwitchAuth& auth,
     std::initializer_list<boost::urls::param_view> urlParams
 ) {
-    Response response =
-        co_await request(ioContext, host, path, auth.getAccessTokenOrThrow(), auth.getClientId(), urlParams);
+    HttpClient::Response response =
+        co_await request(host, path, auth.getAccessTokenOrThrow(), auth.getClientId(), urlParams);
     if (response.status == http::status::unauthorized) {
         auth.logOutAndEmitAuthenticationFailure();
         throw TwitchAuth::UnauthenticatedException();
@@ -80,12 +70,8 @@ asio::awaitable<Response> request(
     co_return response;
 }
 
-asio::awaitable<std::string> downloadFile(
-    asio::io_context& ioContext,
-    const std::string& host,
-    const std::string& path
-) {
-    ssl::stream<asio::ip::tcp::socket> stream = co_await resolveHost(ioContext, host);
+asio::awaitable<std::string> HttpClient::downloadFile(const std::string& host, const std::string& path) {
+    ssl::stream<asio::ip::tcp::socket> stream = co_await resolveHost(host);
     http::request<http::empty_body> request{http::verb::get, path, 11};
     request.set(http::field::host, host);
 
@@ -96,7 +82,7 @@ asio::awaitable<std::string> downloadFile(
     co_return boost::beast::buffers_to_string(response.body().data());
 }
 
-asio::awaitable<ssl::stream<asio::ip::tcp::socket>> resolveHost(asio::io_context& ioContext, const std::string& host) {
+asio::awaitable<ssl::stream<asio::ip::tcp::socket>> HttpClient::resolveHost(const std::string& host) {
     ssl::context sslContext{ssl::context::tlsv12};
     sslContext.set_default_verify_paths();
     asio::ip::tcp::resolver resolver{ioContext};
@@ -110,7 +96,7 @@ asio::awaitable<ssl::stream<asio::ip::tcp::socket>> resolveHost(asio::io_context
     co_return stream;
 }
 
-asio::awaitable<http::response<http::dynamic_body>> getResponse(
+asio::awaitable<http::response<http::dynamic_body>> HttpClient::getResponse(
     const http::request<http::empty_body>& request,
     ssl::stream<asio::ip::tcp::socket>& stream
 ) {
@@ -120,5 +106,3 @@ asio::awaitable<http::response<http::dynamic_body>> getResponse(
     co_await http::async_read(stream, buffer, response, asio::use_awaitable);
     co_return response;
 }
-
-}  // namespace HttpUtil

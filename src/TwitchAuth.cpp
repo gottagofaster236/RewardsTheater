@@ -15,7 +15,7 @@
 #include <ranges>
 
 #include "BoostAsio.h"
-#include "HttpUtil.h"
+#include "HttpClient.h"
 #include "Log.h"
 
 using namespace std::chrono_literals;
@@ -32,10 +32,11 @@ TwitchAuth::TwitchAuth(
     const std::string& clientId,
     const std::set<std::string>& scopes,
     std::uint16_t authServerPort,
+    HttpClient& httpClient,
     asio::io_context& ioContext
 )
-    : settings(settings), clientId(clientId), scopes(scopes), authServerPort(authServerPort), ioContext(ioContext),
-      randomEngine(std::random_device()()) {}
+    : settings(settings), clientId(clientId), scopes(scopes), authServerPort(authServerPort), httpClient(httpClient),
+      ioContext(ioContext), randomEngine(std::random_device()()) {}
 
 TwitchAuth::~TwitchAuth() = default;
 
@@ -158,8 +159,8 @@ asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token) 
 }
 
 asio::awaitable<TwitchAuth::ValidateTokenResponse> TwitchAuth::asyncValidateToken(std::string token) {
-    HttpUtil::Response validateTokenResponse =
-        co_await HttpUtil::request(ioContext, "id.twitch.tv", "/oauth2/validate", token, clientId);
+    HttpClient::Response validateTokenResponse =
+        co_await httpClient.request("id.twitch.tv", "/oauth2/validate", token, clientId);
 
     if (validateTokenResponse.status == http::status::unauthorized) {
         co_return TwitchAuth::ValidateTokenResponse{};
@@ -186,7 +187,7 @@ bool TwitchAuth::tokenHasNeededScopes(const json::value& validateTokenResponse) 
 
 asio::awaitable<std::optional<std::string>> TwitchAuth::asyncGetUsername() {
     try {
-        HttpUtil::Response response = co_await HttpUtil::request(ioContext, "api.twitch.tv", "/helix/users", *this);
+        HttpClient::Response response = co_await httpClient.request("api.twitch.tv", "/helix/users", *this);
         if (response.status != http::status::ok) {
             co_return std::nullopt;
         }

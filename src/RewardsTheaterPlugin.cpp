@@ -22,17 +22,17 @@ static const std::array<int, 10> AUTH_SERVER_PORTS =
     {19910, 19911, 19912, 19913, 19914, 19915, 19916, 19917, 19918, 19919};
 
 RewardsTheaterPlugin::RewardsTheaterPlugin()
-    : settings(Settings(obs_frontend_get_global_config())),
-      ioThreadPool(std::max(2u, std::thread::hardware_concurrency())),
-      twitchAuth(
-          settings,
-          TWITCH_CLIENT_ID,
-          {"channel:read:redemptions", "channel:manage:redemptions"},
-          AUTH_SERVER_PORTS[std::random_device()() % AUTH_SERVER_PORTS.size()],
-          ioThreadPool.ioContext
-      ),
-      twitchRewardsApi(twitchAuth, ioThreadPool.ioContext), githubUpdateApi(ioThreadPool.ioContext),
-      rewardsQueue(settings) {
+    : settings(obs_frontend_get_global_config()), ioThreadPool(std::max(2u, std::thread::hardware_concurrency())),
+      httpClient(ioThreadPool.ioContext), twitchAuth(
+                                              settings,
+                                              TWITCH_CLIENT_ID,
+                                              {"channel:read:redemptions", "channel:manage:redemptions"},
+                                              AUTH_SERVER_PORTS[std::random_device()() % AUTH_SERVER_PORTS.size()],
+                                              httpClient,
+                                              ioThreadPool.ioContext
+                                          ),
+      twitchRewardsApi(twitchAuth, httpClient, ioThreadPool.ioContext),
+      githubUpdateApi(httpClient, ioThreadPool.ioContext), rewardsQueue(settings) {
     QMainWindow* mainWindow = static_cast<QMainWindow*>(obs_frontend_get_main_window());
 
     obs_frontend_push_ui_translation(obs_module_get_string);

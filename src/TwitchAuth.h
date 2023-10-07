@@ -15,6 +15,7 @@
 #include <thread>
 
 #include "BoostAsio.h"
+#include "HttpClient.h"
 #include "Settings.h"
 
 /// A class for Twitch authentication using the Implicit grant flow.
@@ -28,6 +29,7 @@ public:
         const std::string& clientId,
         const std::set<std::string>& scopes,
         std::uint16_t authServerPort,
+        HttpClient& httpClient,
         boost::asio::io_context& ioContext
     );
     ~TwitchAuth();
@@ -92,6 +94,7 @@ private:
     std::string clientId;
     std::set<std::string> scopes;
     std::uint16_t authServerPort;
+    HttpClient& httpClient;
     boost::asio::io_context& ioContext;
 
     std::optional<std::string> accessToken;

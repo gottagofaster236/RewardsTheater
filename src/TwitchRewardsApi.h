@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "BoostAsio.h"
+#include "HttpClient.h"
 #include "Reward.h"
 #include "TwitchAuth.h"
 
@@ -24,7 +25,7 @@ class TwitchRewardsApi : public QObject {
     Q_OBJECT
 
 public:
-    TwitchRewardsApi(TwitchAuth& twitchAuth, boost::asio::io_context& ioContext);
+    TwitchRewardsApi(TwitchAuth& twitchAuth, HttpClient& httpClient, boost::asio::io_context& ioContext);
     ~TwitchRewardsApi();
 
     /// Calls the receiver with rewards as std::variant<std::exception_ptr, std::vector<Reward>>.
@@ -74,6 +75,7 @@ private:
     boost::asio::awaitable<std::string> asyncDownloadImage(const boost::urls::url& url);
 
     TwitchAuth& twitchAuth;
+    HttpClient& httpClient;
     boost::asio::io_context& ioContext;
 };
 

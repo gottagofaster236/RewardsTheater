@@ -10,7 +10,7 @@
 #include <iostream>
 #include <obs.hpp>
 
-#include "HttpUtil.h"
+#include "HttpClient.h"
 #include "ui_AuthenticateWithTwitchDialog.h"
 
 AuthenticateWithTwitchDialog::AuthenticateWithTwitchDialog(QWidget* parent, TwitchAuth& twitchAuth)
@@ -67,7 +67,7 @@ void AuthenticateWithTwitchDialog::showAuthenticationFailureMessage(std::excepti
         std::rethrow_exception(reason);
     } catch (const TwitchAuth::UnauthenticatedException&) {
         message = obs_module_text("TwitchAuthenticationFailedInvalid");
-    } catch (const HttpUtil::NetworkException&) {
+    } catch (const HttpClient::NetworkException&) {
         message = obs_module_text("TwitchAuthenticationFailedNetwork");
     } catch (const std::exception& otherException) {
         message = std::vformat(
