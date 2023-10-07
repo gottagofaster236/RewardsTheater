@@ -52,7 +52,7 @@ target_sources(
           src/RewardWidget.h
           src/RewardWidget.cpp
           src/GithubUpdateApi.h
-		  src/GithubUpdateApi.cpp)
+          src/GithubUpdateApi.cpp)
 
 # GCC ignores the "pragma GCC diagnostic ignored" in precompiled headers
 if(MSVC)
@@ -82,7 +82,8 @@ set_target_properties(
              AUTOUIC ON
              AUTORCC ON)
 
-configure_file(src/RewardsTheaterVersion.h.in ${CMAKE_SOURCE_DIR}/src/RewardsTheaterVersion.generated.h)
+configure_file(src/RewardsTheaterVersion.h.in
+               ${CMAKE_SOURCE_DIR}/src/RewardsTheaterVersion.generated.h)
 
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/RewardsTheaterVersion.generated.h)
 
