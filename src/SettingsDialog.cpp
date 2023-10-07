@@ -25,7 +25,7 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
     errorMessageBox->setWindowTitle(obs_module_text("RewardsTheater"));
     errorMessageBox->setIcon(QMessageBox::Icon::Warning);
     errorMessageBox->setStandardButtons(QMessageBox::Ok);
-    showRewardTheaterLink();
+    showRewardsTheaterLink();
 
     connect(ui->authButton, &QPushButton::clicked, this, &SettingsDialog::logInOrLogOut);
     connect(ui->openRewardsQueueButton, &QPushButton::clicked, this, &SettingsDialog::openRewardsQueue);
@@ -85,7 +85,7 @@ void SettingsDialog::updateAuthButtonText(const std::optional<std::string>& user
     ui->authButton->setText(QString::fromStdString(newText));
 }
 
-void SettingsDialog::showRewardTheaterLink() {
+void SettingsDialog::showRewardsTheaterLink() {
     const char* linkText;
     const char* url;
 

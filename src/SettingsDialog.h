@@ -33,7 +33,7 @@ private slots:
     void openRewardsQueue();
     void updateRewards();
     void updateAuthButtonText(const std::optional<std::string>& username);
-    void showRewardTheaterLink();
+    void showRewardsTheaterLink();
 
 private:
     void updateRewardWidgets();
