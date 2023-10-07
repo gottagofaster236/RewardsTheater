@@ -398,7 +398,7 @@ jobs:
         with:
           path: plugin
           fetch-depth: 0
-          submodules: recursive
+          submodules: false  # don't publish vcpkg's executables
 
       - name: Get Metadata
         working-directory: ${{ github.workspace }}/plugin
