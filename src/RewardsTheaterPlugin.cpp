@@ -31,7 +31,8 @@ RewardsTheaterPlugin::RewardsTheaterPlugin()
           AUTH_SERVER_PORTS[std::random_device()() % AUTH_SERVER_PORTS.size()],
           ioThreadPool.ioContext
       ),
-      twitchRewardsApi(twitchAuth, ioThreadPool.ioContext), rewardsQueue(settings) {
+      twitchRewardsApi(twitchAuth, ioThreadPool.ioContext), githubUpdateApi(ioThreadPool.ioContext),
+      rewardsQueue(settings) {
     QMainWindow* mainWindow = static_cast<QMainWindow*>(obs_frontend_get_main_window());
 
     obs_frontend_push_ui_translation(obs_module_get_string);
@@ -42,10 +43,11 @@ RewardsTheaterPlugin::RewardsTheaterPlugin()
     QObject::connect(action, &QAction::triggered, settingsDialog, &SettingsDialog::toggleVisibility);
 
     twitchAuth.startService();
+    githubUpdateApi.checkForUpdates();
 }
 
 RewardsTheaterPlugin::~RewardsTheaterPlugin() {
-    // Stop the thread pool before destructing TwitchAuth and TwitchRewardsApi,
+    // Stop the thread pool before destructing the objects that use it,
     // so that no callbacks are called on destructed objects.
     ioThreadPool.stop();
 }
@@ -60,6 +62,10 @@ TwitchAuth& RewardsTheaterPlugin::getTwitchAuth() {
 
 TwitchRewardsApi& RewardsTheaterPlugin::getTwitchRewardsApi() {
     return twitchRewardsApi;
+}
+
+GithubUpdateApi& RewardsTheaterPlugin::getGithubUpdateApi() {
+    return githubUpdateApi;
 }
 
 RewardsQueue& RewardsTheaterPlugin::getRewardsQueue() {

@@ -6,7 +6,9 @@
 #include <boost/json.hpp>
 #include <boost/system/system_error.hpp>
 #include <boost/url.hpp>
+#include <exception>
 #include <functional>
+#include <map>
 #include <utility>
 
 #include "BoostAsio.h"
@@ -31,19 +33,27 @@ private:
 };
 
 boost::asio::awaitable<Response> request(
-    const std::string& accessToken,
-    const std::string& clientId,
     boost::asio::io_context& ioContext,
     const std::string& host,
     const std::string& path,
+    const std::map<std::string, std::string> headers = {},
     std::initializer_list<boost::urls::param_view> urlParams = {}
 );
 
 boost::asio::awaitable<Response> request(
-    TwitchAuth& auth,
     boost::asio::io_context& ioContext,
     const std::string& host,
     const std::string& path,
+    const std::string& accessToken,
+    const std::string& clientId,
+    std::initializer_list<boost::urls::param_view> urlParams = {}
+);
+
+boost::asio::awaitable<Response> request(
+    boost::asio::io_context& ioContext,
+    const std::string& host,
+    const std::string& path,
+    TwitchAuth& auth,
     std::initializer_list<boost::urls::param_view> urlParams = {}
 );
 

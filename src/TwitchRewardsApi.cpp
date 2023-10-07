@@ -96,10 +96,10 @@ asio::awaitable<void> TwitchRewardsApi::asyncDownloadImage(boost::urls::url url,
 // https://dev.twitch.tv/docs/api/reference/#get-custom-reward
 asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards(bool onlyManageableRewards) {
     HttpUtil::Response response = co_await HttpUtil::request(
-        twitchAuth,
         ioContext,
         "api.twitch.tv",
         "/helix/channel_points/custom_rewards",
+        twitchAuth,
         {
             {"broadcaster_id", twitchAuth.getUserIdOrThrow()},
             {"only_manageable_rewards", std::format("{}", onlyManageableRewards)},

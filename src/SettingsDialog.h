@@ -33,14 +33,15 @@ private slots:
     void openRewardsQueue();
     void updateRewards();
     void updateAuthButtonText(const std::optional<std::string>& username);
-    void showRewardsTheaterLink();
+    void showUpdateAvailableLink();
 
 private:
     void updateRewardWidgets();
     void showRewardWidgets();
     void showRewardLoadException(std::exception_ptr exception);
+    void showGithubLink();
+    void showRewardsTheaterLink(const std::string& linkText, const std::string& url);
 
-private:
     RewardsTheaterPlugin& plugin;
     std::unique_ptr<Ui::SettingsDialog> ui;
     AuthenticateWithTwitchDialog* authenticateWithTwitchDialog;
@@ -48,5 +49,4 @@ private:
 
     std::vector<Reward> rewards;
     std::map<std::string, RewardWidget*> rewardWidgetByRewardId;
-    bool updateAvailable = true;  // TODO make false
 };

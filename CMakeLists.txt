@@ -50,7 +50,9 @@ target_sources(
           src/EditRewardDialog.h
           src/EditRewardDialog.cpp
           src/RewardWidget.h
-          src/RewardWidget.cpp)
+          src/RewardWidget.cpp
+          src/GithubUpdateApi.h
+		  src/GithubUpdateApi.cpp)
 
 # GCC ignores the "pragma GCC diagnostic ignored" in precompiled headers
 if(MSVC)
@@ -79,6 +81,10 @@ set_target_properties(
   PROPERTIES AUTOMOC ON
              AUTOUIC ON
              AUTORCC ON)
+
+configure_file(src/RewardsTheaterVersion.h.in ${CMAKE_SOURCE_DIR}/src/RewardsTheaterVersion.generated.h)
+
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/RewardsTheaterVersion.generated.h)
 
 # /!\ TAKE NOTE: No need to edit things past this point /!\
 

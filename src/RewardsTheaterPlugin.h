@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "GithubUpdateApi.h"
 #include "IoThreadPool.h"
 #include "RewardsQueue.h"
 #include "Settings.h"
@@ -16,6 +17,7 @@ public:
     Settings& getSettings();
     TwitchAuth& getTwitchAuth();
     TwitchRewardsApi& getTwitchRewardsApi();
+    GithubUpdateApi& getGithubUpdateApi();
     RewardsQueue& getRewardsQueue();
 
 private:
@@ -23,5 +25,6 @@ private:
     IoThreadPool ioThreadPool;
     TwitchAuth twitchAuth;
     TwitchRewardsApi twitchRewardsApi;
+    GithubUpdateApi githubUpdateApi;
     RewardsQueue rewardsQueue;
 };

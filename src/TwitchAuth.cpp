@@ -159,7 +159,7 @@ asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token) 
 
 asio::awaitable<TwitchAuth::ValidateTokenResponse> TwitchAuth::asyncValidateToken(std::string token) {
     HttpUtil::Response validateTokenResponse =
-        co_await HttpUtil::request(token, clientId, ioContext, "id.twitch.tv", "/oauth2/validate");
+        co_await HttpUtil::request(ioContext, "id.twitch.tv", "/oauth2/validate", token, clientId);
 
     if (validateTokenResponse.status == http::status::unauthorized) {
         co_return TwitchAuth::ValidateTokenResponse{};
@@ -186,7 +186,7 @@ bool TwitchAuth::tokenHasNeededScopes(const json::value& validateTokenResponse) 
 
 asio::awaitable<std::optional<std::string>> TwitchAuth::asyncGetUsername() {
     try {
-        HttpUtil::Response response = co_await HttpUtil::request(*this, ioContext, "api.twitch.tv", "/helix/users");
+        HttpUtil::Response response = co_await HttpUtil::request(ioContext, "api.twitch.tv", "/helix/users", *this);
         if (response.status != http::status::ok) {
             co_return std::nullopt;
         }
