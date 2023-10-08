@@ -74,7 +74,6 @@ private:
 
     boost::asio::awaitable<std::vector<Reward>> asyncGetRewards();
     boost::asio::awaitable<boost::json::value> asyncGetRewardsRequest(bool onlyManageableRewards);
-
     static Reward parseReward(const boost::json::value& reward, bool isManageable);
     static Color hexColorToColor(const std::string& hexColor);
     static boost::urls::url getImageUrl(const boost::json::value& reward);

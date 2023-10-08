@@ -7,13 +7,39 @@
     <x>0</x>
     <y>0</y>
     <width>581</width>
-    <height>521</height>
+    <height>568</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>RewardsTheater</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
+   <item row="1" column="0">
+    <widget class="QFrame" name="buttonsFrame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QPushButton" name="addRewardButton">
+        <property name="text">
+         <string>AddReward</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="reloadRewardsButton">
+        <property name="text">
+         <string>ReloadRewards</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="0" column="0">
     <widget class="QFrame" name="topFrame">
      <property name="frameShape">
@@ -97,7 +123,7 @@
         <x>0</x>
         <y>0</y>
         <width>561</width>
-        <height>371</height>
+        <height>370</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -112,33 +138,7 @@
      </widget>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QFrame" name="buttonsFrame">
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
-       <widget class="QPushButton" name="addRewardButton">
-        <property name="text">
-         <string>AddReward</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="reloadRewardsButton">
-        <property name="text">
-         <string>ReloadRewards</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="3" column="0">
+   <item row="8" column="0">
     <widget class="QPushButton" name="openRewardsQueueButton">
      <property name="locale">
       <locale language="English" country="UnitedStates"/>
@@ -146,6 +146,48 @@
      <property name="text">
       <string>OpenRewardsQueue</string>
      </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QFrame" name="putRewardsInQueueFrame">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QCheckBox" name="putRewardsInQueueCheckBox">
+        <property name="text">
+         <string>EnableRewardsQueueWithInterval</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="spinBox"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="secondsLabel">
+        <property name="text">
+         <string>Seconds</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>

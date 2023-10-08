@@ -4,19 +4,19 @@
 #include "Settings.h"
 
 static const char* const PLUGIN_NAME = "RewardsName";
-static const char* const PUT_REWARDS_IN_QUEUE_KEY = "PUT_REWARDS_IN_QUEUE_KEY";
+static const char* const REWARDS_QUEUE_ENABLED_KEY = "REWARDS_QUEUE_ENABLED_KEY";
 static const char* const INTERVAL_BETWEEN_REWARDS_SECONDS_KEY = "INTERVAL_BETWEEN_REWARDS_SECONDS_KEY";
 static const char* const TWITCH_ACCESS_TOKEN_KEY = "TWITCH_ACCESS_TOKEN_KEY";
 
 Settings::Settings(config_t* config) : config(config) {}
 
-bool Settings::getPutRewardsInQueue() const {
-    config_set_default_bool(config, PLUGIN_NAME, PUT_REWARDS_IN_QUEUE_KEY, true);
-    return config_get_bool(config, PLUGIN_NAME, PUT_REWARDS_IN_QUEUE_KEY);
+bool Settings::isRewardsQueueEnabled() const {
+    config_set_default_bool(config, PLUGIN_NAME, REWARDS_QUEUE_ENABLED_KEY, true);
+    return config_get_bool(config, PLUGIN_NAME, REWARDS_QUEUE_ENABLED_KEY);
 }
 
-void Settings::setPutRewardsInQueue(bool putRewardsInQueue) {
-    config_set_bool(config, PLUGIN_NAME, PUT_REWARDS_IN_QUEUE_KEY, putRewardsInQueue);
+void Settings::setRewardsQueueEnabled(bool rewardsQueueEnabled) {
+    config_set_bool(config, PLUGIN_NAME, REWARDS_QUEUE_ENABLED_KEY, rewardsQueueEnabled);
 }
 
 std::int32_t Settings::getIntervalBetweenRewardsSeconds() const {

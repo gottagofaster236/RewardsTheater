@@ -14,8 +14,8 @@ public:
     Settings(config_t* config);
 
     /// Whether to play a reward immediately (possibly simultaneously with other rewards) or put it in a queue.
-    bool getPutRewardsInQueue() const;
-    void setPutRewardsInQueue(bool putRewardsInQueue);
+    bool isRewardsQueueEnabled() const;
+    void setRewardsQueueEnabled(bool rewardsQueueEnabled);
 
     /// How much to wait between two rewards in a queue (if putRewardsInQueue() is true)
     std::int32_t getIntervalBetweenRewardsSeconds() const;
