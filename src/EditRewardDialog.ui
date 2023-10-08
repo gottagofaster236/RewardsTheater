@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>661</width>
-    <height>411</height>
+    <height>481</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,30 +17,36 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>10</y>
-     <width>191</width>
-     <height>31</height>
+     <y>40</y>
+     <width>171</width>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
     <string>Enabled</string>
+   </property>
+   <property name="tristate">
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QLineEdit" name="titleEdit">
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>50</y>
+     <y>80</y>
      <width>511</width>
      <height>31</height>
     </rect>
+   </property>
+   <property name="maxLength">
+    <number>45</number>
    </property>
   </widget>
   <widget class="QLabel" name="titleLabel">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>50</y>
+     <y>80</y>
      <width>111</width>
      <height>31</height>
     </rect>
@@ -52,11 +58,11 @@
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
-  <widget class="QPushButton" name="okButton">
+  <widget class="QPushButton" name="saveButton">
    <property name="geometry">
     <rect>
      <x>140</x>
-     <y>360</y>
+     <y>430</y>
      <width>161</width>
      <height>31</height>
     </rect>
@@ -69,7 +75,7 @@
    <property name="geometry">
     <rect>
      <x>480</x>
-     <y>360</y>
+     <y>430</y>
      <width>161</width>
      <height>31</height>
     </rect>
@@ -82,7 +88,7 @@
    <property name="geometry">
     <rect>
      <x>310</x>
-     <y>360</y>
+     <y>430</y>
      <width>161</width>
      <height>31</height>
     </rect>
@@ -95,7 +101,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>90</y>
+     <y>160</y>
      <width>111</width>
      <height>31</height>
     </rect>
@@ -111,7 +117,7 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>90</y>
+     <y>160</y>
      <width>341</width>
      <height>31</height>
     </rect>
@@ -121,7 +127,7 @@
    <property name="geometry">
     <rect>
      <x>480</x>
-     <y>90</y>
+     <y>160</y>
      <width>161</width>
      <height>31</height>
     </rect>
@@ -134,7 +140,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>130</y>
+     <y>200</y>
      <width>111</width>
      <height>31</height>
     </rect>
@@ -146,24 +152,27 @@
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
-  <widget class="QToolButton" name="toolButton">
+  <widget class="QToolButton" name="backgroundColorButton">
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>130</y>
+     <y>200</y>
      <width>31</width>
      <height>31</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">background: #d1b3ff</string>
+   </property>
    <property name="text">
-    <string>...</string>
+    <string/>
    </property>
   </widget>
   <widget class="QCheckBox" name="limitRedemptionsPerStreamCheckBox">
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>185</y>
+     <y>255</y>
      <width>341</width>
      <height>31</height>
     </rect>
@@ -176,13 +185,13 @@
    <property name="geometry">
     <rect>
      <x>480</x>
-     <y>185</y>
+     <y>255</y>
      <width>81</width>
      <height>31</height>
     </rect>
    </property>
-   <property name="alignment">
-    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   <property name="minimum">
+    <number>1</number>
    </property>
    <property name="maximum">
     <number>99999999</number>
@@ -192,7 +201,7 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>225</y>
+     <y>295</y>
      <width>341</width>
      <height>31</height>
     </rect>
@@ -205,13 +214,13 @@
    <property name="geometry">
     <rect>
      <x>480</x>
-     <y>225</y>
+     <y>295</y>
      <width>81</width>
      <height>31</height>
     </rect>
    </property>
-   <property name="alignment">
-    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   <property name="minimum">
+    <number>1</number>
    </property>
    <property name="maximum">
     <number>99999999</number>
@@ -221,7 +230,7 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>260</y>
+     <y>330</y>
      <width>341</width>
      <height>41</height>
     </rect>
@@ -234,26 +243,23 @@
    <property name="geometry">
     <rect>
      <x>480</x>
-     <y>265</y>
+     <y>335</y>
      <width>81</width>
      <height>31</height>
     </rect>
    </property>
-   <property name="alignment">
-    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-   </property>
    <property name="minimum">
-    <number>0</number>
+    <number>1</number>
    </property>
    <property name="maximum">
-    <number>99999999</number>
+    <number>604800</number>
    </property>
   </widget>
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
      <x>570</x>
-     <y>270</y>
+     <y>340</y>
      <width>71</width>
      <height>21</height>
     </rect>
@@ -266,20 +272,29 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>310</y>
-     <width>281</width>
+     <y>380</y>
+     <width>341</width>
      <height>31</height>
     </rect>
    </property>
    <property name="text">
     <string>UploadCustomIconHere</string>
    </property>
+   <property name="textFormat">
+    <enum>Qt::RichText</enum>
+   </property>
+   <property name="openExternalLinks">
+    <bool>true</bool>
+   </property>
+   <property name="textInteractionFlags">
+    <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse</set>
+   </property>
   </widget>
   <widget class="QLabel" name="timesLabel_2">
    <property name="geometry">
     <rect>
      <x>570</x>
-     <y>230</y>
+     <y>300</y>
      <width>71</width>
      <height>21</height>
     </rect>
@@ -292,13 +307,64 @@
    <property name="geometry">
     <rect>
      <x>570</x>
-     <y>190</y>
+     <y>260</y>
      <width>71</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
     <string>Times</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="costLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>120</y>
+     <width>111</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Cost</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QSpinBox" name="costSpinBox">
+   <property name="geometry">
+    <rect>
+     <x>130</x>
+     <y>120</y>
+     <width>511</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="minimum">
+    <number>1</number>
+   </property>
+   <property name="maximum">
+    <number>999999999</number>
+   </property>
+  </widget>
+  <widget class="QLabel" name="cannotEditRewardLabel">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>10</y>
+     <width>621</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: red</string>
+   </property>
+   <property name="text">
+    <string>CannotEditThisReward</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
  </widget>

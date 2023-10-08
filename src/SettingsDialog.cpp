@@ -29,8 +29,9 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
     connect(ui->authButton, &QPushButton::clicked, this, &SettingsDialog::logInOrLogOut);
     connect(ui->openRewardsQueueButton, &QPushButton::clicked, this, &SettingsDialog::openRewardsQueue);
     connect(
-        ui->reloadRewardsButton, &QPushButton::clicked, &plugin.getTwitchRewardsApi(), &TwitchRewardsApi::updateRewards
+        ui->reloadRewardsButton, &QPushButton::clicked, &plugin.getTwitchRewardsApi(), &TwitchRewardsApi::reloadRewards
     );
+    connect(ui->addRewardButton, &QPushButton::clicked, this, &SettingsDialog::showAddRewardDialog);
 
     connect(&plugin.getTwitchAuth(), &TwitchAuth::onUsernameChanged, this, &SettingsDialog::updateAuthButtonText);
     connect(&plugin.getTwitchRewardsApi(), &TwitchRewardsApi::onRewardsUpdated, this, &SettingsDialog::showRewards);
@@ -48,17 +49,6 @@ void SettingsDialog::toggleVisibility() {
     setVisible(!isVisible());
 }
 
-void SettingsDialog::showRewards(const std::variant<std::exception_ptr, std::vector<Reward>>& newRewards) {
-    if (std::holds_alternative<std::vector<Reward>>(newRewards)) {
-        rewards = std::get<std::vector<Reward>>(newRewards);
-    } else {
-        rewards = {};
-        showRewardLoadException(std::get<std::exception_ptr>(newRewards));
-    }
-    updateRewardWidgets();
-    showRewardWidgets();
-}
-
 void SettingsDialog::logInOrLogOut() {
     TwitchAuth& auth = plugin.getTwitchAuth();
     if (auth.isAuthenticated()) {
@@ -66,10 +56,6 @@ void SettingsDialog::logInOrLogOut() {
     } else {
         twitchAuthDialog->show();
     }
-}
-
-void SettingsDialog::openRewardsQueue() {
-    log(LOG_INFO, "onOpenRewardsQueueClicked");
 }
 
 void SettingsDialog::updateAuthButtonText(const std::optional<std::string>& username) {
@@ -86,6 +72,25 @@ void SettingsDialog::updateAuthButtonText(const std::optional<std::string>& user
         newText = obs_module_text("LogIn");
     }
     ui->authButton->setText(QString::fromStdString(newText));
+}
+
+void SettingsDialog::showRewards(const std::variant<std::exception_ptr, std::vector<Reward>>& newRewards) {
+    if (std::holds_alternative<std::vector<Reward>>(newRewards)) {
+        rewards = std::get<std::vector<Reward>>(newRewards);
+    } else {
+        rewards = {};
+        showRewardLoadException(std::get<std::exception_ptr>(newRewards));
+    }
+    updateRewardWidgets();
+    showRewardWidgets();
+}
+
+void SettingsDialog::showAddRewardDialog() {
+    (new EditRewardDialog({}, plugin.getTwitchAuth(), plugin.getTwitchRewardsApi(), this))->show();
+}
+
+void SettingsDialog::openRewardsQueue() {
+    log(LOG_INFO, "onOpenRewardsQueueClicked");
 }
 
 void SettingsDialog::showUpdateAvailableLink() {
@@ -116,7 +121,8 @@ void SettingsDialog::updateRewardWidgets() {
         if (existingWidget) {
             existingWidget->setReward(reward);
         } else {
-            rewardWidgetByRewardId[reward.id] = new RewardWidget(reward, plugin.getTwitchRewardsApi(), ui->rewardsGrid);
+            rewardWidgetByRewardId[reward.id] =
+                new RewardWidget(reward, plugin.getTwitchAuth(), plugin.getTwitchRewardsApi(), ui->rewardsGrid);
         }
     }
 }
@@ -159,9 +165,5 @@ void SettingsDialog::showGithubLink() {
 void SettingsDialog::showRewardsTheaterLink(const std::string& linkText, const std::string& url) {
     std::string updateAvailableLink =
         std::format("{} <a href=\"{}\">{}</a>", obs_module_text("RewardsTheater"), url, linkText);
-
     ui->titleLabel->setText(QString::fromStdString(updateAvailableLink));
-    ui->titleLabel->setTextFormat(Qt::RichText);
-    ui->titleLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
-    ui->titleLabel->setOpenExternalLinks(true);
 }

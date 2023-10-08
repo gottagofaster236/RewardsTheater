@@ -3,7 +3,6 @@
 
 #include "RewardWidget.h"
 
-#include <obs-frontend-api.h>
 #include <obs-module.h>
 
 #include <QBuffer>
@@ -16,9 +15,14 @@
 #include "Log.h"
 #include "ui_RewardWidget.h"
 
-RewardWidget::RewardWidget(const Reward& reward, TwitchRewardsApi& twitchRewardsApi, QWidget* parent)
-    : QWidget(parent), reward(reward), twitchRewardsApi(twitchRewardsApi), ui(std::make_unique<Ui::RewardWidget>()),
-      editRewardDialog(nullptr), errorMessageBox(nullptr) {
+RewardWidget::RewardWidget(
+    const Reward& reward,
+    TwitchAuth& twitchAuth,
+    TwitchRewardsApi& twitchRewardsApi,
+    QWidget* parent
+)
+    : QWidget(parent), reward(reward), twitchAuth(twitchAuth), twitchRewardsApi(twitchRewardsApi),
+      ui(std::make_unique<Ui::RewardWidget>()), editRewardDialog(nullptr), errorMessageBox(nullptr) {
     ui->setupUi(this);
     setFixedSize(size());
 
@@ -54,6 +58,10 @@ bool RewardWidget::eventFilter(QObject* obj, QEvent* event) {
         }
     }
     return false;
+}
+
+void RewardWidget::deleteReward() {
+    twitchRewardsApi.deleteReward(reward, this, "showDeleteRewardResult");
 }
 
 void RewardWidget::showDeleteRewardResult(std::exception_ptr error) {
@@ -97,10 +105,6 @@ void RewardWidget::showImage(const std::string& imageBytes) {
     ui->imageLabel->setPixmap(pixmap);
 }
 
-void RewardWidget::deleteReward() {
-    twitchRewardsApi.deleteReward(reward, this, "showDeleteRewardResult");
-}
-
 void RewardWidget::showReward() {
     ui->costLabel->setText(QString::number(reward.cost));
     ui->titleLabel->setText(QString::fromStdString(reward.title));
@@ -109,10 +113,7 @@ void RewardWidget::showReward() {
 
 void RewardWidget::showEditRewardDialog() {
     if (editRewardDialog == nullptr) {
-        obs_frontend_push_ui_translation(obs_module_get_string);
-        editRewardDialog = new EditRewardDialog(reward.id, twitchRewardsApi, this);
-        editRewardDialog->setAttribute(Qt::WA_DeleteOnClose);
-        obs_frontend_pop_ui_translation();
+        editRewardDialog = new EditRewardDialog(reward, twitchAuth, twitchRewardsApi, this);
     }
     editRewardDialog->show();
 }

@@ -40,6 +40,7 @@ public:
     bool isAuthenticated() const;
     std::optional<std::string> getUserId() const;
     std::string getUserIdOrThrow() const;
+    std::optional<std::string> getUsername() const;
     const std::string& getClientId() const;
 
     void authenticate();
@@ -70,6 +71,7 @@ private:
     boost::asio::awaitable<ValidateTokenResponse> asyncValidateToken(std::string token);
     bool tokenHasNeededScopes(const boost::json::value& validateTokenResponse);
 
+    boost::asio::awaitable<void> asyncUpdateUsername();
     boost::asio::awaitable<std::optional<std::string>> asyncGetUsername();
 
     boost::asio::awaitable<void> asyncValidateTokenPeriodically();
@@ -99,7 +101,8 @@ private:
 
     std::optional<std::string> accessToken;
     std::optional<std::string> userId;
-    mutable std::mutex accessTokenMutex;
+    std::optional<std::string> username;
+    mutable std::mutex userMutex;
 
     std::set<std::string> csrfStates;
     std::default_random_engine randomEngine;

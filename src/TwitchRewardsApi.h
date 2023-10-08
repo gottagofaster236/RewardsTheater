@@ -10,6 +10,7 @@
 #include <mutex>
 #include <string>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "BoostAsio.h"
@@ -28,22 +29,24 @@ public:
     TwitchRewardsApi(TwitchAuth& twitchAuth, HttpClient& httpClient, boost::asio::io_context& ioContext);
     ~TwitchRewardsApi();
 
-    /// Emits onRewardsUpdated
-    void updateRewards();
+    // Calls the receiver with the created reward as std::variant<std::exception_ptr, Reward>.
+    void createReward(const RewardData& rewardData, QObject* receiver, const char* member);
 
-    /// Calls the receiver with the result as std::exception_ptr.
+    // Calls the receiver with std::exception_ptr.
+    void updateReward(const Reward& reward, QObject* receiver, const char* member);
+
+    /// Loads the rewards and emits onRewardsUpdated.
+    void reloadRewards();
+
+    /// Calls the receiver with std::exception_ptr.
     void deleteReward(const Reward& reward, QObject* receiver, const char* member);
 
     /// Calls the receiver with the downloaded bytes as std::string upon success.
     void downloadImage(const Reward& reward, QObject* receiver, const char* member);
 
-    class InvalidRewardParametersException : public std::exception {
+    class EmptyRewardTitleException : public std::exception {
     public:
-        InvalidRewardParametersException(const boost::json::value& response);
         const char* what() const noexcept override;
-
-    private:
-        std::string message;
     };
 
     class NotManageableRewardException : public std::exception {
@@ -68,14 +71,19 @@ signals:
     void onRewardsUpdated(const std::variant<std::exception_ptr, std::vector<Reward>>& newRewards);
 
 private:
-    boost::asio::awaitable<void> asyncUpdateRewards();
+    boost::asio::awaitable<void> asyncCreateReward(RewardData rewardData, detail::QObjectCallback& callback);
+    boost::asio::awaitable<void> asyncUpdateReward(Reward rewardData, detail::QObjectCallback& callback);
+    boost::asio::awaitable<void> asyncReloadRewards();
     boost::asio::awaitable<void> asyncDeleteReward(Reward reward, detail::QObjectCallback& callback);
     boost::asio::awaitable<void> asyncDownloadImage(boost::urls::url url, detail::QObjectCallback& callback);
+
+    boost::asio::awaitable<Reward> asyncCreateReward(const RewardData& rewardData);
+    boost::asio::awaitable<void> asyncUpdateReward(const Reward& rewardData);
+    boost::json::value rewardDataToJson(const RewardData& rewardData);
 
     boost::asio::awaitable<std::vector<Reward>> asyncGetRewards();
     boost::asio::awaitable<boost::json::value> asyncGetRewardsRequest(bool onlyManageableRewards);
     static Reward parseReward(const boost::json::value& reward, bool isManageable);
-    static Color hexColorToColor(const std::string& hexColor);
     static boost::urls::url getImageUrl(const boost::json::value& reward);
     static std::optional<std::int64_t> getOptionalSetting(const boost::json::value& setting, const std::string& key);
 

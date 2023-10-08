@@ -13,7 +13,11 @@ struct Color {
     std::uint8_t green;
     std::uint8_t blue;
 
-    bool operator==(const Color& other) const = default;
+    Color(std::uint8_t red, std::uint8_t green, std::uint8_t blue);
+    Color(const std::string& hexColor);
+    std::string toHex() const;
+
+    bool operator==(const Color& other) const;
 };
 
 struct RewardData {
@@ -26,14 +30,14 @@ struct RewardData {
     std::optional<std::int64_t> maxRedemptionsPerUserPerStream;
     std::optional<std::int64_t> globalCooldownSeconds;
 
-    bool operator==(const RewardData& other) const = default;
+    bool operator==(const RewardData& other) const;
 };
 
 struct Reward : RewardData {
     std::string id;
     bool canManage;
 
-    bool operator==(const Reward& other) const = default;
+    bool operator==(const Reward& other) const;
 
     Reward(
         const std::string& id,
@@ -46,7 +50,5 @@ struct Reward : RewardData {
         std::optional<std::int64_t> maxRedemptionsPerUserPerStream,
         std::optional<std::int64_t> globalCooldownSeconds,
         bool canManage
-    )
-        : RewardData{title, cost, imageUrl, isEnabled, backgroundColor, maxRedemptionsPerStream, maxRedemptionsPerUserPerStream, globalCooldownSeconds},
-          id(id), canManage(canManage) {}
+    );
 };

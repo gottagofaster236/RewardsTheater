@@ -47,12 +47,12 @@ void TwitchAuth::startService() {
 }
 
 std::optional<std::string> TwitchAuth::getAccessToken() const {
-    std::lock_guard guard(accessTokenMutex);
+    std::lock_guard guard(userMutex);
     return accessToken;
 }
 
 std::string TwitchAuth::getAccessTokenOrThrow() const {
-    std::lock_guard guard(accessTokenMutex);
+    std::lock_guard guard(userMutex);
     if (!accessToken) {
         throw UnauthenticatedException();
     } else {
@@ -61,22 +61,27 @@ std::string TwitchAuth::getAccessTokenOrThrow() const {
 }
 
 bool TwitchAuth::isAuthenticated() const {
-    std::lock_guard guard(accessTokenMutex);
+    std::lock_guard guard(userMutex);
     return accessToken.has_value();
 }
 
 std::optional<std::string> TwitchAuth::getUserId() const {
-    std::lock_guard guard(accessTokenMutex);
+    std::lock_guard guard(userMutex);
     return userId;
 }
 
 std::string TwitchAuth::getUserIdOrThrow() const {
-    std::lock_guard guard(accessTokenMutex);
+    std::lock_guard guard(userMutex);
     if (!userId) {
         throw UnauthenticatedException();
     } else {
         return userId.value();
     }
+}
+
+std::optional<std::string> TwitchAuth::getUsername() const {
+    std::lock_guard guard(userMutex);
+    return username;
 }
 
 const std::string& TwitchAuth::getClientId() const {
@@ -100,9 +105,10 @@ void TwitchAuth::authenticateWithToken(const std::string& token) {
 
 void TwitchAuth::logOut() {
     {
-        std::lock_guard guard(accessTokenMutex);
+        std::lock_guard guard(userMutex);
         accessToken = {};
         userId = {};
+        username = {};
     }
     settings.setTwitchAccessToken({});
     emit onUserChanged();
@@ -146,7 +152,7 @@ asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token) 
     }
 
     {
-        std::lock_guard guard(accessTokenMutex);
+        std::lock_guard guard(userMutex);
         accessToken = token;
         userId = validateTokenResponse.userId;
     }
@@ -154,8 +160,7 @@ asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token) 
     emit onAuthenticationSuccess();
     emitAccessTokenAboutToExpireIfNeeded(validateTokenResponse.expiresIn);
     emit onUserChanged();
-    std::optional<std::string> username = co_await asyncGetUsername();
-    emit onUsernameChanged(username);
+    co_await asyncUpdateUsername();
 }
 
 asio::awaitable<TwitchAuth::ValidateTokenResponse> TwitchAuth::asyncValidateToken(std::string token) {
@@ -183,6 +188,15 @@ bool TwitchAuth::tokenHasNeededScopes(const json::value& validateTokenResponse) 
                            });
     std::set tokenScopes(tokenScopesView.begin(), tokenScopesView.end());
     return tokenScopes == scopes;
+}
+
+asio::awaitable<void> TwitchAuth::asyncUpdateUsername() {
+    std::optional<std::string> newUsername = co_await asyncGetUsername();
+    {
+        std::lock_guard guard(userMutex);
+        username = newUsername;
+    }
+    emit onUsernameChanged(newUsername);
 }
 
 asio::awaitable<std::optional<std::string>> TwitchAuth::asyncGetUsername() {
@@ -298,7 +312,7 @@ std::string TwitchAuth::getDoNotShowOnStreamPageUrl() {
 }
 
 std::string TwitchAuth::getDoNotShowOnStreamPageHtml(const std::string& csrfState) {
-    auto doNotShowOnStreamTemplate = R"(
+    constexpr auto doNotShowOnStreamTemplate = R"(
         <!DOCTYPE html>
         <html>
         <head>
@@ -333,14 +347,12 @@ std::string TwitchAuth::getDoNotShowOnStreamPageHtml(const std::string& csrfStat
         </body>
         </html>
     )";
-    return std::vformat(
+    return std::format(
         doNotShowOnStreamTemplate,
-        std::make_format_args(
-            obs_module_text("RewardsTheater"),
-            obs_module_text("DoNotShowOnStream"),
-            getAuthPageUrl(csrfState),
-            obs_module_text("AuthenticateWithTwitch")
-        )
+        obs_module_text("RewardsTheater"),
+        obs_module_text("DoNotShowOnStream"),
+        getAuthPageUrl(csrfState),
+        obs_module_text("AuthenticateWithTwitch")
     );
 }
 
@@ -370,7 +382,7 @@ std::string TwitchAuth::getAuthRedirectPageUrl() {
 }
 
 std::string TwitchAuth::getAuthRedirectPageHtml() {
-    auto authRedirectPageTemplate = R"(
+    constexpr auto authRedirectPageTemplate = R"(
         <html>
           <head>
             <meta charset="UTF-8">
@@ -418,17 +430,15 @@ std::string TwitchAuth::getAuthRedirectPageHtml() {
           </body>
         </html>
     )";
-    return std::vformat(
+    return std::format(
         authRedirectPageTemplate,
-        std::make_format_args(
-            obs_module_text("RewardsTheater"),
-            obs_module_text("TwitchAuthenticationFailedNoAccessToken"),
-            obs_module_text("TwitchAuthenticationSuccessful"),
-            obs_module_text("TwitchAuthenticationFailedTryAgain"),
-            obs_module_text("PleasePasteThisToken"),
-            obs_module_text("RewardsTheater"),
-            obs_module_text("TwitchAuthenticationInProgress")
-        )
+        obs_module_text("RewardsTheater"),
+        obs_module_text("TwitchAuthenticationFailedNoAccessToken"),
+        obs_module_text("TwitchAuthenticationSuccessful"),
+        obs_module_text("TwitchAuthenticationFailedTryAgain"),
+        obs_module_text("PleasePasteThisToken"),
+        obs_module_text("RewardsTheater"),
+        obs_module_text("TwitchAuthenticationInProgress")
     );
 }
 
