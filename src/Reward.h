@@ -16,7 +16,7 @@ struct Color {
     bool operator==(const Color& other) const = default;
 };
 
-struct RewardWithoutId {
+struct RewardData {
     std::string title;
     std::int32_t cost;
     boost::urls::url imageUrl;
@@ -26,11 +26,12 @@ struct RewardWithoutId {
     std::optional<std::int64_t> maxRedemptionsPerUserPerStream;
     std::optional<std::int64_t> globalCooldownSeconds;
 
-    bool operator==(const RewardWithoutId& other) const = default;
+    bool operator==(const RewardData& other) const = default;
 };
 
-struct Reward : RewardWithoutId {
+struct Reward : RewardData {
     std::string id;
+    bool canManage;
 
     bool operator==(const Reward& other) const = default;
 
@@ -43,8 +44,9 @@ struct Reward : RewardWithoutId {
         const Color& backgroundColor,
         std::optional<std::int64_t> maxRedemptionsPerStream,
         std::optional<std::int64_t> maxRedemptionsPerUserPerStream,
-        std::optional<std::int64_t> globalCooldownSeconds
+        std::optional<std::int64_t> globalCooldownSeconds,
+        bool canManage
     )
-        : RewardWithoutId{title, cost, imageUrl, isEnabled, backgroundColor, maxRedemptionsPerStream, maxRedemptionsPerUserPerStream, globalCooldownSeconds},
-          id(id) {}
+        : RewardData{title, cost, imageUrl, isEnabled, backgroundColor, maxRedemptionsPerStream, maxRedemptionsPerUserPerStream, globalCooldownSeconds},
+          id(id), canManage(canManage) {}
 };

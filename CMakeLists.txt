@@ -35,8 +35,8 @@ target_sources(
           src/RewardsQueue.cpp
           src/TwitchRewardsApi.h
           src/TwitchRewardsApi.cpp
-          src/AuthenticateWithTwitchDialog.cpp
-          src/AuthenticateWithTwitchDialog.h
+          src/TwitchAuthDialog.cpp
+          src/TwitchAuthDialog.h
           src/RewardsTheaterPlugin.cpp
           src/RewardsTheaterPlugin.h
           src/Settings.h

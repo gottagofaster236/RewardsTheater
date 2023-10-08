@@ -40,7 +40,8 @@ public:
         const std::string& host,
         const std::string& path,
         const std::map<std::string, std::string>& headers = {},
-        std::initializer_list<boost::urls::param_view> urlParams = {}
+        std::initializer_list<boost::urls::param_view> urlParams = {},
+        boost::beast::http::verb requestMethod = boost::beast::http::verb::get
     );
 
     boost::asio::awaitable<Response> request(
@@ -48,14 +49,16 @@ public:
         const std::string& path,
         const std::string& accessToken,
         const std::string& clientId,
-        std::initializer_list<boost::urls::param_view> urlParams = {}
+        std::initializer_list<boost::urls::param_view> urlParams = {},
+        boost::beast::http::verb requestMethod = boost::beast::http::verb::get
     );
 
     boost::asio::awaitable<Response> request(
         const std::string& host,
         const std::string& path,
         TwitchAuth& auth,
-        std::initializer_list<boost::urls::param_view> urlParams = {}
+        std::initializer_list<boost::urls::param_view> urlParams = {},
+        boost::beast::http::verb requestMethod = boost::beast::http::verb::get
     );
 
     boost::asio::awaitable<std::string> downloadFile(const std::string& host, const std::string& path);

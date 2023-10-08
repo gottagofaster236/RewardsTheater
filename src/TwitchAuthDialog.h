@@ -12,19 +12,18 @@
 #include "TwitchAuth.h"
 
 namespace Ui {
-class AuthenticateWithTwitchDialog;
+class TwitchAuthDialog;
 }
 
-class AuthenticateWithTwitchDialog : public QDialog {
+class TwitchAuthDialog : public QDialog {
     Q_OBJECT
 
 public:
-    AuthenticateWithTwitchDialog(QWidget* parent, TwitchAuth& twitchAuth);
+    TwitchAuthDialog(QWidget* parent, TwitchAuth& twitchAuth);
 
-    ~AuthenticateWithTwitchDialog();
+    ~TwitchAuthDialog();
 
 private slots:
-    void authenticateInBrowser();
     void authenticateWithAccessToken();
     void showAuthenticationFailureMessage(std::exception_ptr reason);
     void showAccessTokenAboutToExpireMessage(std::chrono::seconds expiresIn);
@@ -35,6 +34,6 @@ private:
 
 private:
     TwitchAuth& twitchAuth;
-    std::unique_ptr<Ui::AuthenticateWithTwitchDialog> ui;
+    std::unique_ptr<Ui::TwitchAuthDialog> ui;
     QMessageBox* authMessageBox;
 };

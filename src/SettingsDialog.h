@@ -9,9 +9,9 @@
 #include <memory>
 #include <variant>
 
-#include "AuthenticateWithTwitchDialog.h"
 #include "RewardWidget.h"
 #include "RewardsTheaterPlugin.h"
+#include "TwitchAuthDialog.h"
 
 namespace Ui {
 class SettingsDialog;
@@ -31,7 +31,6 @@ public slots:
 private slots:
     void logInOrLogOut();
     void openRewardsQueue();
-    void updateRewards();
     void updateAuthButtonText(const std::optional<std::string>& username);
     void showUpdateAvailableLink();
 
@@ -44,7 +43,7 @@ private:
 
     RewardsTheaterPlugin& plugin;
     std::unique_ptr<Ui::SettingsDialog> ui;
-    AuthenticateWithTwitchDialog* authenticateWithTwitchDialog;
+    TwitchAuthDialog* twitchAuthDialog;
     QMessageBox* errorMessageBox;
 
     std::vector<Reward> rewards;

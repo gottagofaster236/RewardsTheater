@@ -7,6 +7,7 @@
 #include <boost/url.hpp>
 #include <format>
 #include <ranges>
+#include <set>
 #include <sstream>
 #include <string>
 #include <variant>
@@ -19,22 +20,20 @@ namespace http = boost::beast::http;
 namespace json = boost::json;
 
 TwitchRewardsApi::TwitchRewardsApi(TwitchAuth& twitchAuth, HttpClient& httpClient, asio::io_context& ioContext)
-    : twitchAuth(twitchAuth), httpClient(httpClient), ioContext(ioContext) {}
+    : twitchAuth(twitchAuth), httpClient(httpClient), ioContext(ioContext) {
+    connect(&twitchAuth, &TwitchAuth::onUserChanged, this, &TwitchRewardsApi::updateRewards);
+}
 
 TwitchRewardsApi::~TwitchRewardsApi() = default;
 
-void TwitchRewardsApi::getRewards(bool onlyManageableRewards, QObject* receiver, const char* member) {
-    asio::co_spawn(
-        ioContext,
-        asyncGetRewards(onlyManageableRewards, *(new detail::QObjectCallback(this, receiver, member))),
-        asio::detached
-    );
+void TwitchRewardsApi::updateRewards() {
+    asio::co_spawn(ioContext, asyncUpdateRewards(), asio::detached);
 }
 
-void TwitchRewardsApi::deleteReward(const std::string& rewardId, QObject* receiver, const char* member) {
-    (void) rewardId;
-    (void) receiver;
-    (void) member;
+void TwitchRewardsApi::deleteReward(const Reward& reward, QObject* receiver, const char* member) {
+    asio::co_spawn(
+        ioContext, asyncDeleteReward(reward, *(new detail::QObjectCallback(this, receiver, member))), asio::detached
+    );
 }
 
 void TwitchRewardsApi::downloadImage(const Reward& reward, QObject* receiver, const char* member) {
@@ -52,6 +51,10 @@ const char* TwitchRewardsApi::InvalidRewardParametersException::what() const noe
     return message.c_str();
 }
 
+const char* TwitchRewardsApi::NotManageableRewardException::what() const noexcept {
+    return "NotManageableRewardException";
+}
+
 const char* TwitchRewardsApi::NotAffiliateException::what() const noexcept {
     return "NotAffiliateException";
 }
@@ -63,21 +66,21 @@ const char* TwitchRewardsApi::UnexpectedHttpStatusException::what() const noexce
     return message.c_str();
 }
 
-asio::awaitable<void> TwitchRewardsApi::asyncGetRewards(bool onlyManageableRewards, detail::QObjectCallback& callback) {
-    std::variant<std::exception_ptr, std::vector<Reward>> result;
+asio::awaitable<void> TwitchRewardsApi::asyncUpdateRewards() {
+    std::variant<std::exception_ptr, std::vector<Reward>> rewards;
     try {
-        result = co_await asyncGetRewards(onlyManageableRewards);
+        rewards = co_await asyncGetRewards();
     } catch (const std::exception& exception) {
         log(LOG_ERROR, "Exception in asyncGetRewards: {}", exception.what());
-        result = std::current_exception();
+        rewards = std::current_exception();
     }
-    callback("std::variant<std::exception_ptr, std::vector<Reward>>", result);
+    emit onRewardsUpdated(rewards);
 }
 
-asio::awaitable<void> TwitchRewardsApi::asyncDeleteReward(std::string rewardId, detail::QObjectCallback& callback) {
+asio::awaitable<void> TwitchRewardsApi::asyncDeleteReward(Reward reward, detail::QObjectCallback& callback) {
     std::exception_ptr result;
     try {
-        co_await asyncDeleteReward(rewardId);
+        co_await asyncDeleteReward(reward);
     } catch (const std::exception& exception) {
         log(LOG_ERROR, "Exception in asyncDeleteReward: {}", exception.what());
         result = std::current_exception();
@@ -94,7 +97,25 @@ asio::awaitable<void> TwitchRewardsApi::asyncDownloadImage(boost::urls::url url,
 }
 
 // https://dev.twitch.tv/docs/api/reference/#get-custom-reward
-asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards(bool onlyManageableRewards) {
+asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards() {
+    json::value manageableRewardsJson = co_await asyncGetRewardsRequest(true);
+    auto manageableRewardIdsView =
+        manageableRewardsJson.at("data").as_array() | std::views::transform([this](const auto& reward) {
+            return value_to<std::string>(reward.at("id"));
+        });
+    std::set<std::string> manageableRewardIds(manageableRewardIdsView.begin(), manageableRewardIdsView.end());
+
+    auto allRewardsJson = co_await asyncGetRewardsRequest(false);
+    auto rewards =
+        allRewardsJson.at("data").as_array() | std::views::transform([this, &manageableRewardIds](const auto& reward) {
+            std::string id = value_to<std::string>(reward.at("id"));
+            bool isManageable = manageableRewardIds.contains(id);
+            return parseReward(reward, isManageable);
+        });
+    co_return std::vector<Reward>(rewards.begin(), rewards.end());
+}
+
+asio::awaitable<json::value> TwitchRewardsApi::asyncGetRewardsRequest(bool onlyManageableRewards) {
     HttpClient::Response response = co_await httpClient.request(
         "api.twitch.tv",
         "/helix/channel_points/custom_rewards",
@@ -111,13 +132,10 @@ asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards(bool only
     default: throw UnexpectedHttpStatusException(response.json);
     }
 
-    auto rewards = response.json.at("data").as_array() | std::views::transform([this](const auto& reward) {
-                       return parseReward(reward);
-                   });
-    co_return std::vector<Reward>(rewards.begin(), rewards.end());
+    co_return response.json;
 }
 
-Reward TwitchRewardsApi::parseReward(const json::value& reward) {
+Reward TwitchRewardsApi::parseReward(const json::value& reward, bool isManageable) {
     return Reward{
         value_to<std::string>(reward.at("id")),
         value_to<std::string>(reward.at("title")),
@@ -128,6 +146,7 @@ Reward TwitchRewardsApi::parseReward(const json::value& reward) {
         getOptionalSetting(reward.at("max_per_stream_setting"), "max_per_stream"),
         getOptionalSetting(reward.at("max_per_user_per_stream_setting"), "max_per_user_per_stream"),
         getOptionalSetting(reward.at("global_cooldown_setting"), "global_cooldown_seconds"),
+        isManageable,
     };
 }
 
@@ -160,9 +179,21 @@ std::optional<std::int64_t> TwitchRewardsApi::getOptionalSetting(const json::val
     return setting.at(key).as_int64();
 }
 
-asio::awaitable<void> TwitchRewardsApi::asyncDeleteReward(const std::string& rewardId) {
-    (void) rewardId;
-    return asio::awaitable<void>();
+asio::awaitable<void> TwitchRewardsApi::asyncDeleteReward(const Reward& reward) {
+    if (!reward.canManage) {
+        throw NotManageableRewardException();
+    }
+    HttpClient::Response response = co_await httpClient.request(
+        "api.twitch.tv",
+        "/helix/channel_points/custom_rewards",
+        twitchAuth,
+        {{"broadcaster_id", twitchAuth.getUserIdOrThrow()}, {"id", reward.id}},
+        http::verb::delete_
+    );
+
+    if (response.status != http::status::no_content) {
+        throw UnexpectedHttpStatusException(response.json);
+    }
 }
 
 asio::awaitable<std::string> TwitchRewardsApi::asyncDownloadImage(const boost::urls::url& url) {

@@ -19,20 +19,21 @@
 
 SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
     : QDialog(parent), plugin(plugin), ui(std::make_unique<Ui::SettingsDialog>()),
-      authenticateWithTwitchDialog(new AuthenticateWithTwitchDialog(this, plugin.getTwitchAuth())),
-      errorMessageBox(new QMessageBox(this)) {
+      twitchAuthDialog(new TwitchAuthDialog(this, plugin.getTwitchAuth())),
+      errorMessageBox(
+          new QMessageBox(QMessageBox::Warning, obs_module_text("RewardsTheater"), "", QMessageBox::Ok, this)
+      ) {
     ui->setupUi(this);
-    errorMessageBox->setWindowTitle(obs_module_text("RewardsTheater"));
-    errorMessageBox->setIcon(QMessageBox::Icon::Warning);
-    errorMessageBox->setStandardButtons(QMessageBox::Ok);
     showGithubLink();
 
     connect(ui->authButton, &QPushButton::clicked, this, &SettingsDialog::logInOrLogOut);
     connect(ui->openRewardsQueueButton, &QPushButton::clicked, this, &SettingsDialog::openRewardsQueue);
-    connect(ui->reloadRewardsButton, &QPushButton::clicked, this, &SettingsDialog::updateRewards);
+    connect(
+        ui->reloadRewardsButton, &QPushButton::clicked, &plugin.getTwitchRewardsApi(), &TwitchRewardsApi::updateRewards
+    );
 
     connect(&plugin.getTwitchAuth(), &TwitchAuth::onUsernameChanged, this, &SettingsDialog::updateAuthButtonText);
-    connect(&plugin.getTwitchAuth(), &TwitchAuth::onUserChanged, this, &SettingsDialog::updateRewards);
+    connect(&plugin.getTwitchRewardsApi(), &TwitchRewardsApi::onRewardsUpdated, this, &SettingsDialog::showRewards);
     connect(
         &plugin.getGithubUpdateApi(),
         &GithubUpdateApi::onUpdateAvailable,
@@ -63,16 +64,12 @@ void SettingsDialog::logInOrLogOut() {
     if (auth.isAuthenticated()) {
         auth.logOut();
     } else {
-        authenticateWithTwitchDialog->show();
+        twitchAuthDialog->show();
     }
 }
 
 void SettingsDialog::openRewardsQueue() {
     log(LOG_INFO, "onOpenRewardsQueueClicked");
-}
-
-void SettingsDialog::updateRewards() {
-    plugin.getTwitchRewardsApi().getRewards(false, this, "showRewards");
 }
 
 void SettingsDialog::updateAuthButtonText(const std::optional<std::string>& username) {
@@ -141,7 +138,7 @@ void SettingsDialog::showRewardLoadException(std::exception_ptr exception) {
     try {
         std::rethrow_exception(exception);
     } catch (const TwitchAuth::UnauthenticatedException&) {
-        // It's going to be shown by AuthenticateWithTwitchDialog, anyway.
+        // It's going to be shown by TwitchAuthDialog, anyway.
         return;
     } catch (const TwitchRewardsApi::NotAffiliateException&) {
         message = obs_module_text("CouldNotLoadRewardsNotAffiliate");

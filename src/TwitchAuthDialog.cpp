@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Copyright (c) 2023, Lev Leontev
 
-#include "AuthenticateWithTwitchDialog.h"
+#include "TwitchAuthDialog.h"
 
 #include <obs-module.h>
 #include <obs.h>
@@ -11,57 +11,43 @@
 #include <obs.hpp>
 
 #include "HttpClient.h"
-#include "ui_AuthenticateWithTwitchDialog.h"
+#include "ui_TwitchAuthDialog.h"
 
-AuthenticateWithTwitchDialog::AuthenticateWithTwitchDialog(QWidget* parent, TwitchAuth& twitchAuth)
-    : QDialog(parent), twitchAuth(twitchAuth), ui(std::make_unique<Ui::AuthenticateWithTwitchDialog>()),
-      authMessageBox(new QMessageBox(this)) {
+TwitchAuthDialog::TwitchAuthDialog(QWidget* parent, TwitchAuth& twitchAuth)
+    : QDialog(parent), twitchAuth(twitchAuth), ui(std::make_unique<Ui::TwitchAuthDialog>()),
+      authMessageBox(new QMessageBox()) {
     ui->setupUi(this);
     authMessageBox->setWindowTitle(obs_module_text("RewardsTheater"));
-    authMessageBox->setIcon(QMessageBox::Icon::Warning);
+    authMessageBox->setIcon(QMessageBox::Warning);
 
-    connect(
-        ui->authenticateInBrowserButton,
-        &QPushButton::clicked,
-        this,
-        &AuthenticateWithTwitchDialog::authenticateInBrowser
-    );
+    connect(ui->authenticateInBrowserButton, &QPushButton::clicked, &twitchAuth, &TwitchAuth::authenticate);
     connect(
         ui->authenticateWithAccessTokenButton,
         &QPushButton::clicked,
         this,
-        &AuthenticateWithTwitchDialog::authenticateWithAccessToken
+        &TwitchAuthDialog::authenticateWithAccessToken
     );
-    connect(
-        authMessageBox, &QMessageBox::finished, this, &AuthenticateWithTwitchDialog::showOurselvesAfterAuthMessageBox
-    );
+    connect(authMessageBox, &QMessageBox::finished, this, &TwitchAuthDialog::showOurselvesAfterAuthMessageBox);
 
-    connect(&twitchAuth, &TwitchAuth::onAuthenticationSuccess, this, &AuthenticateWithTwitchDialog::hide);
+    connect(&twitchAuth, &TwitchAuth::onAuthenticationSuccess, this, &TwitchAuthDialog::hide);
     connect(
-        &twitchAuth,
-        &TwitchAuth::onAuthenticationFailure,
-        this,
-        &AuthenticateWithTwitchDialog::showAuthenticationFailureMessage
+        &twitchAuth, &TwitchAuth::onAuthenticationFailure, this, &TwitchAuthDialog::showAuthenticationFailureMessage
     );
     connect(
         &twitchAuth,
         &TwitchAuth::onAccessTokenAboutToExpire,
         this,
-        &AuthenticateWithTwitchDialog::showAccessTokenAboutToExpireMessage
+        &TwitchAuthDialog::showAccessTokenAboutToExpireMessage
     );
 }
 
-AuthenticateWithTwitchDialog::~AuthenticateWithTwitchDialog() = default;
+TwitchAuthDialog::~TwitchAuthDialog() = default;
 
-void AuthenticateWithTwitchDialog::authenticateInBrowser() {
-    twitchAuth.authenticate();
-}
-
-void AuthenticateWithTwitchDialog::authenticateWithAccessToken() {
+void TwitchAuthDialog::authenticateWithAccessToken() {
     twitchAuth.authenticateWithToken(ui->accessTokenEdit->text().toStdString());
 }
 
-void AuthenticateWithTwitchDialog::showAuthenticationFailureMessage(std::exception_ptr reason) {
+void TwitchAuthDialog::showAuthenticationFailureMessage(std::exception_ptr reason) {
     std::string message;
     try {
         std::rethrow_exception(reason);
@@ -78,14 +64,14 @@ void AuthenticateWithTwitchDialog::showAuthenticationFailureMessage(std::excepti
     showAuthenticationMessage(message);
 }
 
-void AuthenticateWithTwitchDialog::showAccessTokenAboutToExpireMessage(std::chrono::seconds expiresIn) {
+void TwitchAuthDialog::showAccessTokenAboutToExpireMessage(std::chrono::seconds expiresIn) {
     int expiresInHours = std::ceil(expiresIn.count() / 3600);
     std::string message =
         std::vformat(obs_module_text("TwitchTokenAboutToExpire"), std::make_format_args(expiresInHours));
     showAuthenticationMessage(message);
 }
 
-void AuthenticateWithTwitchDialog::showAuthenticationMessage(const std::string& message) {
+void TwitchAuthDialog::showAuthenticationMessage(const std::string& message) {
     authMessageBox->setText(QString::fromStdString(message));
     for (QAbstractButton* button : authMessageBox->buttons()) {
         authMessageBox->removeButton(button);
@@ -99,7 +85,7 @@ void AuthenticateWithTwitchDialog::showAuthenticationMessage(const std::string& 
     authMessageBox->show();
 }
 
-void AuthenticateWithTwitchDialog::showOurselvesAfterAuthMessageBox() {
+void TwitchAuthDialog::showOurselvesAfterAuthMessageBox() {
     if (isVisible()) {
         return;
     }

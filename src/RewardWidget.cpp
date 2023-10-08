@@ -9,20 +9,24 @@
 #include <QBuffer>
 #include <QImageReader>
 #include <QPixmap>
+#include <format>
 #include <string>
 
+#include "HttpClient.h"
 #include "Log.h"
 #include "ui_RewardWidget.h"
 
 RewardWidget::RewardWidget(const Reward& reward, TwitchRewardsApi& twitchRewardsApi, QWidget* parent)
     : QWidget(parent), reward(reward), twitchRewardsApi(twitchRewardsApi), ui(std::make_unique<Ui::RewardWidget>()),
-      editRewardDialog(nullptr) {
+      editRewardDialog(nullptr), errorMessageBox(nullptr) {
     ui->setupUi(this);
     setFixedSize(size());
 
     ui->deleteButton->hide();
     ui->costAndImageFrame->installEventFilter(this);
     showReward();
+
+    connect(ui->deleteButton, &QToolButton::clicked, this, &RewardWidget::deleteReward);
 }
 
 RewardWidget::~RewardWidget() = default;
@@ -37,6 +41,45 @@ void RewardWidget::setReward(const Reward& newReward) {
     }
     reward = newReward;
     showReward();
+}
+
+bool RewardWidget::eventFilter(QObject* obj, QEvent* event) {
+    if (obj == ui->costAndImageFrame) {
+        if (event->type() == QEvent::Enter) {
+            ui->deleteButton->show();
+        } else if (event->type() == QEvent::Leave) {
+            ui->deleteButton->hide();
+        } else if (event->type() == QEvent::MouseButtonRelease) {
+            showEditRewardDialog();
+        }
+    }
+    return false;
+}
+
+void RewardWidget::showDeleteRewardResult(std::exception_ptr error) {
+    if (error == nullptr) {
+        // Deletion was successful.
+        deleteLater();
+        return;
+    }
+    std::string message;
+    try {
+        std::rethrow_exception(error);
+    } catch (const TwitchRewardsApi::NotManageableRewardException&) {
+        message = obs_module_text("CouldNotDeleteRewardNotManageable");
+    } catch (const HttpClient::NetworkException&) {
+        message = obs_module_text("CouldNotDeleteRewardNetwork");
+    } catch (const std::exception& otherException) {
+        message =
+            std::vformat(obs_module_text("CouldNotDeleteRewardOther"), std::make_format_args(otherException.what()));
+    }
+
+    if (!errorMessageBox) {
+        errorMessageBox =
+            new QMessageBox(QMessageBox::Warning, obs_module_text("RewardsTheater"), "", QMessageBox::Ok, this);
+    }
+    errorMessageBox->setText(QString::fromStdString(message));
+    errorMessageBox->show();
 }
 
 void RewardWidget::showImage(const std::string& imageBytes) {
@@ -54,17 +97,8 @@ void RewardWidget::showImage(const std::string& imageBytes) {
     ui->imageLabel->setPixmap(pixmap);
 }
 
-bool RewardWidget::eventFilter(QObject* obj, QEvent* event) {
-    if (obj == ui->costAndImageFrame) {
-        if (event->type() == QEvent::Enter) {
-            ui->deleteButton->show();
-        } else if (event->type() == QEvent::Leave) {
-            ui->deleteButton->hide();
-        } else if (event->type() == QEvent::MouseButtonRelease) {
-            showEditRewardDialog();
-        }
-    }
-    return false;
+void RewardWidget::deleteReward() {
+    twitchRewardsApi.deleteReward(reward, this, "showDeleteRewardResult");
 }
 
 void RewardWidget::showReward() {

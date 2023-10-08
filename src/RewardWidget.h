@@ -3,8 +3,10 @@
 
 #pragma once
 
+#include <QMessageBox>
 #include <QPointer>
 #include <QWidget>
+#include <exception>
 #include <memory>
 
 #include "EditRewardDialog.h"
@@ -29,6 +31,10 @@ public:
 
 public slots:
     void showImage(const std::string& imageBytes);
+    void showDeleteRewardResult(std::exception_ptr error);
+
+private slots:
+    void deleteReward();
 
 private:
     void showReward();
@@ -40,4 +46,5 @@ private:
 
     std::unique_ptr<Ui::RewardWidget> ui;
     QPointer<EditRewardDialog> editRewardDialog;
+    QMessageBox* errorMessageBox;
 };
