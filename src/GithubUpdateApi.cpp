@@ -37,10 +37,9 @@ asio::awaitable<bool> GithubUpdateApi::isUpdateAvailable() {
 }
 
 asio::awaitable<std::string> GithubUpdateApi::getLatestReleaseVersion() {
+    std::map<std::string, std::string> headers{{"User-Agent", "https://github.com/gottagofaster236/RewardsTheater"}};
     HttpClient::Response response = co_await httpClient.request(
-        "api.github.com",
-        "/repos/gottagofaster236/RewardsTheater/releases/latest",
-        {{"User-Agent", "https://github.com/gottagofaster236/RewardsTheater"}}
+        "api.github.com", "/repos/gottagofaster236/RewardsTheater/releases/latest", headers
     );
     co_return value_to<std::string>(response.json.at("tag_name"));
 }

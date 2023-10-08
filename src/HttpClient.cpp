@@ -50,9 +50,8 @@ asio::awaitable<HttpClient::Response> HttpClient::request(
     const std::string& clientId,
     std::initializer_list<boost::urls::param_view> urlParams
 ) {
-    co_return co_await request(
-        host, path, {{"Authorization", "Bearer " + accessToken}, {"Client-Id", clientId}}, urlParams
-    );
+    std::map<std::string, std::string> headers{{"Authorization", "Bearer " + accessToken}, {"Client-Id", clientId}};
+    co_return co_await request(host, path, headers, urlParams);
 }
 
 asio::awaitable<HttpClient::Response> HttpClient::request(
