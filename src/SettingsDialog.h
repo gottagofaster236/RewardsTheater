@@ -5,6 +5,7 @@
 
 #include <QDialog>
 #include <QMessageBox>
+#include <QPointer>
 #include <map>
 #include <memory>
 #include <variant>
@@ -31,11 +32,14 @@ private slots:
     void logInOrLogOut();
     void updateAuthButtonText(const std::optional<std::string>& username);
     void showRewards(const std::variant<std::exception_ptr, std::vector<Reward>>& newRewards);
+    void addReward(const Reward& reward);
+    void removeReward(const std::string& id);
     void showAddRewardDialog();
     void openRewardsQueue();
     void showUpdateAvailableLink();
 
 private:
+    void showRewards();
     void updateRewardWidgets();
     void showRewardWidgets();
     void showRewardLoadException(std::exception_ptr exception);
@@ -48,5 +52,5 @@ private:
     QMessageBox* errorMessageBox;
 
     std::vector<Reward> rewards;
-    std::map<std::string, RewardWidget*> rewardWidgetByRewardId;
+    std::map<std::string, QPointer<RewardWidget>> rewardWidgetByRewardId;
 };

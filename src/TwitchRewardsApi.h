@@ -32,7 +32,7 @@ public:
     // Calls the receiver with the created reward as std::variant<std::exception_ptr, Reward>.
     void createReward(const RewardData& rewardData, QObject* receiver, const char* member);
 
-    // Calls the receiver with std::exception_ptr.
+    // Calls the receiver with the reward passed as std::variant<std::exception_ptr, Reward>.
     void updateReward(const Reward& reward, QObject* receiver, const char* member);
 
     /// Loads the rewards and emits onRewardsUpdated.
@@ -78,7 +78,7 @@ private:
     boost::asio::awaitable<void> asyncDownloadImage(boost::urls::url url, detail::QObjectCallback& callback);
 
     boost::asio::awaitable<Reward> asyncCreateReward(const RewardData& rewardData);
-    boost::asio::awaitable<void> asyncUpdateReward(const Reward& rewardData);
+    boost::asio::awaitable<Reward> asyncUpdateReward(const Reward& reward);
     boost::json::value rewardDataToJson(const RewardData& rewardData);
 
     boost::asio::awaitable<std::vector<Reward>> asyncGetRewards();

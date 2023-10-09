@@ -3,7 +3,12 @@
 
 #pragma once
 
+#include <QCheckBox>
+#include <QColorDialog>
 #include <QDialog>
+#include <QMessageBox>
+#include <QSpinBox>
+#include <exception>
 #include <memory>
 #include <optional>
 #include <string>
@@ -21,23 +26,43 @@ class EditRewardDialog : public QDialog {
 
 public:
     EditRewardDialog(
-        const std::optional<Reward>& reward,
+        const std::optional<Reward>& originalReward,
         TwitchAuth& twitchAuth,
         TwitchRewardsApi& twitchRewardsApi,
         QWidget* parent
     );
     ~EditRewardDialog();
 
-private:
-    void showReward(const Reward& reward);
-    void showAddRewardUi();
-    void showUploadCustomIconLabel(const std::optional<std::string>& username);
+signals:
+    void onRewardSaved(const Reward& reward);
+    void onRewardDeleted();
 
+private slots:
+    void showUploadCustomIconLabel(const std::optional<std::string>& username);
+    void showSelectedColor(QColor newSelectedBackgroundColor);
+    void showColorDialog();
     void saveReward();
     void deleteReward();
+    void showSaveRewardResult(std::variant<std::exception_ptr, Reward> reward);
+    void showDeleteRewardResult(std::exception_ptr result);
 
-    std::optional<std::string> rewardId;
+private:
+    void showReward(const Reward& reward);
+    void showSelectedColor(Color newSelectedBackgroundColor);
+    void disableInput();
+    void showAddReward();
+
+    RewardData getRewardData();
+    std::optional<std::int64_t> getOptionalSetting(QCheckBox* checkBox, QSpinBox* spinBox);
+
+    void showErrorMessage(const std::string& message);
+
+    const std::optional<Reward> originalReward;
     TwitchAuth& twitchAuth;
     TwitchRewardsApi& twitchRewardsApi;
     std::unique_ptr<Ui::EditRewardDialog> ui;
+    QColorDialog* colorDialog;
+    QMessageBox* errorMessageBox;
+
+    Color selectedColor;
 };

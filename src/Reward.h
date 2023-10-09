@@ -13,6 +13,7 @@ struct Color {
     std::uint8_t green;
     std::uint8_t blue;
 
+    Color();
     Color(std::uint8_t red, std::uint8_t green, std::uint8_t blue);
     Color(const std::string& hexColor);
     std::string toHex() const;
@@ -23,7 +24,6 @@ struct Color {
 struct RewardData {
     std::string title;
     std::int32_t cost;
-    boost::urls::url imageUrl;
     bool isEnabled;
     Color backgroundColor;
     std::optional<std::int64_t> maxRedemptionsPerStream;
@@ -35,6 +35,7 @@ struct RewardData {
 
 struct Reward : RewardData {
     std::string id;
+    boost::urls::url imageUrl;
     bool canManage;
 
     bool operator==(const Reward& other) const;
@@ -51,4 +52,6 @@ struct Reward : RewardData {
         std::optional<std::int64_t> globalCooldownSeconds,
         bool canManage
     );
+
+    Reward(const Reward& reward, const RewardData& newRewardData);
 };

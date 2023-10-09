@@ -6,6 +6,8 @@
 #include <iomanip>
 #include <sstream>
 
+Color::Color() : red(0), green(0), blue(0) {}
+
 Color::Color(std::uint8_t red, std::uint8_t green, std::uint8_t blue) : red(red), green(green), blue(blue) {}
 
 Color::Color(const std::string& hexColor) {
@@ -49,5 +51,8 @@ Reward::Reward(
     std::optional<std::int64_t> globalCooldownSeconds,
     bool canManage
 )
-    : RewardData{title, cost, imageUrl, isEnabled, backgroundColor, maxRedemptionsPerStream, maxRedemptionsPerUserPerStream, globalCooldownSeconds},
-      id(id), canManage(canManage) {}
+    : RewardData{title, cost, isEnabled, backgroundColor, maxRedemptionsPerStream, maxRedemptionsPerUserPerStream, globalCooldownSeconds},
+      id(id), imageUrl(imageUrl), canManage(canManage) {}
+
+Reward::Reward(const Reward& reward, const RewardData& newRewardData)
+    : RewardData(newRewardData), id(reward.id), imageUrl(reward.imageUrl), canManage(reward.canManage) {}

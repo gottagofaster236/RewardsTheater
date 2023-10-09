@@ -34,7 +34,12 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
     connect(ui->addRewardButton, &QPushButton::clicked, this, &SettingsDialog::showAddRewardDialog);
 
     connect(&plugin.getTwitchAuth(), &TwitchAuth::onUsernameChanged, this, &SettingsDialog::updateAuthButtonText);
-    connect(&plugin.getTwitchRewardsApi(), &TwitchRewardsApi::onRewardsUpdated, this, &SettingsDialog::showRewards);
+    connect(
+        &plugin.getTwitchRewardsApi(),
+        &TwitchRewardsApi::onRewardsUpdated,
+        this,
+        qOverload<const std::variant<std::exception_ptr, std::vector<Reward>>&>(&SettingsDialog::showRewards)
+    );
     connect(
         &plugin.getGithubUpdateApi(),
         &GithubUpdateApi::onUpdateAvailable,
@@ -81,12 +86,26 @@ void SettingsDialog::showRewards(const std::variant<std::exception_ptr, std::vec
         rewards = {};
         showRewardLoadException(std::get<std::exception_ptr>(newRewards));
     }
-    updateRewardWidgets();
-    showRewardWidgets();
+    showRewards();
+}
+
+void SettingsDialog::addReward(const Reward& reward) {
+    rewards.push_back(reward);
+    showRewards();
+}
+
+void SettingsDialog::removeReward(const std::string& id) {
+    std::erase_if(rewards, [&id](const Reward& reward) {
+        return reward.id == id;
+    });
+    showRewards();
 }
 
 void SettingsDialog::showAddRewardDialog() {
-    (new EditRewardDialog({}, plugin.getTwitchAuth(), plugin.getTwitchRewardsApi(), this))->show();
+    EditRewardDialog* editRewardDialog =
+        new EditRewardDialog({}, plugin.getTwitchAuth(), plugin.getTwitchRewardsApi(), this);
+    QObject::connect(editRewardDialog, &EditRewardDialog::onRewardSaved, this, &SettingsDialog::addReward);
+    editRewardDialog->show();
 }
 
 void SettingsDialog::openRewardsQueue() {
@@ -99,6 +118,11 @@ void SettingsDialog::showUpdateAvailableLink() {
     );
 }
 
+void SettingsDialog::showRewards() {
+    updateRewardWidgets();
+    showRewardWidgets();
+}
+
 void SettingsDialog::updateRewardWidgets() {
     auto rewardIdsView = rewards | std::views::transform(&Reward::id);
     std::set<std::string> rewardIds(rewardIdsView.begin(), rewardIdsView.end());
@@ -109,7 +133,9 @@ void SettingsDialog::updateRewardWidgets() {
         const std::string& rewardId = it->first;
         RewardWidget* rewardWidget = it->second;
         if (!rewardIds.contains(rewardId)) {
-            rewardWidget->deleteLater();
+            if (rewardWidget) {
+                rewardWidget->deleteLater();
+            }
             it = rewardWidgetByRewardId.erase(it);
         } else {
             ++it;
@@ -121,8 +147,13 @@ void SettingsDialog::updateRewardWidgets() {
         if (existingWidget) {
             existingWidget->setReward(reward);
         } else {
-            rewardWidgetByRewardId[reward.id] =
+            RewardWidget* rewardWidget =
                 new RewardWidget(reward, plugin.getTwitchAuth(), plugin.getTwitchRewardsApi(), ui->rewardsGrid);
+            const std::string& id = reward.id;
+            QObject::connect(rewardWidget, &RewardWidget::onRewardDeleted, this, [this, id]() {
+                removeReward(id);
+            });
+            rewardWidgetByRewardId[reward.id] = rewardWidget;
         }
     }
 }

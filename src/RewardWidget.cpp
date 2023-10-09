@@ -35,18 +35,6 @@ RewardWidget::RewardWidget(
 
 RewardWidget::~RewardWidget() = default;
 
-const Reward& RewardWidget::getReward() const {
-    return reward;
-}
-
-void RewardWidget::setReward(const Reward& newReward) {
-    if (reward == newReward) {
-        return;
-    }
-    reward = newReward;
-    showReward();
-}
-
 bool RewardWidget::eventFilter(QObject* obj, QEvent* event) {
     if (obj == ui->costAndImageFrame) {
         if (event->type() == QEvent::Enter) {
@@ -60,6 +48,18 @@ bool RewardWidget::eventFilter(QObject* obj, QEvent* event) {
     return false;
 }
 
+const Reward& RewardWidget::getReward() const {
+    return reward;
+}
+
+void RewardWidget::setReward(const Reward& newReward) {
+    if (reward == newReward) {
+        return;
+    }
+    reward = newReward;
+    showReward();
+}
+
 void RewardWidget::deleteReward() {
     twitchRewardsApi.deleteReward(reward, this, "showDeleteRewardResult");
 }
@@ -67,7 +67,7 @@ void RewardWidget::deleteReward() {
 void RewardWidget::showDeleteRewardResult(std::exception_ptr error) {
     if (error == nullptr) {
         // Deletion was successful.
-        deleteLater();
+        emitRewardDeletedAndDeleteWidget();
         return;
     }
     std::string message;
@@ -90,6 +90,11 @@ void RewardWidget::showDeleteRewardResult(std::exception_ptr error) {
     errorMessageBox->show();
 }
 
+void RewardWidget::emitRewardDeletedAndDeleteWidget() {
+    emit onRewardDeleted();
+    deleteLater();
+}
+
 void RewardWidget::showImage(const std::string& imageBytes) {
     QBuffer imageBuffer;
     imageBuffer.setData(imageBytes.data(), static_cast<int>(imageBytes.size()));
@@ -108,12 +113,18 @@ void RewardWidget::showImage(const std::string& imageBytes) {
 void RewardWidget::showReward() {
     ui->costLabel->setText(QString::number(reward.cost));
     ui->titleLabel->setText(QString::fromStdString(reward.title));
+    std::string backgroundColorStyle = std::format("QFrame {{ background: {} }}", reward.backgroundColor.toHex());
+    ui->costAndImageFrame->setStyleSheet(QString::fromStdString(backgroundColorStyle));
     twitchRewardsApi.downloadImage(reward, this, "showImage");
 }
 
 void RewardWidget::showEditRewardDialog() {
-    if (editRewardDialog == nullptr) {
+    if (!editRewardDialog) {
         editRewardDialog = new EditRewardDialog(reward, twitchAuth, twitchRewardsApi, this);
+        QObject::connect(editRewardDialog, &EditRewardDialog::onRewardSaved, this, &RewardWidget::setReward);
+        QObject::connect(
+            editRewardDialog, &EditRewardDialog::onRewardDeleted, this, &RewardWidget::emitRewardDeletedAndDeleteWidget
+        );
     }
     editRewardDialog->show();
 }

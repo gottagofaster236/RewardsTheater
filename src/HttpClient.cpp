@@ -3,6 +3,8 @@
 
 #include "HttpClient.h"
 
+#include <utility>
+
 #include "BoostAsio.h"
 #include "TwitchAuth.h"
 
@@ -40,6 +42,7 @@ asio::awaitable<HttpClient::Response> HttpClient::request(
     if (!requestBody.is_null()) {
         request.body() = serialize(requestBody);
         request.prepare_payload();
+        request.set("Content-Type", "application/json");
     }
 
     http::response<http::dynamic_body> response = co_await getResponse(request, stream);
@@ -47,7 +50,11 @@ asio::awaitable<HttpClient::Response> HttpClient::request(
     if (response.result() == http::status::internal_server_error) {
         throw HttpClient::InternalServerErrorException(body);
     }
-    co_return HttpClient::Response{response.result(), boost::json::parse(body)};
+    json::value responseJson;
+    if (!body.empty()) {
+        responseJson = boost::json::parse(body);
+    }
+    co_return HttpClient::Response{response.result(), std::move(responseJson)};
 }
 
 asio::awaitable<HttpClient::Response> HttpClient::request(

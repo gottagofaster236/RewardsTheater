@@ -77,25 +77,25 @@ const char* TwitchRewardsApi::UnexpectedHttpStatusException::what() const noexce
 }
 
 asio::awaitable<void> TwitchRewardsApi::asyncCreateReward(RewardData rewardData, detail::QObjectCallback& callback) {
-    std::variant<std::exception_ptr, Reward> rewardId;
+    std::variant<std::exception_ptr, Reward> reward;
     try {
-        rewardId = co_await asyncCreateReward(rewardData);
+        reward = co_await asyncCreateReward(rewardData);
     } catch (const std::exception& exception) {
         log(LOG_ERROR, "Exception in asyncCreateReward: {}", exception.what());
-        rewardId = std::current_exception();
+        reward = std::current_exception();
     }
-    callback("std::variant<std::exception_ptr, Reward>", rewardId);
+    callback("std::variant<std::exception_ptr, Reward>", reward);
 }
 
 asio::awaitable<void> TwitchRewardsApi::asyncUpdateReward(Reward reward, detail::QObjectCallback& callback) {
-    std::exception_ptr result;
+    std::variant<std::exception_ptr, Reward> result;
     try {
-        co_await asyncUpdateReward(reward);
+        result = co_await asyncUpdateReward(reward);
     } catch (const std::exception& exception) {
         log(LOG_ERROR, "Exception in asyncUpdateReward: {}", exception.what());
         result = std::current_exception();
     }
-    callback("std::exception_ptr", result);
+    callback("std::variant<std::exception_ptr, Reward>", result);
 }
 
 asio::awaitable<void> TwitchRewardsApi::asyncReloadRewards() {
@@ -148,7 +148,7 @@ asio::awaitable<Reward> TwitchRewardsApi::asyncCreateReward(const RewardData& re
     co_return parseReward(response.json.at("data").at(0), true);
 }
 
-boost::asio::awaitable<void> TwitchRewardsApi::asyncUpdateReward(const Reward& reward) {
+boost::asio::awaitable<Reward> TwitchRewardsApi::asyncUpdateReward(const Reward& reward) {
     if (!reward.canManage) {
         throw NotManageableRewardException();
     }
@@ -165,6 +165,7 @@ boost::asio::awaitable<void> TwitchRewardsApi::asyncUpdateReward(const Reward& r
     if (response.status != http::status::ok) {
         throw UnexpectedHttpStatusException(response.json);
     }
+    co_return reward;
 }
 
 json::value TwitchRewardsApi::rewardDataToJson(const RewardData& rewardData) {
@@ -273,7 +274,6 @@ asio::awaitable<void> TwitchRewardsApi::asyncDeleteReward(const Reward& reward) 
     if (response.status != http::status::no_content) {
         throw UnexpectedHttpStatusException(response.json);
     }
-    reloadRewards();
 }
 
 asio::awaitable<std::string> TwitchRewardsApi::asyncDownloadImage(const boost::urls::url& url) {

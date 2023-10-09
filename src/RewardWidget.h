@@ -25,15 +25,21 @@ public:
     RewardWidget(const Reward& reward, TwitchAuth& twitchApi, TwitchRewardsApi& twitchRewardsApi, QWidget* parent);
     ~RewardWidget();
 
-    const Reward& getReward() const;
-    void setReward(const Reward& newReward);
-
     bool eventFilter(QObject* obj, QEvent* event) override;
+
+    const Reward& getReward() const;
+
+signals:
+    void onRewardDeleted();
+
+public slots:
+    void setReward(const Reward& newReward);
 
 private slots:
     void showImage(const std::string& imageBytes);
     void deleteReward();
     void showDeleteRewardResult(std::exception_ptr error);
+    void emitRewardDeletedAndDeleteWidget();
 
 private:
     void showReward();
