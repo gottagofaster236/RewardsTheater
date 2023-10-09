@@ -4,12 +4,12 @@
 #pragma once
 
 #include <QDialog>
-#include <QMessageBox>
 #include <QPointer>
 #include <map>
 #include <memory>
 #include <variant>
 
+#include "ErrorMessageBox.h"
 #include "RewardWidget.h"
 #include "RewardsTheaterPlugin.h"
 #include "TwitchAuthDialog.h"
@@ -49,7 +49,7 @@ private:
     RewardsTheaterPlugin& plugin;
     std::unique_ptr<Ui::SettingsDialog> ui;
     TwitchAuthDialog* twitchAuthDialog;
-    QMessageBox* errorMessageBox;
+    ErrorMessageBox* errorMessageBox;
 
     std::vector<Reward> rewards;
     std::map<std::string, QPointer<RewardWidget>> rewardWidgetByRewardId;

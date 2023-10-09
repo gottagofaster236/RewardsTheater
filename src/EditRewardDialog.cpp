@@ -18,7 +18,7 @@ EditRewardDialog::EditRewardDialog(
     QWidget* parent
 )
     : QDialog(parent), originalReward(originalReward), twitchAuth(twitchAuth), twitchRewardsApi(twitchRewardsApi),
-      ui(std::make_unique<Ui::EditRewardDialog>()), colorDialog(nullptr), errorMessageBox(nullptr) {
+      ui(std::make_unique<Ui::EditRewardDialog>()), colorDialog(nullptr), errorMessageBox(new ErrorMessageBox(this)) {
     obs_frontend_push_ui_translation(obs_module_get_string);
     ui->setupUi(this);
     obs_frontend_pop_ui_translation();
@@ -108,7 +108,7 @@ void EditRewardDialog::showSaveRewardResult(std::variant<std::exception_ptr, Rew
     } catch (const std::exception& exception) {
         message = std::vformat(obs_module_text("CouldNotSaveRewardOther"), std::make_format_args(exception.what()));
     }
-    showErrorMessage(message);
+    errorMessageBox->show(message);
 }
 
 void EditRewardDialog::showDeleteRewardResult(std::exception_ptr result) {
@@ -129,7 +129,7 @@ void EditRewardDialog::showDeleteRewardResult(std::exception_ptr result) {
     } catch (const std::exception& exception) {
         message = std::vformat(obs_module_text("CouldNotDeleteRewardOther"), std::make_format_args(exception.what()));
     }
-    showErrorMessage(message);
+    errorMessageBox->show(message);
 }
 
 void EditRewardDialog::showReward(const Reward& reward) {
@@ -195,13 +195,4 @@ std::optional<std::int64_t> EditRewardDialog::getOptionalSetting(QCheckBox* chec
     } else {
         return {};
     }
-}
-
-void EditRewardDialog::showErrorMessage(const std::string& message) {
-    if (!errorMessageBox) {
-        errorMessageBox =
-            new QMessageBox(QMessageBox::Warning, obs_module_text("RewardsTheater"), "", QMessageBox::Ok, this);
-    }
-    errorMessageBox->setText(QString::fromStdString(message));
-    errorMessageBox->show();
 }

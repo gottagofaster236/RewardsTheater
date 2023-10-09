@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include <QMessageBox>
 #include <QPointer>
 #include <QWidget>
 #include <exception>
@@ -52,5 +51,5 @@ private:
 
     std::unique_ptr<Ui::RewardWidget> ui;
     QPointer<EditRewardDialog> editRewardDialog;
-    QMessageBox* errorMessageBox;
+    ErrorMessageBox* errorMessageBox;
 };

@@ -15,10 +15,8 @@
 
 TwitchAuthDialog::TwitchAuthDialog(QWidget* parent, TwitchAuth& twitchAuth)
     : QDialog(parent), twitchAuth(twitchAuth), ui(std::make_unique<Ui::TwitchAuthDialog>()),
-      authMessageBox(new QMessageBox()) {
+      errorMessageBox(new ErrorMessageBox(this)) {
     ui->setupUi(this);
-    authMessageBox->setWindowTitle(obs_module_text("RewardsTheater"));
-    authMessageBox->setIcon(QMessageBox::Warning);
 
     connect(ui->authenticateInBrowserButton, &QPushButton::clicked, &twitchAuth, &TwitchAuth::authenticate);
     connect(
@@ -27,7 +25,7 @@ TwitchAuthDialog::TwitchAuthDialog(QWidget* parent, TwitchAuth& twitchAuth)
         this,
         &TwitchAuthDialog::authenticateWithAccessToken
     );
-    connect(authMessageBox, &QMessageBox::finished, this, &TwitchAuthDialog::showOurselvesAfterAuthMessageBox);
+    connect(errorMessageBox, &QMessageBox::finished, this, &TwitchAuthDialog::showOurselvesAfterAuthMessageBox);
 
     connect(&twitchAuth, &TwitchAuth::onAuthenticationSuccess, this, &TwitchAuthDialog::hide);
     connect(
@@ -72,24 +70,23 @@ void TwitchAuthDialog::showAccessTokenAboutToExpireMessage(std::chrono::seconds 
 }
 
 void TwitchAuthDialog::showAuthenticationMessage(const std::string& message) {
-    authMessageBox->setText(QString::fromStdString(message));
-    for (QAbstractButton* button : authMessageBox->buttons()) {
-        authMessageBox->removeButton(button);
+    for (QAbstractButton* button : errorMessageBox->buttons()) {
+        errorMessageBox->removeButton(button);
     }
     if (isVisible()) {
-        authMessageBox->setStandardButtons(QMessageBox::Ok);
+        errorMessageBox->setStandardButtons(QMessageBox::Ok);
     } else {
-        authMessageBox->addButton(obs_module_text("LogInAgain"), QMessageBox::AcceptRole);
-        authMessageBox->addButton(QMessageBox::Cancel);
+        errorMessageBox->addButton(obs_module_text("LogInAgain"), QMessageBox::AcceptRole);
+        errorMessageBox->addButton(QMessageBox::Cancel);
     }
-    authMessageBox->show();
+    errorMessageBox->show(message);
 }
 
 void TwitchAuthDialog::showOurselvesAfterAuthMessageBox() {
     if (isVisible()) {
         return;
     }
-    if (authMessageBox->buttonRole(authMessageBox->clickedButton()) == QMessageBox::AcceptRole) {
+    if (errorMessageBox->buttonRole(errorMessageBox->clickedButton()) == QMessageBox::AcceptRole) {
         show();
     }
 }

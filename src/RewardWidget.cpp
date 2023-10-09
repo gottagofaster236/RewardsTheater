@@ -22,7 +22,7 @@ RewardWidget::RewardWidget(
     QWidget* parent
 )
     : QWidget(parent), reward(reward), twitchAuth(twitchAuth), twitchRewardsApi(twitchRewardsApi),
-      ui(std::make_unique<Ui::RewardWidget>()), editRewardDialog(nullptr), errorMessageBox(nullptr) {
+      ui(std::make_unique<Ui::RewardWidget>()), editRewardDialog(nullptr), errorMessageBox(new ErrorMessageBox(this)) {
     ui->setupUi(this);
     setFixedSize(size());
 
@@ -81,13 +81,7 @@ void RewardWidget::showDeleteRewardResult(std::exception_ptr error) {
         message =
             std::vformat(obs_module_text("CouldNotDeleteRewardOther"), std::make_format_args(otherException.what()));
     }
-
-    if (!errorMessageBox) {
-        errorMessageBox =
-            new QMessageBox(QMessageBox::Warning, obs_module_text("RewardsTheater"), "", QMessageBox::Ok, this);
-    }
-    errorMessageBox->setText(QString::fromStdString(message));
-    errorMessageBox->show();
+    errorMessageBox->show(message);
 }
 
 void RewardWidget::emitRewardDeletedAndDeleteWidget() {

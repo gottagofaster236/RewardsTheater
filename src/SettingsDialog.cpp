@@ -19,10 +19,7 @@
 
 SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
     : QDialog(parent), plugin(plugin), ui(std::make_unique<Ui::SettingsDialog>()),
-      twitchAuthDialog(new TwitchAuthDialog(this, plugin.getTwitchAuth())),
-      errorMessageBox(
-          new QMessageBox(QMessageBox::Warning, obs_module_text("RewardsTheater"), "", QMessageBox::Ok, this)
-      ) {
+      twitchAuthDialog(new TwitchAuthDialog(this, plugin.getTwitchAuth())), errorMessageBox(new ErrorMessageBox(this)) {
     ui->setupUi(this);
     showGithubLink();
 
@@ -185,8 +182,7 @@ void SettingsDialog::showRewardLoadException(std::exception_ptr exception) {
         message =
             std::vformat(obs_module_text("CouldNotLoadRewardsOther"), std::make_format_args(otherException.what()));
     }
-    errorMessageBox->setText(QString::fromStdString(message));
-    errorMessageBox->show();
+    errorMessageBox->show(message);
 }
 
 void SettingsDialog::showGithubLink() {

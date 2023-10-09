@@ -4,11 +4,11 @@
 #pragma once
 
 #include <QDialog>
-#include <QMessageBox>
 #include <chrono>
 #include <memory>
 #include <thread>
 
+#include "ErrorMessageBox.h"
 #include "TwitchAuth.h"
 
 namespace Ui {
@@ -35,5 +35,5 @@ private:
 private:
     TwitchAuth& twitchAuth;
     std::unique_ptr<Ui::TwitchAuthDialog> ui;
-    QMessageBox* authMessageBox;
+    ErrorMessageBox* errorMessageBox;
 };

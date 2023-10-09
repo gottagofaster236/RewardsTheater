@@ -6,13 +6,13 @@
 #include <QCheckBox>
 #include <QColorDialog>
 #include <QDialog>
-#include <QMessageBox>
 #include <QSpinBox>
 #include <exception>
 #include <memory>
 #include <optional>
 #include <string>
 
+#include "ErrorMessageBox.h"
 #include "Reward.h"
 #include "TwitchAuth.h"
 #include "TwitchRewardsApi.h"
@@ -55,14 +55,12 @@ private:
     RewardData getRewardData();
     std::optional<std::int64_t> getOptionalSetting(QCheckBox* checkBox, QSpinBox* spinBox);
 
-    void showErrorMessage(const std::string& message);
-
     const std::optional<Reward> originalReward;
     TwitchAuth& twitchAuth;
     TwitchRewardsApi& twitchRewardsApi;
     std::unique_ptr<Ui::EditRewardDialog> ui;
     QColorDialog* colorDialog;
-    QMessageBox* errorMessageBox;
+    ErrorMessageBox* errorMessageBox;
 
     Color selectedColor;
 };
