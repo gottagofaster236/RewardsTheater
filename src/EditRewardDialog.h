@@ -6,15 +6,18 @@
 #include <QCheckBox>
 #include <QColorDialog>
 #include <QDialog>
+#include <QEvent>
 #include <QSpinBox>
 #include <exception>
 #include <memory>
 #include <optional>
 #include <random>
 #include <string>
+#include <variant>
 
 #include "ConfirmDeleteReward.h"
 #include "Reward.h"
+#include "Settings.h"
 #include "TwitchAuth.h"
 #include "TwitchRewardsApi.h"
 
@@ -30,6 +33,7 @@ public:
         const std::optional<Reward>& originalReward,
         TwitchAuth& twitchAuth,
         TwitchRewardsApi& twitchRewardsApi,
+        Settings& settings,
         QWidget* parent
     );
     ~EditRewardDialog();
@@ -38,12 +42,17 @@ signals:
     void onRewardSaved(const Reward& reward);
     void onRewardDeleted();
 
+protected:
+    virtual void changeEvent(QEvent* event) override;
+
 private slots:
     void showUploadCustomIconLabel(const std::optional<std::string>& username);
     void showSelectedColor(QColor newSelectedBackgroundColor);
     void showColorDialog();
     void saveReward();
-    void showSaveRewardResult(std::variant<std::exception_ptr, Reward> reward);
+    void showSaveRewardResult(std::variant<std::exception_ptr, Reward> result);
+    void updateObsSourceComboBox();
+    void playObsSourceNow();
 
 private:
     void showReward(const Reward& reward);
@@ -52,6 +61,11 @@ private:
     void disableInput();
     void showAddReward();
     Color chooseRandomColor();
+    void showIcons();
+    void showObsSourceComboBoxIcon();
+    void showUpdateObsSourcesButtonIcon();
+    void setObsSourceName(const std::optional<std::string>& obsSourceName);
+    std::optional<std::string> getObsSourceName();
 
     RewardData getRewardData();
     std::optional<std::int64_t> getOptionalSetting(QCheckBox* checkBox, QSpinBox* spinBox);
@@ -59,6 +73,7 @@ private:
     const std::optional<Reward> originalReward;
     TwitchAuth& twitchAuth;
     TwitchRewardsApi& twitchRewardsApi;
+    Settings& settings;
     std::unique_ptr<Ui::EditRewardDialog> ui;
     QColorDialog* colorDialog;
     ConfirmDeleteReward* confirmDeleteReward;

@@ -25,7 +25,8 @@ set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 # e.g. in Xcode or Visual Studio
 target_sources(
   ${CMAKE_PROJECT_NAME}
-  PRIVATE src/RewardsTheaterMain.cpp
+  PRIVATE images/icons.qrc
+          src/RewardsTheaterMain.cpp
           src/SettingsDialog.cpp
           src/SettingsDialog.h
           src/TwitchAuth.cpp

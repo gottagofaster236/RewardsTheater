@@ -100,7 +100,7 @@ void SettingsDialog::removeReward(const std::string& id) {
 
 void SettingsDialog::showAddRewardDialog() {
     EditRewardDialog* editRewardDialog =
-        new EditRewardDialog({}, plugin.getTwitchAuth(), plugin.getTwitchRewardsApi(), this);
+        new EditRewardDialog({}, plugin.getTwitchAuth(), plugin.getTwitchRewardsApi(), plugin.getSettings(), this);
     connect(editRewardDialog, &EditRewardDialog::onRewardSaved, this, &SettingsDialog::addReward);
     editRewardDialog->show();
 }
@@ -142,8 +142,9 @@ void SettingsDialog::updateRewardWidgets() {
         if (existingWidget) {
             existingWidget->setReward(reward);
         } else {
-            RewardWidget* rewardWidget =
-                new RewardWidget(reward, plugin.getTwitchAuth(), plugin.getTwitchRewardsApi(), ui->rewardsGrid);
+            RewardWidget* rewardWidget = new RewardWidget(
+                reward, plugin.getTwitchAuth(), plugin.getTwitchRewardsApi(), plugin.getSettings(), ui->rewardsGrid
+            );
             const std::string& id = reward.id;
             connect(rewardWidget, &RewardWidget::onRewardDeleted, this, [this, id]() {
                 removeReward(id);

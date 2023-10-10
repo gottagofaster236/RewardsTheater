@@ -51,12 +51,27 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>60</y>
+      <y>70</y>
       <width>101</width>
-      <height>40</height>
+      <height>21</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
      <item>
       <spacer name="leftSpacer">
        <property name="orientation">
@@ -78,18 +93,6 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>20</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>20</height>
-        </size>
-       </property>
        <property name="styleSheet">
         <string notr="true">background: #5A000000;</string>
        </property>
@@ -105,6 +108,12 @@
       <spacer name="rightSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
        </property>
       </spacer>
      </item>
@@ -122,11 +131,9 @@
     <property name="cursor">
      <cursorShape>ArrowCursor</cursorShape>
     </property>
-    <property name="styleSheet">
-     <string notr="true">color: red; font-weight: bold</string>
-    </property>
-    <property name="text">
-     <string>x</string>
+    <property name="icon">
+     <iconset resource="../images/icons.qrc">
+      <normaloff>:/icons/delete.svg</normaloff>:/icons/delete.svg</iconset>
     </property>
    </widget>
   </widget>
@@ -150,6 +157,8 @@
    </property>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="../images/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

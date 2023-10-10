@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>delete.svg</file>
+        <file>reload-dark.svg</file>
+        <file>reload-white.svg</file>
+        <file>media-dark.svg</file>
+        <file>media-white.svg</file>
+    </qresource>
+</RCC>

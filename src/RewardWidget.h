@@ -11,6 +11,7 @@
 #include "ConfirmDeleteReward.h"
 #include "EditRewardDialog.h"
 #include "Reward.h"
+#include "Settings.h"
 #include "TwitchAuth.h"
 #include "TwitchRewardsApi.h"
 
@@ -22,7 +23,13 @@ class RewardWidget : public QWidget {
     Q_OBJECT
 
 public:
-    RewardWidget(const Reward& reward, TwitchAuth& twitchApi, TwitchRewardsApi& twitchRewardsApi, QWidget* parent);
+    RewardWidget(
+        const Reward& reward,
+        TwitchAuth& twitchApi,
+        TwitchRewardsApi& twitchRewardsApi,
+        Settings& settings,
+        QWidget* parent
+    );
     ~RewardWidget();
 
     bool eventFilter(QObject* obj, QEvent* event) override;
@@ -46,6 +53,7 @@ private:
     Reward reward;
     TwitchAuth& twitchAuth;
     TwitchRewardsApi& twitchRewardsApi;
+    Settings& settings;
 
     std::unique_ptr<Ui::RewardWidget> ui;
     QPointer<EditRewardDialog> editRewardDialog;
