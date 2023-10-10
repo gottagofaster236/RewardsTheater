@@ -42,7 +42,7 @@ asio::awaitable<HttpClient::Response> HttpClient::request(
     if (!requestBody.is_null()) {
         request.body() = serialize(requestBody);
         request.prepare_payload();
-        request.set("Content-Type", "application/json");
+        request.set(http::field::content_type, "application/json");
     }
 
     http::response<http::dynamic_body> response = co_await getResponse(request, stream);

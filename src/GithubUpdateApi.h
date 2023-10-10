@@ -25,7 +25,6 @@ private:
     boost::asio::awaitable<std::string> getLatestReleaseVersion();
     std::vector<int> parseVersion(const std::string& versionString);
 
-private:
     HttpClient& httpClient;
     boost::asio::io_context& ioContext;
 };
