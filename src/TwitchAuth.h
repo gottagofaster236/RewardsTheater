@@ -53,6 +53,11 @@ public:
         const char* what() const noexcept override;
     };
 
+    class EmptyAccessTokenException : public std::exception {
+    public:
+        const char* what() const noexcept override;
+    };
+
 signals:
     void onAuthenticationSuccess();
     void onAuthenticationFailure(std::exception_ptr reason);

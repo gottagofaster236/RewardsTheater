@@ -53,6 +53,8 @@ void TwitchAuthDialog::showAuthenticationFailureMessage(std::exception_ptr reaso
         message = obs_module_text("TwitchAuthenticationFailedInvalid");
     } catch (const HttpClient::NetworkException&) {
         message = obs_module_text("TwitchAuthenticationFailedNetwork");
+    } catch (const TwitchAuth::EmptyAccessTokenException&) {
+        message = obs_module_text("TwitchAuthenticationFailedNoAccessToken");
     } catch (const std::exception& otherException) {
         message = std::vformat(
             obs_module_text("TwitchAuthenticationFailedOther"), std::make_format_args(otherException.what())

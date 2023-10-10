@@ -124,6 +124,10 @@ const char* TwitchAuth::UnauthenticatedException::what() const noexcept {
     return "UnauthenticatedException";
 }
 
+const char* TwitchAuth::EmptyAccessTokenException::what() const noexcept {
+    return "EmptyAccessTokenException";
+}
+
 void TwitchAuth::authenticateWithSavedToken() {
     std::optional<std::string> savedAccessToken = settings.getTwitchAccessToken();
     if (savedAccessToken) {
@@ -164,6 +168,10 @@ asio::awaitable<void> TwitchAuth::asyncAuthenticateWithToken(std::string token) 
 }
 
 asio::awaitable<TwitchAuth::ValidateTokenResponse> TwitchAuth::asyncValidateToken(std::string token) {
+    if (token.empty()) {
+        throw EmptyAccessTokenException();
+    }
+
     HttpClient::Response validateTokenResponse =
         co_await httpClient.request("id.twitch.tv", "/oauth2/validate", token, clientId);
 
