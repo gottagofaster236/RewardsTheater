@@ -130,9 +130,7 @@ void SettingsDialog::updateRewardWidgets() {
         const std::string& rewardId = it->first;
         RewardWidget* rewardWidget = it->second;
         if (!rewardIds.contains(rewardId)) {
-            if (rewardWidget) {
-                rewardWidget->deleteLater();
-            }
+            rewardWidget->deleteLater();
             it = rewardWidgetByRewardId.erase(it);
         } else {
             ++it;

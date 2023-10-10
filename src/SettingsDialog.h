@@ -4,7 +4,6 @@
 #pragma once
 
 #include <QDialog>
-#include <QPointer>
 #include <map>
 #include <memory>
 #include <variant>
@@ -52,5 +51,5 @@ private:
     ErrorMessageBox* errorMessageBox;
 
     std::vector<Reward> rewards;
-    std::map<std::string, QPointer<RewardWidget>> rewardWidgetByRewardId;
+    std::map<std::string, RewardWidget*> rewardWidgetByRewardId;
 };
