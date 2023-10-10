@@ -8,6 +8,7 @@
 #include <exception>
 #include <memory>
 
+#include "ConfirmDeleteReward.h"
 #include "EditRewardDialog.h"
 #include "Reward.h"
 #include "TwitchAuth.h"
@@ -36,9 +37,6 @@ public slots:
 
 private slots:
     void showImage(const std::string& imageBytes);
-    void deleteReward();
-    void showDeleteRewardResult(std::exception_ptr error);
-    void emitRewardDeletedAndDeleteWidget();
 
 private:
     void showReward();
@@ -51,5 +49,5 @@ private:
 
     std::unique_ptr<Ui::RewardWidget> ui;
     QPointer<EditRewardDialog> editRewardDialog;
-    ErrorMessageBox* errorMessageBox;
+    ConfirmDeleteReward* confirmDeleteReward;
 };

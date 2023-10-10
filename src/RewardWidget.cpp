@@ -22,7 +22,8 @@ RewardWidget::RewardWidget(
     QWidget* parent
 )
     : QWidget(parent), reward(reward), twitchAuth(twitchAuth), twitchRewardsApi(twitchRewardsApi),
-      ui(std::make_unique<Ui::RewardWidget>()), editRewardDialog(nullptr), errorMessageBox(new ErrorMessageBox(this)) {
+      ui(std::make_unique<Ui::RewardWidget>()), editRewardDialog(nullptr),
+      confirmDeleteReward(new ConfirmDeleteReward(reward, twitchRewardsApi, this)) {
     ui->setupUi(this);
     setFixedSize(size());
 
@@ -30,7 +31,10 @@ RewardWidget::RewardWidget(
     ui->costAndImageFrame->installEventFilter(this);
     showReward();
 
-    connect(ui->deleteButton, &QToolButton::clicked, this, &RewardWidget::deleteReward);
+    connect(
+        ui->deleteButton, &QToolButton::clicked, confirmDeleteReward, &ConfirmDeleteReward::showConfirmDeleteMessageBox
+    );
+    connect(confirmDeleteReward, &ConfirmDeleteReward::onRewardDeleted, this, &RewardWidget::onRewardDeleted);
 }
 
 RewardWidget::~RewardWidget() = default;
@@ -60,35 +64,6 @@ void RewardWidget::setReward(const Reward& newReward) {
     showReward();
 }
 
-void RewardWidget::deleteReward() {
-    twitchRewardsApi.deleteReward(reward, this, "showDeleteRewardResult");
-}
-
-void RewardWidget::showDeleteRewardResult(std::exception_ptr error) {
-    if (error == nullptr) {
-        // Deletion was successful.
-        emitRewardDeletedAndDeleteWidget();
-        return;
-    }
-    std::string message;
-    try {
-        std::rethrow_exception(error);
-    } catch (const TwitchRewardsApi::NotManageableRewardException&) {
-        message = obs_module_text("CouldNotDeleteRewardNotManageable");
-    } catch (const HttpClient::NetworkException&) {
-        message = obs_module_text("CouldNotDeleteRewardNetwork");
-    } catch (const std::exception& otherException) {
-        message =
-            std::vformat(obs_module_text("CouldNotDeleteRewardOther"), std::make_format_args(otherException.what()));
-    }
-    errorMessageBox->show(message);
-}
-
-void RewardWidget::emitRewardDeletedAndDeleteWidget() {
-    emit onRewardDeleted();
-    deleteLater();
-}
-
 void RewardWidget::showImage(const std::string& imageBytes) {
     QBuffer imageBuffer;
     imageBuffer.setData(imageBytes.data(), static_cast<int>(imageBytes.size()));
@@ -115,10 +90,8 @@ void RewardWidget::showReward() {
 void RewardWidget::showEditRewardDialog() {
     if (!editRewardDialog) {
         editRewardDialog = new EditRewardDialog(reward, twitchAuth, twitchRewardsApi, this);
-        QObject::connect(editRewardDialog, &EditRewardDialog::onRewardSaved, this, &RewardWidget::setReward);
-        QObject::connect(
-            editRewardDialog, &EditRewardDialog::onRewardDeleted, this, &RewardWidget::emitRewardDeletedAndDeleteWidget
-        );
+        connect(editRewardDialog, &EditRewardDialog::onRewardSaved, this, &RewardWidget::setReward);
+        connect(editRewardDialog, &EditRewardDialog::onRewardDeleted, this, &RewardWidget::onRewardDeleted);
     }
     editRewardDialog->show();
 }

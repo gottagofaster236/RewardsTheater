@@ -101,7 +101,7 @@ void SettingsDialog::removeReward(const std::string& id) {
 void SettingsDialog::showAddRewardDialog() {
     EditRewardDialog* editRewardDialog =
         new EditRewardDialog({}, plugin.getTwitchAuth(), plugin.getTwitchRewardsApi(), this);
-    QObject::connect(editRewardDialog, &EditRewardDialog::onRewardSaved, this, &SettingsDialog::addReward);
+    connect(editRewardDialog, &EditRewardDialog::onRewardSaved, this, &SettingsDialog::addReward);
     editRewardDialog->show();
 }
 
@@ -147,7 +147,7 @@ void SettingsDialog::updateRewardWidgets() {
             RewardWidget* rewardWidget =
                 new RewardWidget(reward, plugin.getTwitchAuth(), plugin.getTwitchRewardsApi(), ui->rewardsGrid);
             const std::string& id = reward.id;
-            QObject::connect(rewardWidget, &RewardWidget::onRewardDeleted, this, [this, id]() {
+            connect(rewardWidget, &RewardWidget::onRewardDeleted, this, [this, id]() {
                 removeReward(id);
             });
             rewardWidgetByRewardId[reward.id] = rewardWidget;

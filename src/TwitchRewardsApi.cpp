@@ -282,9 +282,7 @@ asio::awaitable<std::string> TwitchRewardsApi::asyncDownloadImage(const boost::u
 
 detail::QObjectCallback::QObjectCallback(TwitchRewardsApi* parent, QObject* receiver, const char* member)
     : QObject(parent), receiver(receiver), member(member) {
-    QObject::connect(
-        receiver, &QObject::destroyed, this, &QObjectCallback::clearReceiver, Qt::ConnectionType::DirectConnection
-    );
+    connect(receiver, &QObject::destroyed, this, &QObjectCallback::clearReceiver, Qt::ConnectionType::DirectConnection);
 }
 
 void detail::QObjectCallback::clearReceiver() {

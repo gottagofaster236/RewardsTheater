@@ -18,10 +18,12 @@ EditRewardDialog::EditRewardDialog(
     QWidget* parent
 )
     : QDialog(parent), originalReward(originalReward), twitchAuth(twitchAuth), twitchRewardsApi(twitchRewardsApi),
-      ui(std::make_unique<Ui::EditRewardDialog>()), colorDialog(nullptr), errorMessageBox(new ErrorMessageBox(this)) {
+      ui(std::make_unique<Ui::EditRewardDialog>()), colorDialog(nullptr), confirmDeleteReward(nullptr),
+      errorMessageBox(new ErrorMessageBox(this)) {
     obs_frontend_push_ui_translation(obs_module_get_string);
     ui->setupUi(this);
     obs_frontend_pop_ui_translation();
+
     setFixedSize(size());
     setAttribute(Qt::WA_DeleteOnClose);
 
@@ -34,7 +36,6 @@ EditRewardDialog::EditRewardDialog(
 
     connect(ui->saveButton, &QPushButton::clicked, this, &EditRewardDialog::saveReward);
     connect(ui->cancelButton, &QPushButton::clicked, this, &EditRewardDialog::close);
-    connect(ui->deleteButton, &QPushButton::clicked, this, &EditRewardDialog::deleteReward);
     connect(ui->backgroundColorButton, &QPushButton::clicked, this, &EditRewardDialog::showColorDialog);
     connect(&twitchAuth, &TwitchAuth::onUsernameChanged, this, &EditRewardDialog::showUploadCustomIconLabel);
 }
@@ -62,7 +63,7 @@ void EditRewardDialog::showSelectedColor(Color newBackgroundColor) {
 void EditRewardDialog::showColorDialog() {
     if (!colorDialog) {
         colorDialog = new QColorDialog({selectedColor.red, selectedColor.green, selectedColor.blue}, this);
-        QObject::connect(
+        connect(
             colorDialog, &QColorDialog::colorSelected, this, qOverload<QColor>(&EditRewardDialog::showSelectedColor)
         );
     }
@@ -76,15 +77,10 @@ void EditRewardDialog::saveReward() {
     } else if (rewardData != static_cast<const RewardData&>(originalReward.value())) {
         Reward newReward(originalReward.value(), rewardData);
         twitchRewardsApi.updateReward(newReward, this, "showSaveRewardResult");
+    } else {
+        close();
     }
     // TODO also save the OBS source from combobox!
-}
-
-void EditRewardDialog::deleteReward() {
-    if (!originalReward.has_value()) {
-        return;
-    }
-    twitchRewardsApi.deleteReward(originalReward.value(), this, "showDeleteRewardResult");
 }
 
 void EditRewardDialog::showSaveRewardResult(std::variant<std::exception_ptr, Reward> reward) {
@@ -111,27 +107,6 @@ void EditRewardDialog::showSaveRewardResult(std::variant<std::exception_ptr, Rew
     errorMessageBox->show(message);
 }
 
-void EditRewardDialog::showDeleteRewardResult(std::exception_ptr result) {
-    if (result == nullptr) {
-        // Success
-        emit onRewardDeleted();
-        close();
-        return;
-    }
-
-    std::string message;
-    try {
-        std::rethrow_exception(result);
-    } catch (const TwitchRewardsApi::NotManageableRewardException&) {
-        message = obs_module_text("CouldNotDeleteRewardNotManageable");
-    } catch (const HttpClient::NetworkException&) {
-        message = obs_module_text("CouldNotDeleteRewardNetwork");
-    } catch (const std::exception& exception) {
-        message = std::vformat(obs_module_text("CouldNotDeleteRewardOther"), std::make_format_args(exception.what()));
-    }
-    errorMessageBox->show(message);
-}
-
 void EditRewardDialog::showReward(const Reward& reward) {
     ui->enabledCheckBox->setChecked(reward.isEnabled);
     ui->titleEdit->setText(QString::fromStdString(reward.title));
@@ -146,6 +121,7 @@ void EditRewardDialog::showReward(const Reward& reward) {
 
     if (reward.canManage) {
         ui->cannotEditRewardLabel->hide();
+        createConfirmDeleteReward(reward);
     } else {
         disableInput();
     }
@@ -153,6 +129,14 @@ void EditRewardDialog::showReward(const Reward& reward) {
 
 void EditRewardDialog::showSelectedColor(QColor newBackgroundColor) {
     showSelectedColor(Color(newBackgroundColor.red(), newBackgroundColor.green(), newBackgroundColor.blue()));
+}
+
+void EditRewardDialog::createConfirmDeleteReward(const Reward& reward) {
+    confirmDeleteReward = new ConfirmDeleteReward(reward, twitchRewardsApi, this);
+    connect(
+        ui->deleteButton, &QPushButton::clicked, confirmDeleteReward, &ConfirmDeleteReward::showConfirmDeleteMessageBox
+    );
+    connect(confirmDeleteReward, &ConfirmDeleteReward::onRewardDeleted, this, &EditRewardDialog::onRewardDeleted);
 }
 
 void EditRewardDialog::disableInput() {

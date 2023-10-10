@@ -56,8 +56,8 @@ target_sources(
           src/GithubUpdateApi.cpp
           src/ErrorMessageBox.h
           src/ErrorMessageBox.cpp
-          src/ConfirmDeleteRewardMessageBox.h
-          src/ConfirmDeleteRewardMessageBox.cpp)
+          src/ConfirmDeleteReward.h
+          src/ConfirmDeleteReward.cpp)
 
 # GCC ignores the "pragma GCC diagnostic ignored" in precompiled headers
 if(MSVC)

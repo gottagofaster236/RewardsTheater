@@ -12,7 +12,7 @@
 #include <optional>
 #include <string>
 
-#include "ErrorMessageBox.h"
+#include "ConfirmDeleteReward.h"
 #include "Reward.h"
 #include "TwitchAuth.h"
 #include "TwitchRewardsApi.h"
@@ -42,13 +42,12 @@ private slots:
     void showSelectedColor(QColor newSelectedBackgroundColor);
     void showColorDialog();
     void saveReward();
-    void deleteReward();
     void showSaveRewardResult(std::variant<std::exception_ptr, Reward> reward);
-    void showDeleteRewardResult(std::exception_ptr result);
 
 private:
     void showReward(const Reward& reward);
     void showSelectedColor(Color newSelectedBackgroundColor);
+    void createConfirmDeleteReward(const Reward& reward);
     void disableInput();
     void showAddReward();
 
@@ -60,6 +59,7 @@ private:
     TwitchRewardsApi& twitchRewardsApi;
     std::unique_ptr<Ui::EditRewardDialog> ui;
     QColorDialog* colorDialog;
+    ConfirmDeleteReward* confirmDeleteReward;
     ErrorMessageBox* errorMessageBox;
 
     Color selectedColor;

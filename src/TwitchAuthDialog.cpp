@@ -70,14 +70,11 @@ void TwitchAuthDialog::showAccessTokenAboutToExpireMessage(std::chrono::seconds 
 }
 
 void TwitchAuthDialog::showAuthenticationMessage(const std::string& message) {
-    for (QAbstractButton* button : errorMessageBox->buttons()) {
-        errorMessageBox->removeButton(button);
-    }
     if (isVisible()) {
         errorMessageBox->setStandardButtons(QMessageBox::Ok);
     } else {
-        errorMessageBox->addButton(obs_module_text("LogInAgain"), QMessageBox::AcceptRole);
-        errorMessageBox->addButton(QMessageBox::Cancel);
+        errorMessageBox->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        errorMessageBox->button(QMessageBox::Ok)->setText(obs_module_text("LogInAgain"));
     }
     errorMessageBox->show(message);
 }
@@ -86,7 +83,7 @@ void TwitchAuthDialog::showOurselvesAfterAuthMessageBox() {
     if (isVisible()) {
         return;
     }
-    if (errorMessageBox->buttonRole(errorMessageBox->clickedButton()) == QMessageBox::AcceptRole) {
+    if (errorMessageBox->standardButton(errorMessageBox->clickedButton()) == QMessageBox::Ok) {
         show();
     }
 }
