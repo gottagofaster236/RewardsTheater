@@ -64,6 +64,7 @@ private:
     void showIcons();
     void showObsSourceComboBoxIcon();
     void showUpdateObsSourcesButtonIcon();
+    bool shouldUseWhiteIcons();
     void setObsSourceName(const std::optional<std::string>& obsSourceName);
     std::optional<std::string> getObsSourceName();
 

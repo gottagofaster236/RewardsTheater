@@ -230,9 +230,8 @@ void EditRewardDialog::showIcons() {
 }
 
 void EditRewardDialog::showObsSourceComboBoxIcon() {
-    QColor textColor = palette().color(QPalette::Text);
     QIcon icon;
-    if (textColor.valueF() > 0.5f) {
+    if (shouldUseWhiteIcons()) {
         icon = QIcon(":/icons/media-white.svg");
     } else {
         icon = QIcon(":/icons/media-dark.svg");
@@ -243,14 +242,18 @@ void EditRewardDialog::showObsSourceComboBoxIcon() {
 }
 
 void EditRewardDialog::showUpdateObsSourcesButtonIcon() {
-    QColor textColor = palette().color(QPalette::ButtonText);
     QIcon icon;
-    if (textColor.valueF() > 0.5f) {
+    if (shouldUseWhiteIcons()) {
         icon = QIcon(":/icons/reload-white.svg");
     } else {
         icon = QIcon(":/icons/reload-dark.svg");
     }
     ui->updateObsSourcesButton->setIcon(icon);
+}
+
+bool EditRewardDialog::shouldUseWhiteIcons() {
+    QColor textColor = palette().color(QPalette::ButtonText);
+    return textColor.valueF() > 0.5f;
 }
 
 void EditRewardDialog::setObsSourceName(const std::optional<std::string>& obsSourceNameString) {
