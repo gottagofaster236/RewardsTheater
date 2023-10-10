@@ -6,10 +6,25 @@
 #include <obs-frontend-api.h>
 #include <obs-module.h>
 
+#include <algorithm>
+#include <array>
 #include <format>
 
 #include "HttpClient.h"
 #include "ui_EditRewardDialog.h"
+
+constexpr std::array DEFAULT_COLORS{
+    Color{0, 199, 172},
+    Color{250, 179, 255},
+    Color{189, 0, 120},
+    Color{255, 105, 5},
+    Color{31, 105, 255},
+    Color{189, 168, 255},
+    Color{145, 71, 255},
+    Color{250, 30, 210},
+    Color{86, 189, 230},
+    Color{66, 21, 97},
+};
 
 EditRewardDialog::EditRewardDialog(
     const std::optional<Reward>& originalReward,
@@ -19,7 +34,7 @@ EditRewardDialog::EditRewardDialog(
 )
     : QDialog(parent), originalReward(originalReward), twitchAuth(twitchAuth), twitchRewardsApi(twitchRewardsApi),
       ui(std::make_unique<Ui::EditRewardDialog>()), colorDialog(nullptr), confirmDeleteReward(nullptr),
-      errorMessageBox(new ErrorMessageBox(this)) {
+      errorMessageBox(new ErrorMessageBox(this)), randomEngine(std::random_device()()) {
     obs_frontend_push_ui_translation(obs_module_get_string);
     ui->setupUi(this);
     obs_frontend_pop_ui_translation();
@@ -157,8 +172,14 @@ void EditRewardDialog::showAddReward() {
     setWindowTitle(obs_module_text("AddReward"));
     ui->cannotEditRewardLabel->hide();
     ui->enabledCheckBox->setChecked(true);
-    showSelectedColor(Color(209, 179, 255));
+    showSelectedColor(chooseRandomColor());
     ui->deleteButton->setEnabled(false);
+}
+
+Color EditRewardDialog::chooseRandomColor() {
+    Color result;
+    std::ranges::sample(DEFAULT_COLORS, &result, 1, randomEngine);
+    return result;
 }
 
 RewardData EditRewardDialog::getRewardData() {

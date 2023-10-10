@@ -13,8 +13,8 @@ struct Color {
     std::uint8_t green;
     std::uint8_t blue;
 
-    Color();
-    Color(std::uint8_t red, std::uint8_t green, std::uint8_t blue);
+    constexpr Color() : red(0), green(0), blue(0) {}
+    constexpr Color(std::uint8_t red, std::uint8_t green, std::uint8_t blue) : red(red), green(green), blue(blue) {}
     Color(const std::string& hexColor);
     std::string toHex() const;
 

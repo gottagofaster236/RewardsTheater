@@ -10,6 +10,7 @@
 #include <exception>
 #include <memory>
 #include <optional>
+#include <random>
 #include <string>
 
 #include "ConfirmDeleteReward.h"
@@ -50,6 +51,7 @@ private:
     void createConfirmDeleteReward(const Reward& reward);
     void disableInput();
     void showAddReward();
+    Color chooseRandomColor();
 
     RewardData getRewardData();
     std::optional<std::int64_t> getOptionalSetting(QCheckBox* checkBox, QSpinBox* spinBox);
@@ -63,4 +65,5 @@ private:
     ErrorMessageBox* errorMessageBox;
 
     Color selectedColor;
+    std::default_random_engine randomEngine;
 };

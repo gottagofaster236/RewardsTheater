@@ -6,10 +6,6 @@
 #include <iomanip>
 #include <sstream>
 
-Color::Color() : red(0), green(0), blue(0) {}
-
-Color::Color(std::uint8_t red, std::uint8_t green, std::uint8_t blue) : red(red), green(green), blue(blue) {}
-
 Color::Color(const std::string& hexColor) {
     if (hexColor.empty()) {
         red = green = blue = 0;
