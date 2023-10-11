@@ -85,7 +85,11 @@ asio::awaitable<Reward> RewardsQueue::asyncGetNextReward() {
                 co_return result;
             }
         }
-        co_await rewardsQueueCondVar.async_wait(asio::use_awaitable);
+        try {
+            co_await rewardsQueueCondVar.async_wait(asio::use_awaitable);
+        } catch (const boost::system::system_error&) {
+            // Condition variable signalled.
+        }
     }
 }
 
@@ -93,8 +97,11 @@ asio::awaitable<void> RewardsQueue::asyncPlayObsSource(OBSSourceAutoRelease sour
     if (!source) {
         co_return;
     }
+    unsigned state = playObsSourceState++;
+    sourcePlayedByState[source] = state;
+
     std::int64_t durationMilliseconds = obs_source_media_get_duration(source);
-    std::int64_t deadlineMilliseconds = durationMilliseconds * 10;
+    std::int64_t deadlineMilliseconds = durationMilliseconds + durationMilliseconds / 2;
     asio::deadline_timer deadlineTimer(rewardsQueueThread.ioContext);
     deadlineTimer.expires_from_now(boost::posix_time::milliseconds(deadlineMilliseconds));
 
@@ -121,7 +128,11 @@ asio::awaitable<void> RewardsQueue::asyncPlayObsSource(OBSSourceAutoRelease sour
     } catch (const boost::system::system_error&) {
         // Timer cancelled by the media_ended signal
     }
-    stopObsSource(source);
+
+    if (sourcePlayedByState[source] == state) {
+        sourcePlayedByState.erase(source);
+        stopObsSource(source);
+    }
 }
 
 OBSSourceAutoRelease RewardsQueue::getObsSource(const Reward& reward) {

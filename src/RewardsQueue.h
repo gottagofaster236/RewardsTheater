@@ -4,6 +4,7 @@
 #pragma once
 
 #include <chrono>
+#include <map>
 #include <mutex>
 #include <obs.hpp>
 #include <optional>
@@ -45,4 +46,7 @@ private:
     mutable std::mutex rewardsQueueMutex;
     boost::asio::deadline_timer rewardsQueueCondVar;
     std::vector<Reward> rewardsQueue;
+
+    unsigned playObsSourceState = 0;
+    std::map<obs_source_t*, unsigned> sourcePlayedByState;
 };

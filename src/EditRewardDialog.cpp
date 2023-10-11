@@ -38,7 +38,7 @@ EditRewardDialog::EditRewardDialog(
     QWidget* parent
 )
     : QDialog(parent), originalReward(originalReward), twitchAuth(twitchAuth), twitchRewardsApi(twitchRewardsApi),
-      settings(settings), rewardsQueue(rewardsQueue), ui(std::make_unique<Ui::EditRewardDialog>()),
+      rewardsQueue(rewardsQueue), settings(settings), ui(std::make_unique<Ui::EditRewardDialog>()),
       colorDialog(nullptr), confirmDeleteReward(nullptr), errorMessageBox(new ErrorMessageBox(this)),
       randomEngine(std::random_device()()) {
     obs_frontend_push_ui_translation(obs_module_get_string);
