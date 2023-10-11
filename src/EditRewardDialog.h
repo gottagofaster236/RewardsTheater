@@ -17,6 +17,7 @@
 
 #include "ConfirmDeleteReward.h"
 #include "Reward.h"
+#include "RewardsQueue.h"
 #include "Settings.h"
 #include "TwitchAuth.h"
 #include "TwitchRewardsApi.h"
@@ -33,6 +34,7 @@ public:
         const std::optional<Reward>& originalReward,
         TwitchAuth& twitchAuth,
         TwitchRewardsApi& twitchRewardsApi,
+        RewardsQueue& rewardsQueue,
         Settings& settings,
         QWidget* parent
     );
@@ -74,6 +76,7 @@ private:
     const std::optional<Reward> originalReward;
     TwitchAuth& twitchAuth;
     TwitchRewardsApi& twitchRewardsApi;
+    RewardsQueue& rewardsQueue;
     Settings& settings;
     std::unique_ptr<Ui::EditRewardDialog> ui;
     QColorDialog* colorDialog;

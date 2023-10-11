@@ -3,48 +3,46 @@
 
 #pragma once
 
-#include <deque>
+#include <chrono>
 #include <mutex>
 #include <obs.hpp>
 #include <optional>
 #include <string>
+#include <thread>
 #include <vector>
 
+#include "IoThreadPool.h"
 #include "Reward.h"
 #include "Settings.h"
 
 class RewardsQueue {
 public:
     RewardsQueue(const Settings& settings);
+    ~RewardsQueue();
 
     std::vector<Reward> getRewardsQueue() const;
     void queueReward(const Reward& reward);
     void removeReward(const Reward& reward);
-    void playNextReward();
 
-    static void playObsSource(const std::string& obsSourceName);
-    static void stopObsSource(const std::string& obsSourceName);
-    static bool isMediaSource(const std::string& obsSourceName);
+    void playObsSource(const std::string& obsSourceName);
     static std::vector<std::string> enumObsSources();
 
 private:
-    std::optional<OBSSourceAutoRelease> popNextReward();
+    boost::asio::awaitable<void> asyncPlaySourcesFromQueue();
+    boost::asio::awaitable<Reward> asyncGetNextReward();
+    boost::asio::awaitable<void> asyncPlayObsSource(OBSSourceAutoRelease source);
+    OBSSourceAutoRelease getObsSource(const Reward& reward);
+    OBSSourceAutoRelease getObsSource(const std::string& sourceName);
 
-    static OBSSourceAutoRelease getObsSource(const std::string& obsSourceName);
-
-    static void playObsSource(obs_source_t* source);
-    static bool showSourceEnumProc(void* source, obs_source_t* scene);
-
-    static void stopObsSource(const obs_source_t* source);
-    static bool hideSourceEnumProc(void* source, obs_source_t* scene);
-
+    static void startObsSource(obs_source_t* source);
+    static void stopObsSource(obs_source_t* source);
+    static void setSourceVisible(obs_source_t* source, bool visible);
     static bool isMediaSource(const obs_source_t* source);
-    static bool enumObsSourcesProc(void* param, obs_source_t* source);
-    static void onMediaEnded(void* param, calldata_t* data);
-
-    std::deque<Reward> rewardsQueue;
-    mutable std::mutex rewardsMutex;
-    OBSSignal mediaEndSignal;
 
     const Settings& settings;
+
+    IoThreadPool rewardsQueueThread;
+    mutable std::mutex rewardsQueueMutex;
+    boost::asio::deadline_timer rewardsQueueCondVar;
+    std::vector<Reward> rewardsQueue;
 };

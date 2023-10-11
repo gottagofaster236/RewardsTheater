@@ -33,12 +33,14 @@ EditRewardDialog::EditRewardDialog(
     const std::optional<Reward>& originalReward,
     TwitchAuth& twitchAuth,
     TwitchRewardsApi& twitchRewardsApi,
+    RewardsQueue& rewardsQueue,
     Settings& settings,
     QWidget* parent
 )
     : QDialog(parent), originalReward(originalReward), twitchAuth(twitchAuth), twitchRewardsApi(twitchRewardsApi),
-      settings(settings), ui(std::make_unique<Ui::EditRewardDialog>()), colorDialog(nullptr),
-      confirmDeleteReward(nullptr), errorMessageBox(new ErrorMessageBox(this)), randomEngine(std::random_device()()) {
+      settings(settings), rewardsQueue(rewardsQueue), ui(std::make_unique<Ui::EditRewardDialog>()),
+      colorDialog(nullptr), confirmDeleteReward(nullptr), errorMessageBox(new ErrorMessageBox(this)),
+      randomEngine(std::random_device()()) {
     obs_frontend_push_ui_translation(obs_module_get_string);
     ui->setupUi(this);
     obs_frontend_pop_ui_translation();
@@ -159,7 +161,7 @@ void EditRewardDialog::updateObsSourceComboBox() {
 void EditRewardDialog::playObsSourceNow() {
     std::optional<std::string> obsSourceName = getObsSourceName();
     if (obsSourceName.has_value()) {
-        RewardsQueue::playObsSource(obsSourceName.value());
+        rewardsQueue.playObsSource(obsSourceName.value());
     }
 }
 
