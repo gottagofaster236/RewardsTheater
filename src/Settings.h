@@ -5,7 +5,6 @@
 
 #include <util/config-file.h>
 
-#include <cstdint>
 #include <optional>
 #include <string>
 
@@ -18,8 +17,8 @@ public:
     void setRewardsQueueEnabled(bool rewardsQueueEnabled);
 
     /// How much to wait between two rewards in a queue (if putRewardsInQueue() is true)
-    std::int32_t getIntervalBetweenRewardsSeconds() const;
-    void setIntervalBetweenRewardsSeconds(std::int32_t intervalBetweenRewardsSeconds);
+    double getIntervalBetweenRewardsSeconds() const;
+    void setIntervalBetweenRewardsSeconds(double intervalBetweenRewardsSeconds);
 
     std::optional<std::string> getObsSourceName(const std::string& rewardId) const;
     void setObsSourceName(const std::string& rewardId, const std::optional<std::string>& obsSourceName);

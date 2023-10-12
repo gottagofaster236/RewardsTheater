@@ -78,7 +78,8 @@ asio::awaitable<void> RewardsQueue::asyncPlaySourcesFromQueue() {
     while (true) {
         Reward nextReward = co_await asyncGetNextReward();
         co_await asyncPlayObsSource(getObsSource(nextReward));
-        auto timeBeforeNextReward = std::chrono::seconds(settings.getIntervalBetweenRewardsSeconds());
+        auto timeBeforeNextReward =
+            std::chrono::milliseconds(static_cast<long long>(1000 * settings.getIntervalBetweenRewardsSeconds()));
         co_await asio::steady_timer(rewardsQueueThread.ioContext, timeBeforeNextReward).async_wait(asio::use_awaitable);
     }
 }

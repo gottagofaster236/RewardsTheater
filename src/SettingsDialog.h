@@ -36,6 +36,8 @@ private slots:
     void showAddRewardDialog();
     void openRewardsQueue();
     void showUpdateAvailableLink();
+    void saveRewardsQueueEnabled(int checkState);
+    void saveIntervalBetweenRewards(double interval);
 
 private:
     void showRewards();

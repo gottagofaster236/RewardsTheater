@@ -167,14 +167,27 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
-       <widget class="QCheckBox" name="putRewardsInQueueCheckBox">
+       <widget class="QCheckBox" name="rewardsQueueEnabledCheckBox">
         <property name="text">
          <string>EnableRewardsQueueWithInterval</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="spinBox"/>
+       <widget class="QDoubleSpinBox" name="intervalBetweenRewardsSpinBox">
+        <property name="minimumSize">
+         <size>
+          <width>70</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <double>999.899999999999977</double>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QLabel" name="secondsLabel">

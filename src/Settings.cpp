@@ -3,7 +3,7 @@
 
 #include "Settings.h"
 
-static const char* const PLUGIN_NAME = "RewardsName";
+static const char* const PLUGIN_NAME = "RewardsTheater";
 static const char* const REWARDS_QUEUE_ENABLED_KEY = "REWARDS_QUEUE_ENABLED_KEY";
 static const char* const INTERVAL_BETWEEN_REWARDS_SECONDS_KEY = "INTERVAL_BETWEEN_REWARDS_SECONDS_KEY";
 static const char* const TWITCH_ACCESS_TOKEN_KEY = "TWITCH_ACCESS_TOKEN_KEY";
@@ -19,13 +19,13 @@ void Settings::setRewardsQueueEnabled(bool rewardsQueueEnabled) {
     config_set_bool(config, PLUGIN_NAME, REWARDS_QUEUE_ENABLED_KEY, rewardsQueueEnabled);
 }
 
-std::int32_t Settings::getIntervalBetweenRewardsSeconds() const {
-    config_set_default_int(config, PLUGIN_NAME, INTERVAL_BETWEEN_REWARDS_SECONDS_KEY, 0);
-    return static_cast<std::int32_t>(config_get_int(config, PLUGIN_NAME, INTERVAL_BETWEEN_REWARDS_SECONDS_KEY));
+double Settings::getIntervalBetweenRewardsSeconds() const {
+    config_set_default_double(config, PLUGIN_NAME, INTERVAL_BETWEEN_REWARDS_SECONDS_KEY, 0);
+    return config_get_double(config, PLUGIN_NAME, INTERVAL_BETWEEN_REWARDS_SECONDS_KEY);
 }
 
-void Settings::setIntervalBetweenRewardsSeconds(std::int32_t intervalBetweenRewardsSeconds) {
-    config_set_int(config, PLUGIN_NAME, INTERVAL_BETWEEN_REWARDS_SECONDS_KEY, intervalBetweenRewardsSeconds);
+void Settings::setIntervalBetweenRewardsSeconds(double intervalBetweenRewardsSeconds) {
+    config_set_double(config, PLUGIN_NAME, INTERVAL_BETWEEN_REWARDS_SECONDS_KEY, intervalBetweenRewardsSeconds);
 }
 
 std::optional<std::string> Settings::getObsSourceName(const std::string& rewardId) const {

@@ -22,6 +22,8 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
       twitchAuthDialog(new TwitchAuthDialog(this, plugin.getTwitchAuth())), errorMessageBox(new ErrorMessageBox(this)) {
     ui->setupUi(this);
     showGithubLink();
+    ui->rewardsQueueEnabledCheckBox->setChecked(plugin.getSettings().isRewardsQueueEnabled());
+    ui->intervalBetweenRewardsSpinBox->setValue(plugin.getSettings().getIntervalBetweenRewardsSeconds());
 
     connect(ui->authButton, &QPushButton::clicked, this, &SettingsDialog::logInOrLogOut);
     connect(ui->openRewardsQueueButton, &QPushButton::clicked, this, &SettingsDialog::openRewardsQueue);
@@ -29,6 +31,13 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
         ui->reloadRewardsButton, &QPushButton::clicked, &plugin.getTwitchRewardsApi(), &TwitchRewardsApi::reloadRewards
     );
     connect(ui->addRewardButton, &QPushButton::clicked, this, &SettingsDialog::showAddRewardDialog);
+    connect(ui->rewardsQueueEnabledCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::saveRewardsQueueEnabled);
+    connect(
+        ui->intervalBetweenRewardsSpinBox,
+        &QDoubleSpinBox::valueChanged,
+        this,
+        &SettingsDialog::saveIntervalBetweenRewards
+    );
 
     connect(&plugin.getTwitchAuth(), &TwitchAuth::onUsernameChanged, this, &SettingsDialog::updateAuthButtonText);
     connect(
@@ -114,6 +123,14 @@ void SettingsDialog::showUpdateAvailableLink() {
     showRewardsTheaterLink(
         obs_module_text("UpdateAvailable"), "https://github.com/gottagofaster236/RewardsTheater/releases/latest"
     );
+}
+
+void SettingsDialog::saveRewardsQueueEnabled(int checkState) {
+    plugin.getSettings().setRewardsQueueEnabled(checkState == Qt::Checked);
+}
+
+void SettingsDialog::saveIntervalBetweenRewards(double interval) {
+    plugin.getSettings().setIntervalBetweenRewardsSeconds(interval);
 }
 
 void SettingsDialog::showRewards() {
