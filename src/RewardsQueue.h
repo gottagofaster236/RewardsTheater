@@ -32,6 +32,7 @@ private:
     boost::asio::awaitable<void> asyncPlaySourcesFromQueue();
     boost::asio::awaitable<Reward> asyncGetNextReward();
     boost::asio::awaitable<void> asyncPlayObsSource(OBSSourceAutoRelease source);
+    boost::asio::deadline_timer createDeadlineTimer(obs_source_t* source);
     OBSSourceAutoRelease getObsSource(const Reward& reward);
     OBSSourceAutoRelease getObsSource(const std::string& sourceName);
 

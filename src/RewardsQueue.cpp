@@ -27,6 +27,14 @@ std::vector<Reward> RewardsQueue::getRewardsQueue() const {
 }
 
 void RewardsQueue::queueReward(const Reward& reward) {
+    if (!settings.isRewardsQueueEnabled()) {
+        std::optional<std::string> obsSourceName = settings.getObsSourceName(reward.id);
+        if (obsSourceName.has_value()) {
+            playObsSource(obsSourceName.value());
+        }
+        return;
+    }
+
     {
         std::lock_guard<std::mutex> guard(rewardsQueueMutex);
         rewardsQueue.push_back(reward);
@@ -100,10 +108,7 @@ asio::awaitable<void> RewardsQueue::asyncPlayObsSource(OBSSourceAutoRelease sour
     unsigned state = playObsSourceState++;
     sourcePlayedByState[source] = state;
 
-    std::int64_t durationMilliseconds = obs_source_media_get_duration(source);
-    std::int64_t deadlineMilliseconds = durationMilliseconds + durationMilliseconds / 2;
-    asio::deadline_timer deadlineTimer(rewardsQueueThread.ioContext);
-    deadlineTimer.expires_from_now(boost::posix_time::milliseconds(deadlineMilliseconds));
+    asio::deadline_timer deadlineTimer = createDeadlineTimer(source);
 
     struct StopDeadlineTimerCallback {
         asio::deadline_timer& deadlineTimer;
@@ -118,9 +123,8 @@ asio::awaitable<void> RewardsQueue::asyncPlayObsSource(OBSSourceAutoRelease sour
         }
     } callback(deadlineTimer, rewardsQueueThread.ioContext);
 
-    OBSSignal mediaEndedSignal(
-        obs_source_get_signal_handler(source), "media_ended", &StopDeadlineTimerCallback::stopDeadlineTimer, &callback
-    );
+    signal_handler_t* signalHandler = obs_source_get_signal_handler(source);
+    OBSSignal mediaEndedSignal(signalHandler, "media_ended", &StopDeadlineTimerCallback::stopDeadlineTimer, &callback);
     startObsSource(source);
 
     try {
@@ -131,8 +135,23 @@ asio::awaitable<void> RewardsQueue::asyncPlayObsSource(OBSSourceAutoRelease sour
 
     if (sourcePlayedByState[source] == state) {
         sourcePlayedByState.erase(source);
+        mediaEndedSignal.Disconnect();
         stopObsSource(source);
     }
+}
+
+asio::deadline_timer RewardsQueue::createDeadlineTimer(obs_source_t* source) {
+    asio::deadline_timer deadlineTimer(rewardsQueueThread.ioContext);
+
+    std::int64_t durationMilliseconds = obs_source_media_get_duration(source);
+    if (durationMilliseconds != -1) {
+        std::int64_t deadlineMilliseconds = durationMilliseconds + durationMilliseconds / 2;
+        deadlineTimer.expires_from_now(boost::posix_time::milliseconds(deadlineMilliseconds));
+    } else {
+        deadlineTimer.expires_from_now(boost::posix_time::pos_infin);
+    }
+
+    return deadlineTimer;
 }
 
 OBSSourceAutoRelease RewardsQueue::getObsSource(const Reward& reward) {
@@ -190,6 +209,6 @@ bool RewardsQueue::isMediaSource(const obs_source_t* source) {
     if (!source) {
         return false;
     }
-    // TODO - do we support VLC source?
-    return std::strcmp(obs_source_get_id(source), "ffmpeg_source") == 0;
+    const char* sourceId = obs_source_get_id(source);
+    return std::strcmp(sourceId, "ffmpeg_source") == 0 || std::strcmp(sourceId, "vlc_source") == 0;
 }
