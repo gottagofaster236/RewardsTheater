@@ -202,6 +202,9 @@ asio::awaitable<void> TwitchAuth::asyncUpdateUsername() {
     std::optional<std::string> newUsername = co_await asyncGetUsername();
     {
         std::lock_guard guard(userMutex);
+        if (username == newUsername) {
+            co_return;
+        }
         username = newUsername;
     }
     emit onUsernameChanged(newUsername);

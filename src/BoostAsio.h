@@ -13,8 +13,11 @@
 #endif
 
 #include <boost/asio.hpp>
+#include <boost/asio/experimental/awaitable_operators.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/beast.hpp>
+#include <boost/beast/ssl.hpp>
+#include <boost/beast/websocket/ssl.hpp>
 
 #ifdef _MSC_VER
 #pragma warning(pop)

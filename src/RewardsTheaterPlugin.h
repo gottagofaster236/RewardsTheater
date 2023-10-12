@@ -6,6 +6,7 @@
 #include "GithubUpdateApi.h"
 #include "HttpClient.h"
 #include "IoThreadPool.h"
+#include "PubsubListener.h"
 #include "RewardsQueue.h"
 #include "Settings.h"
 #include "TwitchAuth.h"
@@ -16,7 +17,6 @@ public:
     RewardsTheaterPlugin();
     ~RewardsTheaterPlugin();
     Settings& getSettings();
-    HttpClient& getHttpClient();
     TwitchAuth& getTwitchAuth();
     TwitchRewardsApi& getTwitchRewardsApi();
     GithubUpdateApi& getGithubUpdateApi();
@@ -30,4 +30,5 @@ private:
     TwitchRewardsApi twitchRewardsApi;
     GithubUpdateApi githubUpdateApi;
     RewardsQueue rewardsQueue;
+    PubsubListener pubsubListener;
 };

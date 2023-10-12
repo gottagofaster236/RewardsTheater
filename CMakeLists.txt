@@ -58,11 +58,14 @@ target_sources(
           src/ErrorMessageBox.h
           src/ErrorMessageBox.cpp
           src/ConfirmDeleteReward.h
-          src/ConfirmDeleteReward.cpp)
+          src/ConfirmDeleteReward.cpp
+          src/PubsubListener.h
+          src/PubsubListener.cpp)
 
 # GCC ignores the "pragma GCC diagnostic ignored" in precompiled headers
 if(MSVC)
   target_precompile_headers(${CMAKE_PROJECT_NAME} PRIVATE src/BoostAsio.h)
+  target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE /bigobj)
 endif()
 
 # Libraries from vcpkg

@@ -44,6 +44,8 @@ public:
     /// Calls the receiver with the downloaded bytes as std::string upon success.
     void downloadImage(const Reward& reward, QObject* receiver, const char* member);
 
+    static Reward parsePubsubReward(const boost::json::value& reward);
+
     class EmptyRewardTitleException : public std::exception {
     public:
         const char* what() const noexcept override;

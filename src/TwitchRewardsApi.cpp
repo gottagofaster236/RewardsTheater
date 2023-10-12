@@ -57,6 +57,22 @@ void TwitchRewardsApi::downloadImage(const Reward& reward, QObject* receiver, co
     );
 }
 
+Reward TwitchRewardsApi::parsePubsubReward(const json::value& reward) {
+    // The format of the reward for PubSub events differs slightly from the Helix one, hence we need another function.
+    return Reward{
+        value_to<std::string>(reward.at("id")),
+        value_to<std::string>(reward.at("title")),
+        value_to<std::int32_t>(reward.at("cost")),
+        getImageUrl(reward),
+        reward.at("is_enabled").as_bool(),
+        value_to<std::string>(reward.at("background_color")),
+        getOptionalSetting(reward.at("max_per_stream"), "max_per_stream"),
+        getOptionalSetting(reward.at("max_per_user_per_stream"), "max_per_user_per_stream"),
+        getOptionalSetting(reward.at("global_cooldown"), "global_cooldown_seconds"),
+        false,
+    };
+}
+
 const char* TwitchRewardsApi::EmptyRewardTitleException::what() const noexcept {
     return "EmptyRewardTitleException";
 }
