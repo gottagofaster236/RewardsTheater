@@ -14,21 +14,21 @@ namespace asio = boost::asio;
 RewardsQueue::RewardsQueue(const Settings& settings)
     : settings(settings), rewardsQueueThread(1),
       rewardsQueueCondVar(rewardsQueueThread.ioContext, boost::posix_time::pos_infin) {
-    asio::co_spawn(rewardsQueueThread.ioContext, asyncPlaySourcesFromQueue(), asio::detached);
+    asio::co_spawn(rewardsQueueThread.ioContext, asyncPlayRewardsFromQueue(), asio::detached);
 }
 
 RewardsQueue::~RewardsQueue() {
     rewardsQueueThread.stop();
 }
 
-std::vector<Reward> RewardsQueue::getRewardsQueue() const {
+std::vector<RewardRedemption> RewardsQueue::getRewardsQueue() const {
     std::lock_guard<std::mutex> guard(rewardsQueueMutex);
     return rewardsQueue;
 }
 
-void RewardsQueue::queueReward(const Reward& reward) {
+void RewardsQueue::queueReward(const RewardRedemption& reward) {
     if (!settings.isRewardsQueueEnabled()) {
-        std::optional<std::string> obsSourceName = settings.getObsSourceName(reward.id);
+        std::optional<std::string> obsSourceName = settings.getObsSourceName(reward.reward.id);
         if (obsSourceName.has_value()) {
             playObsSource(obsSourceName.value());
         }
@@ -44,7 +44,7 @@ void RewardsQueue::queueReward(const Reward& reward) {
     });
 }
 
-void RewardsQueue::removeReward(const Reward& reward) {
+void RewardsQueue::removeReward(const RewardRedemption& reward) {
     stopObsSource(getObsSource(reward));
     std::lock_guard<std::mutex> guard(rewardsQueueMutex);
     auto position = std::find(rewardsQueue.begin(), rewardsQueue.end(), reward);
@@ -54,7 +54,7 @@ void RewardsQueue::removeReward(const Reward& reward) {
 }
 
 void RewardsQueue::playObsSource(const std::string& obsSourceName) {
-    asio::co_spawn(rewardsQueueThread.ioContext, asyncPlayObsSource(getObsSource(obsSourceName)), asio::detached);
+    playObsSource(getObsSource(obsSourceName));
 }
 
 std::vector<std::string> RewardsQueue::enumObsSources() {
@@ -74,9 +74,9 @@ std::vector<std::string> RewardsQueue::enumObsSources() {
     return sources;
 }
 
-asio::awaitable<void> RewardsQueue::asyncPlaySourcesFromQueue() {
+asio::awaitable<void> RewardsQueue::asyncPlayRewardsFromQueue() {
     while (true) {
-        Reward nextReward = co_await asyncGetNextReward();
+        RewardRedemption nextReward = co_await asyncGetNextReward();
         co_await asyncPlayObsSource(getObsSource(nextReward));
         auto timeBeforeNextReward =
             std::chrono::milliseconds(static_cast<long long>(1000 * settings.getIntervalBetweenRewardsSeconds()));
@@ -84,12 +84,12 @@ asio::awaitable<void> RewardsQueue::asyncPlaySourcesFromQueue() {
     }
 }
 
-asio::awaitable<Reward> RewardsQueue::asyncGetNextReward() {
+asio::awaitable<RewardRedemption> RewardsQueue::asyncGetNextReward() {
     while (true) {
         {
             std::lock_guard guard(rewardsQueueMutex);
             if (!rewardsQueue.empty()) {
-                Reward result = rewardsQueue.front();
+                RewardRedemption result = rewardsQueue.front();
                 rewardsQueue.erase(rewardsQueue.begin());
                 co_return result;
             }
@@ -100,6 +100,10 @@ asio::awaitable<Reward> RewardsQueue::asyncGetNextReward() {
             // Condition variable signalled.
         }
     }
+}
+
+void RewardsQueue::playObsSource(OBSSourceAutoRelease source) {
+    asio::co_spawn(rewardsQueueThread.ioContext, asyncPlayObsSource(std::move(source)), asio::detached);
 }
 
 asio::awaitable<void> RewardsQueue::asyncPlayObsSource(OBSSourceAutoRelease source) {
@@ -155,8 +159,8 @@ asio::deadline_timer RewardsQueue::createDeadlineTimer(obs_source_t* source) {
     return deadlineTimer;
 }
 
-OBSSourceAutoRelease RewardsQueue::getObsSource(const Reward& reward) {
-    std::optional<std::string> obsSourceName = settings.getObsSourceName(reward.id);
+OBSSourceAutoRelease RewardsQueue::getObsSource(const RewardRedemption& reward) {
+    std::optional<std::string> obsSourceName = settings.getObsSourceName(reward.reward.id);
     if (!obsSourceName) {
         return {};
     }

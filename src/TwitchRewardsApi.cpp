@@ -57,6 +57,10 @@ void TwitchRewardsApi::downloadImage(const Reward& reward, QObject* receiver, co
     );
 }
 
+void TwitchRewardsApi::updateRedemptionStatus(const RewardRedemption& rewardRedemption, RedemptionStatus status) {
+    asio::co_spawn(ioContext, asyncUpdateRedemptionStatus(rewardRedemption, status), asio::detached);
+}
+
 Reward TwitchRewardsApi::parsePubsubReward(const json::value& reward) {
     // The format of the reward for PubSub events differs slightly from the Helix one, hence we need another function.
     return Reward{
@@ -141,6 +145,37 @@ asio::awaitable<void> TwitchRewardsApi::asyncDownloadImage(boost::urls::url url,
         callback("std::string", co_await asyncDownloadImage(url));
     } catch (const std::exception& exception) {
         log(LOG_ERROR, "Exception in asyncDownloadImage: {}", exception.what());
+    }
+}
+
+boost::asio::awaitable<void> TwitchRewardsApi::asyncUpdateRedemptionStatus(
+    RewardRedemption rewardRedemption,
+    RedemptionStatus status
+) {
+    try {
+        std::string statusString;
+        switch (status) {
+        case RedemptionStatus::FULFILLED: statusString = "FULFILLED"; break;
+        case RedemptionStatus::CANCELED: statusString = "CANCELED"; break;
+        }
+
+        HttpClient::Response response = co_await httpClient.request(
+            "api.twitch.tv",
+            "/helix/channel_points/custom_rewards/redemptions",
+            twitchAuth,
+            {
+                {"id", rewardRedemption.redemptionId},
+                {"broadcaster_id", twitchAuth.getUserIdOrThrow()},
+                {"reward_id", rewardRedemption.reward.id},
+            },
+            http::verb::patch,
+            {{"status", statusString}}
+        );
+        if (response.status != http::status::ok) {
+            throw UnexpectedHttpStatusException(response.json);
+        }
+    } catch (const std::exception& exception) {
+        log(LOG_ERROR, "Exception in asyncUpdateRedemptionStatus: {}", exception.what());
     }
 }
 

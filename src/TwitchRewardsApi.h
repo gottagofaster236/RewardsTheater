@@ -44,6 +44,12 @@ public:
     /// Calls the receiver with the downloaded bytes as std::string upon success.
     void downloadImage(const Reward& reward, QObject* receiver, const char* member);
 
+    enum class RedemptionStatus {
+        CANCELED,
+        FULFILLED,
+    };
+    void updateRedemptionStatus(const RewardRedemption& rewardRedemption, RedemptionStatus status);
+
     static Reward parsePubsubReward(const boost::json::value& reward);
 
     class EmptyRewardTitleException : public std::exception {
@@ -78,6 +84,10 @@ private:
     boost::asio::awaitable<void> asyncReloadRewards();
     boost::asio::awaitable<void> asyncDeleteReward(Reward reward, detail::QObjectCallback& callback);
     boost::asio::awaitable<void> asyncDownloadImage(boost::urls::url url, detail::QObjectCallback& callback);
+    boost::asio::awaitable<void> asyncUpdateRedemptionStatus(
+        RewardRedemption rewardRedemption,
+        RedemptionStatus status
+    );
 
     boost::asio::awaitable<Reward> asyncCreateReward(const RewardData& rewardData);
     boost::asio::awaitable<Reward> asyncUpdateReward(const Reward& reward);

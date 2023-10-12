@@ -52,3 +52,5 @@ Reward::Reward(
 
 Reward::Reward(const Reward& reward, const RewardData& newRewardData)
     : RewardData(newRewardData), id(reward.id), imageUrl(reward.imageUrl), canManage(reward.canManage) {}
+
+bool RewardRedemption::operator==(const RewardRedemption& other) const = default;

@@ -55,3 +55,10 @@ struct Reward : RewardData {
 
     Reward(const Reward& reward, const RewardData& newRewardData);
 };
+
+struct RewardRedemption {
+    Reward reward;
+    std::string redemptionId;
+
+    bool operator==(const RewardRedemption& other) const;
+};

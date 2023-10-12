@@ -21,19 +21,20 @@ public:
     RewardsQueue(const Settings& settings);
     ~RewardsQueue();
 
-    std::vector<Reward> getRewardsQueue() const;
-    void queueReward(const Reward& reward);
-    void removeReward(const Reward& reward);
+    std::vector<RewardRedemption> getRewardsQueue() const;
+    void queueReward(const RewardRedemption& reward);
+    void removeReward(const RewardRedemption& reward);
 
     void playObsSource(const std::string& obsSourceName);
     static std::vector<std::string> enumObsSources();
 
 private:
-    boost::asio::awaitable<void> asyncPlaySourcesFromQueue();
-    boost::asio::awaitable<Reward> asyncGetNextReward();
+    boost::asio::awaitable<void> asyncPlayRewardsFromQueue();
+    boost::asio::awaitable<RewardRedemption> asyncGetNextReward();
+    void playObsSource(OBSSourceAutoRelease source);
     boost::asio::awaitable<void> asyncPlayObsSource(OBSSourceAutoRelease source);
     boost::asio::deadline_timer createDeadlineTimer(obs_source_t* source);
-    OBSSourceAutoRelease getObsSource(const Reward& reward);
+    OBSSourceAutoRelease getObsSource(const RewardRedemption& reward);
     OBSSourceAutoRelease getObsSource(const std::string& sourceName);
 
     static void startObsSource(obs_source_t* source);
@@ -46,7 +47,7 @@ private:
     IoThreadPool rewardsQueueThread;
     mutable std::mutex rewardsQueueMutex;
     boost::asio::deadline_timer rewardsQueueCondVar;
-    std::vector<Reward> rewardsQueue;
+    std::vector<RewardRedemption> rewardsQueue;
 
     unsigned playObsSourceState = 0;
     std::map<obs_source_t*, unsigned> sourcePlayedByState;
