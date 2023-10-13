@@ -34,9 +34,9 @@ private slots:
     void addReward(const Reward& reward);
     void removeReward(const std::string& id);
     void showAddRewardDialog();
-    void openRewardsQueue();
+    void openRewardRedemptionQueue();
     void showUpdateAvailableLink();
-    void saveRewardsQueueEnabled(int checkState);
+    void saveRewardRedemptionQueueEnabled(int checkState);
     void saveIntervalBetweenRewards(double interval);
 
 private:

@@ -33,8 +33,8 @@ target_sources(
           src/TwitchAuth.h
           src/Reward.h
           src/Reward.cpp
-          src/RewardsQueue.h
-          src/RewardsQueue.cpp
+          src/RewardRedemptionQueue.h
+          src/RewardRedemptionQueue.cpp
           src/TwitchRewardsApi.h
           src/TwitchRewardsApi.cpp
           src/TwitchAuthDialog.cpp

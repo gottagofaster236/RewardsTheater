@@ -13,7 +13,7 @@
 #include <format>
 
 #include "HttpClient.h"
-#include "RewardsQueue.h"
+#include "RewardRedemptionQueue.h"
 #include "ui_EditRewardDialog.h"
 
 constexpr std::array DEFAULT_COLORS{
@@ -33,12 +33,12 @@ EditRewardDialog::EditRewardDialog(
     const std::optional<Reward>& originalReward,
     TwitchAuth& twitchAuth,
     TwitchRewardsApi& twitchRewardsApi,
-    RewardsQueue& rewardsQueue,
+    RewardRedemptionQueue& rewardRedemptionQueue,
     Settings& settings,
     QWidget* parent
 )
     : QDialog(parent), originalReward(originalReward), twitchAuth(twitchAuth), twitchRewardsApi(twitchRewardsApi),
-      rewardsQueue(rewardsQueue), settings(settings), ui(std::make_unique<Ui::EditRewardDialog>()),
+      rewardRedemptionQueue(rewardRedemptionQueue), settings(settings), ui(std::make_unique<Ui::EditRewardDialog>()),
       colorDialog(nullptr), confirmDeleteReward(nullptr), errorMessageBox(new ErrorMessageBox(this)),
       randomEngine(std::random_device()()) {
     obs_frontend_push_ui_translation(obs_module_get_string);
@@ -141,7 +141,7 @@ void EditRewardDialog::showSaveRewardResult(std::variant<std::exception_ptr, Rew
 }
 
 void EditRewardDialog::updateObsSourceComboBox() {
-    std::vector<std::string> obsSources = RewardsQueue::enumObsSources();
+    std::vector<std::string> obsSources = RewardRedemptionQueue::enumObsSources();
     QString oldObsSource = ui->obsSourceComboBox->currentData().toString();
 
     ui->obsSourceComboBox->clear();
@@ -161,7 +161,7 @@ void EditRewardDialog::updateObsSourceComboBox() {
 void EditRewardDialog::playObsSourceNow() {
     std::optional<std::string> obsSourceName = getObsSourceName();
     if (obsSourceName.has_value()) {
-        rewardsQueue.playObsSource(obsSourceName.value());
+        rewardRedemptionQueue.playObsSource(obsSourceName.value());
     }
 }
 

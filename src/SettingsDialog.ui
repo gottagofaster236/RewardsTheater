@@ -148,12 +148,12 @@
     </widget>
    </item>
    <item row="8" column="0">
-    <widget class="QPushButton" name="openRewardsQueueButton">
+    <widget class="QPushButton" name="openRewardRedemptionQueueButton">
      <property name="locale">
       <locale language="English" country="UnitedStates"/>
      </property>
      <property name="text">
-      <string>OpenRewardsQueue</string>
+      <string>OpenRewardRedemptionQueue</string>
      </property>
     </widget>
    </item>
@@ -167,9 +167,9 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
-       <widget class="QCheckBox" name="rewardsQueueEnabledCheckBox">
+       <widget class="QCheckBox" name="rewardRedemptionQueueEnabledCheckBox">
         <property name="text">
-         <string>EnableRewardsQueueWithInterval</string>
+         <string>EnableRewardRedemptionQueueWithInterval</string>
         </property>
        </widget>
       </item>

@@ -4,19 +4,19 @@
 #include "Settings.h"
 
 static const char* const PLUGIN_NAME = "RewardsTheater";
-static const char* const REWARDS_QUEUE_ENABLED_KEY = "REWARDS_QUEUE_ENABLED_KEY";
+static const char* const REWARD_REDEMPTIONS_QUEUE_ENABLED_KEY = "REWARD_REDEMPTIONS_QUEUE_ENABLED_KEY";
 static const char* const INTERVAL_BETWEEN_REWARDS_SECONDS_KEY = "INTERVAL_BETWEEN_REWARDS_SECONDS_KEY";
 static const char* const TWITCH_ACCESS_TOKEN_KEY = "TWITCH_ACCESS_TOKEN_KEY";
 
 Settings::Settings(config_t* config) : config(config) {}
 
-bool Settings::isRewardsQueueEnabled() const {
-    config_set_default_bool(config, PLUGIN_NAME, REWARDS_QUEUE_ENABLED_KEY, true);
-    return config_get_bool(config, PLUGIN_NAME, REWARDS_QUEUE_ENABLED_KEY);
+bool Settings::isRewardRedemptionQueueEnabled() const {
+    config_set_default_bool(config, PLUGIN_NAME, REWARD_REDEMPTIONS_QUEUE_ENABLED_KEY, true);
+    return config_get_bool(config, PLUGIN_NAME, REWARD_REDEMPTIONS_QUEUE_ENABLED_KEY);
 }
 
-void Settings::setRewardsQueueEnabled(bool rewardsQueueEnabled) {
-    config_set_bool(config, PLUGIN_NAME, REWARDS_QUEUE_ENABLED_KEY, rewardsQueueEnabled);
+void Settings::setRewardRedemptionQueueEnabled(bool rewardRedemptionQueueEnabled) {
+    config_set_bool(config, PLUGIN_NAME, REWARD_REDEMPTIONS_QUEUE_ENABLED_KEY, rewardRedemptionQueueEnabled);
 }
 
 double Settings::getIntervalBetweenRewardsSeconds() const {

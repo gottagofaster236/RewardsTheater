@@ -9,7 +9,7 @@
 
 #include "BoostAsio.h"
 #include "IoThreadPool.h"
-#include "RewardsQueue.h"
+#include "RewardRedemptionQueue.h"
 #include "TwitchAuth.h"
 
 /// Listens to channel points redemptions. Read https://dev.twitch.tv/docs/pubsub/ for API documentation.
@@ -17,7 +17,7 @@ class PubsubListener : public QObject {
     Q_OBJECT
 
 public:
-    PubsubListener(TwitchAuth& twitchAuth, RewardsQueue& rewardsQueue);
+    PubsubListener(TwitchAuth& twitchAuth, RewardRedemptionQueue& rewardRedemptionQueue);
     ~PubsubListener();
 
 private slots:
@@ -40,7 +40,7 @@ private:
     boost::asio::awaitable<void> asyncSendMessage(WebsocketStream& ws, const boost::json::value& message);
 
     TwitchAuth& twitchAuth;
-    RewardsQueue& rewardsQueue;
+    RewardRedemptionQueue& rewardRedemptionQueue;
     IoThreadPool pubsubThread;
     boost::asio::deadline_timer usernameCondVar;
     std::chrono::steady_clock::time_point lastPongReceivedAt;

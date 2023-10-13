@@ -7,7 +7,7 @@
 #include "HttpClient.h"
 #include "IoThreadPool.h"
 #include "PubsubListener.h"
-#include "RewardsQueue.h"
+#include "RewardRedemptionQueue.h"
 #include "Settings.h"
 #include "TwitchAuth.h"
 #include "TwitchRewardsApi.h"
@@ -20,7 +20,7 @@ public:
     TwitchAuth& getTwitchAuth();
     TwitchRewardsApi& getTwitchRewardsApi();
     GithubUpdateApi& getGithubUpdateApi();
-    RewardsQueue& getRewardsQueue();
+    RewardRedemptionQueue& getRewardRedemptionQueue();
 
 private:
     Settings settings;
@@ -29,6 +29,6 @@ private:
     TwitchAuth twitchAuth;
     TwitchRewardsApi twitchRewardsApi;
     GithubUpdateApi githubUpdateApi;
-    RewardsQueue rewardsQueue;
+    RewardRedemptionQueue rewardRedemptionQueue;
     PubsubListener pubsubListener;
 };

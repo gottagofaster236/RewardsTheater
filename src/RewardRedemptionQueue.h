@@ -16,25 +16,25 @@
 #include "Reward.h"
 #include "Settings.h"
 
-class RewardsQueue {
+class RewardRedemptionQueue {
 public:
-    RewardsQueue(const Settings& settings);
-    ~RewardsQueue();
+    RewardRedemptionQueue(const Settings& settings);
+    ~RewardRedemptionQueue();
 
-    std::vector<RewardRedemption> getRewardsQueue() const;
-    void queueReward(const RewardRedemption& reward);
-    void removeReward(const RewardRedemption& reward);
+    std::vector<RewardRedemption> getRewardRedemptionQueue() const;
+    void queueRewardRedemption(const RewardRedemption& rewardRedemption);
+    void removeRewardRedemption(const RewardRedemption& rewardRedemption);
 
     void playObsSource(const std::string& obsSourceName);
     static std::vector<std::string> enumObsSources();
 
 private:
-    boost::asio::awaitable<void> asyncPlayRewardsFromQueue();
-    boost::asio::awaitable<RewardRedemption> asyncGetNextReward();
+    boost::asio::awaitable<void> asyncPlayRewardRedemptionsFromQueue();
+    boost::asio::awaitable<RewardRedemption> asyncGetNextRewardRedemption();
     void playObsSource(OBSSourceAutoRelease source);
     boost::asio::awaitable<void> asyncPlayObsSource(OBSSourceAutoRelease source);
     boost::asio::deadline_timer createDeadlineTimer(obs_source_t* source);
-    OBSSourceAutoRelease getObsSource(const RewardRedemption& reward);
+    OBSSourceAutoRelease getObsSource(const RewardRedemption& rewardRedemption);
     OBSSourceAutoRelease getObsSource(const std::string& sourceName);
 
     static void startObsSource(obs_source_t* source);
@@ -44,10 +44,10 @@ private:
 
     const Settings& settings;
 
-    IoThreadPool rewardsQueueThread;
-    mutable std::mutex rewardsQueueMutex;
-    boost::asio::deadline_timer rewardsQueueCondVar;
-    std::vector<RewardRedemption> rewardsQueue;
+    IoThreadPool rewardRedemptionQueueThread;
+    mutable std::mutex rewardRedemptionQueueMutex;
+    boost::asio::deadline_timer rewardRedemptionQueueCondVar;
+    std::vector<RewardRedemption> rewardRedemptionQueue;
 
     unsigned playObsSourceState = 0;
     std::map<obs_source_t*, unsigned> sourcePlayedByState;

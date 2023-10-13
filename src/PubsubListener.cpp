@@ -22,8 +22,8 @@ static const auto RECONNECT_DELAY = 10s;
 static const auto PING_PERIOD = 15s;
 static const char* const CHANNEL_POINTS_TOPIC = "channel-points-channel-v1";
 
-PubsubListener::PubsubListener(TwitchAuth& twitchAuth, RewardsQueue& rewardsQueue)
-    : twitchAuth(twitchAuth), rewardsQueue(rewardsQueue), pubsubThread(1),
+PubsubListener::PubsubListener(TwitchAuth& twitchAuth, RewardRedemptionQueue& rewardRedemptionQueue)
+    : twitchAuth(twitchAuth), rewardRedemptionQueue(rewardRedemptionQueue), pubsubThread(1),
       usernameCondVar(pubsubThread.ioContext, boost::posix_time::pos_infin),
       lastPongReceivedAt(std::chrono::steady_clock::now()) {
     connect(&twitchAuth, &TwitchAuth::onUsernameChanged, this, &PubsubListener::reconnectAfterUsernameChange);
@@ -149,7 +149,7 @@ asio::awaitable<void> PubsubListener::asyncReadMessages(WebsocketStream& ws) {
             json::value redemption = rewardMessage.at("data").at("redemption");
             Reward reward = TwitchRewardsApi::parsePubsubReward(redemption.at("reward"));
             std::string redemptionId = value_to<std::string>(redemption.at("id"));
-            rewardsQueue.queueReward(RewardRedemption(reward, redemptionId));
+            rewardRedemptionQueue.queueRewardRedemption(RewardRedemption(reward, redemptionId));
         }
     }
 }

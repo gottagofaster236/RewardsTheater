@@ -19,12 +19,12 @@ RewardWidget::RewardWidget(
     const Reward& reward,
     TwitchAuth& twitchAuth,
     TwitchRewardsApi& twitchRewardsApi,
-    RewardsQueue& rewardsQueue,
+    RewardRedemptionQueue& rewardRedemptionQueue,
     Settings& settings,
     QWidget* parent
 )
     : QWidget(parent), reward(reward), twitchAuth(twitchAuth), twitchRewardsApi(twitchRewardsApi),
-      rewardsQueue(rewardsQueue), settings(settings), ui(std::make_unique<Ui::RewardWidget>()),
+      rewardRedemptionQueue(rewardRedemptionQueue), settings(settings), ui(std::make_unique<Ui::RewardWidget>()),
       editRewardDialog(nullptr), confirmDeleteReward(new ConfirmDeleteReward(reward, twitchRewardsApi, this)) {
     ui->setupUi(this);
     setFixedSize(size());
@@ -91,7 +91,8 @@ void RewardWidget::showReward() {
 
 void RewardWidget::showEditRewardDialog() {
     if (!editRewardDialog) {
-        editRewardDialog = new EditRewardDialog(reward, twitchAuth, twitchRewardsApi, rewardsQueue, settings, this);
+        editRewardDialog =
+            new EditRewardDialog(reward, twitchAuth, twitchRewardsApi, rewardRedemptionQueue, settings, this);
         connect(editRewardDialog, &EditRewardDialog::onRewardSaved, this, &RewardWidget::setReward);
         connect(editRewardDialog, &EditRewardDialog::onRewardDeleted, this, &RewardWidget::onRewardDeleted);
     }

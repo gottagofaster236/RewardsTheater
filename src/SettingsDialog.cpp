@@ -22,16 +22,23 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
       twitchAuthDialog(new TwitchAuthDialog(this, plugin.getTwitchAuth())), errorMessageBox(new ErrorMessageBox(this)) {
     ui->setupUi(this);
     showGithubLink();
-    ui->rewardsQueueEnabledCheckBox->setChecked(plugin.getSettings().isRewardsQueueEnabled());
+    ui->rewardRedemptionQueueEnabledCheckBox->setChecked(plugin.getSettings().isRewardRedemptionQueueEnabled());
     ui->intervalBetweenRewardsSpinBox->setValue(plugin.getSettings().getIntervalBetweenRewardsSeconds());
 
     connect(ui->authButton, &QPushButton::clicked, this, &SettingsDialog::logInOrLogOut);
-    connect(ui->openRewardsQueueButton, &QPushButton::clicked, this, &SettingsDialog::openRewardsQueue);
+    connect(
+        ui->openRewardRedemptionQueueButton, &QPushButton::clicked, this, &SettingsDialog::openRewardRedemptionQueue
+    );
     connect(
         ui->reloadRewardsButton, &QPushButton::clicked, &plugin.getTwitchRewardsApi(), &TwitchRewardsApi::reloadRewards
     );
     connect(ui->addRewardButton, &QPushButton::clicked, this, &SettingsDialog::showAddRewardDialog);
-    connect(ui->rewardsQueueEnabledCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::saveRewardsQueueEnabled);
+    connect(
+        ui->rewardRedemptionQueueEnabledCheckBox,
+        &QCheckBox::stateChanged,
+        this,
+        &SettingsDialog::saveRewardRedemptionQueueEnabled
+    );
     connect(
         ui->intervalBetweenRewardsSpinBox,
         &QDoubleSpinBox::valueChanged,
@@ -109,14 +116,19 @@ void SettingsDialog::removeReward(const std::string& id) {
 
 void SettingsDialog::showAddRewardDialog() {
     EditRewardDialog* editRewardDialog = new EditRewardDialog(
-        {}, plugin.getTwitchAuth(), plugin.getTwitchRewardsApi(), plugin.getRewardsQueue(), plugin.getSettings(), this
+        {},
+        plugin.getTwitchAuth(),
+        plugin.getTwitchRewardsApi(),
+        plugin.getRewardRedemptionQueue(),
+        plugin.getSettings(),
+        this
     );
     connect(editRewardDialog, &EditRewardDialog::onRewardSaved, this, &SettingsDialog::addReward);
     editRewardDialog->show();
 }
 
-void SettingsDialog::openRewardsQueue() {
-    log(LOG_INFO, "onOpenRewardsQueueClicked");
+void SettingsDialog::openRewardRedemptionQueue() {
+    log(LOG_INFO, "onOpenRewardRedemptionQueueClicked");
 }
 
 void SettingsDialog::showUpdateAvailableLink() {
@@ -125,8 +137,8 @@ void SettingsDialog::showUpdateAvailableLink() {
     );
 }
 
-void SettingsDialog::saveRewardsQueueEnabled(int checkState) {
-    plugin.getSettings().setRewardsQueueEnabled(checkState == Qt::Checked);
+void SettingsDialog::saveRewardRedemptionQueueEnabled(int checkState) {
+    plugin.getSettings().setRewardRedemptionQueueEnabled(checkState == Qt::Checked);
 }
 
 void SettingsDialog::saveIntervalBetweenRewards(double interval) {
@@ -164,7 +176,7 @@ void SettingsDialog::updateRewardWidgets() {
                 reward,
                 plugin.getTwitchAuth(),
                 plugin.getTwitchRewardsApi(),
-                plugin.getRewardsQueue(),
+                plugin.getRewardRedemptionQueue(),
                 plugin.getSettings(),
                 ui->rewardsGrid
             );

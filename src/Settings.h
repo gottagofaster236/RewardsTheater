@@ -13,10 +13,10 @@ public:
     Settings(config_t* config);
 
     /// Whether to play a reward immediately (possibly simultaneously with other rewards) or put it in a queue.
-    bool isRewardsQueueEnabled() const;
-    void setRewardsQueueEnabled(bool rewardsQueueEnabled);
+    bool isRewardRedemptionQueueEnabled() const;
+    void setRewardRedemptionQueueEnabled(bool rewardRedemptionQueueEnabled);
 
-    /// How much to wait between two rewards in a queue (if putRewardsInQueue() is true)
+    /// How much to wait between two reward redemptions in a queue, isRewardRedemptionQueueEnabled() is true.
     double getIntervalBetweenRewardsSeconds() const;
     void setIntervalBetweenRewardsSeconds(double intervalBetweenRewardsSeconds);
 
