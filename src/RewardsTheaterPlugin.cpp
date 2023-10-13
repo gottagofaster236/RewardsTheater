@@ -31,7 +31,7 @@ RewardsTheaterPlugin::RewardsTheaterPlugin()
                                               ioThreadPool.ioContext
                                           ),
       twitchRewardsApi(twitchAuth, httpClient, ioThreadPool.ioContext),
-      githubUpdateApi(httpClient, ioThreadPool.ioContext), rewardRedemptionQueue(settings),
+      githubUpdateApi(httpClient, ioThreadPool.ioContext), rewardRedemptionQueue(settings, twitchRewardsApi),
       pubsubListener(twitchAuth, rewardRedemptionQueue) {
     QMainWindow* mainWindow = static_cast<QMainWindow*>(obs_frontend_get_main_window());
 

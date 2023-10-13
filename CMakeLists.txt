@@ -60,7 +60,11 @@ target_sources(
           src/ConfirmDeleteReward.h
           src/ConfirmDeleteReward.cpp
           src/PubsubListener.h
-          src/PubsubListener.cpp)
+          src/PubsubListener.cpp
+          src/RewardRedemptionWidget.h
+          src/RewardRedemptionWidget.cpp
+          src/RewardRedemptionQueueDialog.h
+          src/RewardRedemptionQueueDialog.cpp)
 
 # GCC ignores the "pragma GCC diagnostic ignored" in precompiled headers
 if(MSVC)

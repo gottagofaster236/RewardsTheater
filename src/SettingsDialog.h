@@ -9,6 +9,7 @@
 #include <variant>
 
 #include "ErrorMessageBox.h"
+#include "RewardRedemptionQueueDialog.h"
 #include "RewardWidget.h"
 #include "RewardsTheaterPlugin.h"
 #include "TwitchAuthDialog.h"
@@ -34,7 +35,6 @@ private slots:
     void addReward(const Reward& reward);
     void removeReward(const std::string& id);
     void showAddRewardDialog();
-    void openRewardRedemptionQueue();
     void showUpdateAvailableLink();
     void saveRewardRedemptionQueueEnabled(int checkState);
     void saveIntervalBetweenRewards(double interval);
@@ -50,6 +50,7 @@ private:
     RewardsTheaterPlugin& plugin;
     std::unique_ptr<Ui::SettingsDialog> ui;
     TwitchAuthDialog* twitchAuthDialog;
+    RewardRedemptionQueueDialog* rewardRedemptionQueueDialog;
     ErrorMessageBox* errorMessageBox;
 
     std::vector<Reward> rewards;

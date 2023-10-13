@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <QObject>
 #include <chrono>
 #include <map>
 #include <mutex>
@@ -15,10 +16,13 @@
 #include "IoThreadPool.h"
 #include "Reward.h"
 #include "Settings.h"
+#include "TwitchRewardsApi.h"
 
-class RewardRedemptionQueue {
+class RewardRedemptionQueue : public QObject {
+    Q_OBJECT
+
 public:
-    RewardRedemptionQueue(const Settings& settings);
+    RewardRedemptionQueue(const Settings& settings, TwitchRewardsApi& twitchRewardsApi);
     ~RewardRedemptionQueue();
 
     std::vector<RewardRedemption> getRewardRedemptionQueue() const;
@@ -28,9 +32,13 @@ public:
     void playObsSource(const std::string& obsSourceName);
     static std::vector<std::string> enumObsSources();
 
+signals:
+    void onRewardRedemptionQueueUpdated(const std::vector<RewardRedemption> rewardRedemptionQueue);
+
 private:
     boost::asio::awaitable<void> asyncPlayRewardRedemptionsFromQueue();
     boost::asio::awaitable<RewardRedemption> asyncGetNextRewardRedemption();
+    void popPlayedRewardRedemptionFromQueue(const RewardRedemption& rewardRedemption);
     void playObsSource(OBSSourceAutoRelease source);
     boost::asio::awaitable<void> asyncPlayObsSource(OBSSourceAutoRelease source);
     boost::asio::deadline_timer createDeadlineTimer(obs_source_t* source);
@@ -43,6 +51,7 @@ private:
     static bool isMediaSource(const obs_source_t* source);
 
     const Settings& settings;
+    TwitchRewardsApi& twitchRewardsApi;
 
     IoThreadPool rewardRedemptionQueueThread;
     mutable std::mutex rewardRedemptionQueueMutex;

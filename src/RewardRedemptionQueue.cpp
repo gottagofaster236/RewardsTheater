@@ -11,8 +11,8 @@
 
 namespace asio = boost::asio;
 
-RewardRedemptionQueue::RewardRedemptionQueue(const Settings& settings)
-    : settings(settings), rewardRedemptionQueueThread(1),
+RewardRedemptionQueue::RewardRedemptionQueue(const Settings& settings, TwitchRewardsApi& twitchRewardsApi)
+    : settings(settings), twitchRewardsApi(twitchRewardsApi), rewardRedemptionQueueThread(1),
       rewardRedemptionQueueCondVar(rewardRedemptionQueueThread.ioContext, boost::posix_time::pos_infin) {
     asio::co_spawn(rewardRedemptionQueueThread.ioContext, asyncPlayRewardRedemptionsFromQueue(), asio::detached);
 }
@@ -27,30 +27,39 @@ std::vector<RewardRedemption> RewardRedemptionQueue::getRewardRedemptionQueue() 
 }
 
 void RewardRedemptionQueue::queueRewardRedemption(const RewardRedemption& rewardRedemption) {
-    if (!settings.isRewardRedemptionQueueEnabled()) {
-        std::optional<std::string> obsSourceName = settings.getObsSourceName(rewardRedemption.reward.id);
-        if (obsSourceName.has_value()) {
-            playObsSource(obsSourceName.value());
-        }
+    std::optional<std::string> obsSourceName = settings.getObsSourceName(rewardRedemption.reward.id);
+    if (!obsSourceName.has_value()) {
         return;
     }
 
+    if (!settings.isRewardRedemptionQueueEnabled()) {
+        playObsSource(obsSourceName.value());
+        return;
+    }
     {
         std::lock_guard<std::mutex> guard(rewardRedemptionQueueMutex);
         rewardRedemptionQueue.push_back(rewardRedemption);
+        emit onRewardRedemptionQueueUpdated(rewardRedemptionQueue);
     }
+
     rewardRedemptionQueueThread.ioContext.post([this]() {
         rewardRedemptionQueueCondVar.cancel();  // Equivalent to notify_all() in a condition variable
     });
 }
 
 void RewardRedemptionQueue::removeRewardRedemption(const RewardRedemption& rewardRedemption) {
-    stopObsSource(getObsSource(rewardRedemption));
-    std::lock_guard<std::mutex> guard(rewardRedemptionQueueMutex);
-    auto position = std::find(rewardRedemptionQueue.begin(), rewardRedemptionQueue.end(), rewardRedemption);
-    if (position != rewardRedemptionQueue.end()) {
+    {
+        std::lock_guard<std::mutex> guard(rewardRedemptionQueueMutex);
+        auto position = std::find(rewardRedemptionQueue.begin(), rewardRedemptionQueue.end(), rewardRedemption);
+        if (position == rewardRedemptionQueue.end()) {
+            return;
+        }
         rewardRedemptionQueue.erase(position);
+        emit onRewardRedemptionQueueUpdated(rewardRedemptionQueue);
     }
+
+    stopObsSource(getObsSource(rewardRedemption));
+    twitchRewardsApi.updateRedemptionStatus(rewardRedemption, TwitchRewardsApi::RedemptionStatus::CANCELED);
 }
 
 void RewardRedemptionQueue::playObsSource(const std::string& obsSourceName) {
@@ -76,8 +85,10 @@ std::vector<std::string> RewardRedemptionQueue::enumObsSources() {
 
 asio::awaitable<void> RewardRedemptionQueue::asyncPlayRewardRedemptionsFromQueue() {
     while (true) {
-        RewardRedemption nextReward = co_await asyncGetNextRewardRedemption();
-        co_await asyncPlayObsSource(getObsSource(nextReward));
+        RewardRedemption nextRewardRedemption = co_await asyncGetNextRewardRedemption();
+        co_await asyncPlayObsSource(getObsSource(nextRewardRedemption));
+        popPlayedRewardRedemptionFromQueue(nextRewardRedemption);
+
         auto timeBeforeNextReward =
             std::chrono::milliseconds(static_cast<long long>(1000 * settings.getIntervalBetweenRewardsSeconds()));
         co_await asio::steady_timer(rewardRedemptionQueueThread.ioContext, timeBeforeNextReward)
@@ -90,9 +101,7 @@ asio::awaitable<RewardRedemption> RewardRedemptionQueue::asyncGetNextRewardRedem
         {
             std::lock_guard guard(rewardRedemptionQueueMutex);
             if (!rewardRedemptionQueue.empty()) {
-                RewardRedemption result = rewardRedemptionQueue.front();
-                rewardRedemptionQueue.erase(rewardRedemptionQueue.begin());
-                co_return result;
+                co_return rewardRedemptionQueue.front();
             }
         }
         try {
@@ -101,6 +110,19 @@ asio::awaitable<RewardRedemption> RewardRedemptionQueue::asyncGetNextRewardRedem
             // Condition variable signalled.
         }
     }
+}
+
+void RewardRedemptionQueue::popPlayedRewardRedemptionFromQueue(const RewardRedemption& rewardRedemption) {
+    {
+        std::lock_guard guard(rewardRedemptionQueueMutex);
+        if (rewardRedemptionQueue.empty() || rewardRedemptionQueue.front() != rewardRedemption) {
+            // The reward was removed and canceled by the user.
+            return;
+        }
+        rewardRedemptionQueue.erase(rewardRedemptionQueue.begin());
+    }
+    twitchRewardsApi.updateRedemptionStatus(rewardRedemption, TwitchRewardsApi::RedemptionStatus::FULFILLED);
+    emit onRewardRedemptionQueueUpdated(rewardRedemptionQueue);
 }
 
 void RewardRedemptionQueue::playObsSource(OBSSourceAutoRelease source) {
@@ -129,11 +151,16 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(OBSSourceAutoRel
         }
     } callback(deadlineTimer, rewardRedemptionQueueThread.ioContext);
 
-    signal_handler_t* signalHandler = obs_source_get_signal_handler(source);
-    OBSSignal mediaEndedSignal(signalHandler, "media_ended", &StopDeadlineTimerCallback::stopDeadlineTimer, &callback);
-    startObsSource(source);
-
     try {
+        signal_handler_t* signalHandler = obs_source_get_signal_handler(source);
+        OBSSignal mediaEndedSignal(
+            signalHandler, "media_ended", &StopDeadlineTimerCallback::stopDeadlineTimer, &callback
+        );
+        OBSSignal mediaStoppedSignal(
+            signalHandler, "media_stopped", &StopDeadlineTimerCallback::stopDeadlineTimer, &callback
+        );
+        startObsSource(source);
+
         co_await deadlineTimer.async_wait(asio::use_awaitable);
     } catch (const boost::system::system_error&) {
         // Timer cancelled by the media_ended signal
@@ -141,7 +168,6 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(OBSSourceAutoRel
 
     if (sourcePlayedByState[source] == state) {
         sourcePlayedByState.erase(source);
-        mediaEndedSignal.Disconnect();
         stopObsSource(source);
     }
 }

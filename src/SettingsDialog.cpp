@@ -19,16 +19,15 @@
 
 SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
     : QDialog(parent), plugin(plugin), ui(std::make_unique<Ui::SettingsDialog>()),
-      twitchAuthDialog(new TwitchAuthDialog(this, plugin.getTwitchAuth())), errorMessageBox(new ErrorMessageBox(this)) {
+      twitchAuthDialog(new TwitchAuthDialog(this, plugin.getTwitchAuth())),
+      rewardRedemptionQueueDialog(new RewardRedemptionQueueDialog(plugin.getRewardRedemptionQueue(), this)),
+      errorMessageBox(new ErrorMessageBox(this)) {
     ui->setupUi(this);
     showGithubLink();
     ui->rewardRedemptionQueueEnabledCheckBox->setChecked(plugin.getSettings().isRewardRedemptionQueueEnabled());
     ui->intervalBetweenRewardsSpinBox->setValue(plugin.getSettings().getIntervalBetweenRewardsSeconds());
 
     connect(ui->authButton, &QPushButton::clicked, this, &SettingsDialog::logInOrLogOut);
-    connect(
-        ui->openRewardRedemptionQueueButton, &QPushButton::clicked, this, &SettingsDialog::openRewardRedemptionQueue
-    );
     connect(
         ui->reloadRewardsButton, &QPushButton::clicked, &plugin.getTwitchRewardsApi(), &TwitchRewardsApi::reloadRewards
     );
@@ -44,6 +43,12 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
         &QDoubleSpinBox::valueChanged,
         this,
         &SettingsDialog::saveIntervalBetweenRewards
+    );
+    connect(
+        ui->openRewardRedemptionQueueButton,
+        &QPushButton::clicked,
+        rewardRedemptionQueueDialog,
+        &RewardRedemptionQueueDialog::show
     );
 
     connect(&plugin.getTwitchAuth(), &TwitchAuth::onUsernameChanged, this, &SettingsDialog::updateAuthButtonText);
@@ -125,10 +130,6 @@ void SettingsDialog::showAddRewardDialog() {
     );
     connect(editRewardDialog, &EditRewardDialog::onRewardSaved, this, &SettingsDialog::addReward);
     editRewardDialog->show();
-}
-
-void SettingsDialog::openRewardRedemptionQueue() {
-    log(LOG_INFO, "onOpenRewardRedemptionQueueClicked");
 }
 
 void SettingsDialog::showUpdateAvailableLink() {

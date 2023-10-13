@@ -174,6 +174,7 @@ boost::asio::awaitable<void> TwitchRewardsApi::asyncUpdateRedemptionStatus(
         if (response.status != http::status::ok) {
             throw UnexpectedHttpStatusException(response.json);
         }
+        log(LOG_DEBUG, "Successfully updated redemption status to {}", statusString);
     } catch (const std::exception& exception) {
         log(LOG_ERROR, "Exception in asyncUpdateRedemptionStatus: {}", exception.what());
     }
@@ -235,7 +236,7 @@ json::value TwitchRewardsApi::rewardDataToJson(const RewardData& rewardData) {
         {"max_per_user_per_stream", rewardData.maxRedemptionsPerUserPerStream.value_or(1)},
         {"is_global_cooldown_enabled", rewardData.globalCooldownSeconds.has_value()},
         {"global_cooldown_seconds", rewardData.globalCooldownSeconds.value_or(1)},
-        {"should_redemptions_skip_request_queue", true},
+        {"should_redemptions_skip_request_queue", false},
     };
 }
 

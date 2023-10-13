@@ -27,7 +27,7 @@ TwitchAuthDialog::TwitchAuthDialog(QWidget* parent, TwitchAuth& twitchAuth)
     );
     connect(errorMessageBox, &QMessageBox::finished, this, &TwitchAuthDialog::showOurselvesAfterAuthMessageBox);
 
-    connect(&twitchAuth, &TwitchAuth::onAuthenticationSuccess, this, &TwitchAuthDialog::hide);
+    connect(&twitchAuth, &TwitchAuth::onAuthenticationSuccess, this, &TwitchAuthDialog::close);
     connect(
         &twitchAuth, &TwitchAuth::onAuthenticationFailure, this, &TwitchAuthDialog::showAuthenticationFailureMessage
     );

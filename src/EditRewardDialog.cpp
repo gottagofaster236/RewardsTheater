@@ -13,7 +13,6 @@
 #include <format>
 
 #include "HttpClient.h"
-#include "RewardRedemptionQueue.h"
 #include "ui_EditRewardDialog.h"
 
 constexpr std::array DEFAULT_COLORS{
