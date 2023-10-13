@@ -1,59 +1,48 @@
-# OBS Plugin Template
+# RewardsTheater
 
-## Introduction
+An OBS plugin to enable your viewers to redeem playing media on stream via channel points.
 
-This plugin is meant to make it easy to quickstart development of new OBS plugins. It includes:
+## How's this better than [TR!GGER FYRE](https://overlays.thefyrewire.com/widgets/triggerfyre/)?
 
-- The CMake project file
-- Boilerplate plugin source code
-- GitHub Actions workflows and repository actions
-- Build scripts for Windows, macOS, and Linux
+- Free and open source.
+- Use your locally saved videos, no need to upload anything the server.
+- Has a nice UI to edit channel point rewards right inside OBS!
+- Reward redemptions can be put in a queue so that they don't play simultaneously.
 
-## Configuring
+![ui](readme_images/ui.png)
 
-Open `buildspec.json` and change the name and version of the plugin accordingly. This is also where the obs-studio version as well as the pre-built dependencies for Windows and macOS are defined. Use a release version (with associated checksums) from a recent [obs-deps release](https://github.com/obsproject/obs-deps/releases).
+## Requirements
+- You are a Twitch Affiliate or Partner and have channel points enabled
+- OBS version 29.1.2 or newer
+- Windows and Linux are supported
 
-Next, open `CMakeLists.txt` and edit the following lines at the beginning:
 
-```cmake
-project(obs-plugintemplate VERSION 1.0.0)
+## Setting up
+1. Download and run an installer for your operating system from [this link](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
+2. Add an OBS source for each video you want to play as a channel points reward. It has to be either Media Source or VLC Video Source:
+   
+   ![source](readme_images/source.png)
+3. Then go to Tools → RewardsTheater.
+   
+   ![tools](readme_images/tools.png)
+4. You'll have to log into Twitch first by clicking the "Log in" button.
+5. After that, you can hit "Add reward". Don't forget to select the source you added earlier as the Media Source for the reward. Due to the limitations of Twitch API, if you want to upload a custom icon, you're gonna have to do this the browser.
+   
+   ![add_reward](readme_images/add_reward.png)
 
-set(PLUGIN_AUTHOR "Your Name Here")
+6. You can edit the reward later by clicking on it in the Tools → RewardsTheater menu.
 
-set(LINUX_MAINTAINER_EMAIL "me@contoso.com")
-```
+   ![settings](readme_images/settings.png)
+   
+7. During stream, you can monitor the reward queue if there's a lot of redemptions at the same time and cancel them by clicking the cross. The viewer's channel points are refunded if you cancel a reward.
 
-The build scripts (contained in the `.github/scripts` directory) will update the `project` line automatically based on values from the `buildspec.json` file. If the scripts are not used, these changes need to be done manually.
+   ![rewards_queue](readme_images/rewards_queue.png)
 
-## GitHub Actions & CI
+8. You can click "Pause reward playback" on the main settings screen if you don't want the videos playing for some time. During this time, the user will get their points refunded as well.
 
-The scripts contained in `github/scripts` can be used to build and package the plugin and take care of setting up obs-studio as well as its own dependencies. A default workflow for GitHub Actions is also provided and will use these scripts.
-
-### Retrieving build artifacts
-
-Each build produces installers and packages that you can use for testing and releases. These artifacts can be found on the action result page via the "Actions" tab in your GitHub repository.
-
-#### Building a Release
-
-Simply create and push a tag and GitHub Actions will run the pipeline in Release Mode. This mode uses the tag as its version number instead of the git ref in normal mode.
-
-### Packaging on Linux
-
-The install step results in different directory structures depending on the value of `LINUX_PORTABLE` - "OFF" will organize outputs to be placed in the system root, such as `/usr/`, and "ON" will organize outputs for portable installations in the user's home directory. If you are packaging for a Linux distribution, you probably want to set `-DLINUX_PORTABLE=OFF`.
-
-### Signing and Notarizing on macOS
-
-On macOS, Release Mode builds can be signed and sent to Apple for notarization if the necessary codesigning credentials are added as secrets to your repository. **You'll need a paid Apple Developer Account for this.**
-
-- On your Apple Developer dashboard, go to "Certificates, IDs & Profiles" and create two signing certificates:
-    - One of the "Developer ID Application" type. It will be used to sign the plugin's binaries
-    - One of the "Developer ID Installer" type. It will be used to sign the plugin's installer
-- Using the Keychain app on macOS, export these two certificates and keys into a .p12 file **protected with a strong password**
-- Encode the .p12 file into its base64 representation by running `base64 YOUR_P12_FILE`
-- Add the following secrets in your Github repository settings:
-    - `MACOS_SIGNING_APPLICATION_IDENTITY`: Name of the "Developer ID Application" signing certificate generated earlier
-    - `MACOS_SIGNING_INSTALLER_IDENTITY`: Name of "Developer ID Installer" signing certificate generated earlier
-    - `MACOS_SIGNING_CERT`: Base64-encoded string generated above
-    - `MACOS_SIGNING_CERT_PASSWORD`: Password used to generate the .p12 certificate
-    - `MACOS_NOTARIZATION_USERNAME`: Your Apple Developer account's username
-    - `MACOS_NOTARIZATION_PASSWORD`: Your Apple Developer account's password (use a generated "app password" for this)
+## License and credits
+- RewardsTheater is licensed under GNU General Public License v2.0 or later. 
+- RewardsTheater is a plugin to [OBS Studio](https://github.com/obsproject/obs-studio), which is licensed under GNU General Public License v2.0 or later.
+- RewardsTheater uses [Boost.Asio](https://www.boost.org/doc/libs/1_83_0/doc/html/boost_asio.html), [Boost.URL](https://www.boost.org/doc/libs/1_83_0/libs/url/doc/html/index.html), [Boost.Beast](https://www.boost.org/doc/libs/1_83_0/libs/beast/doc/html/index.html), [Boost.JSON](https://www.boost.org/doc/libs/1_83_0/libs/json/doc/html/index.html), which are licensed under the Boost Software License, Version 1.0.
+- RewardsTheater uses [OpenSSL](https://openssl.org/), which is licensed under Apache-2.0 License.
+- RewardTheater uses Google's [material-design-icons](https://github.com/google/material-design-icons/tree/master), which are licensed under Apache-2.0 license.
