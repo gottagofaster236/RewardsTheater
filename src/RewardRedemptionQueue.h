@@ -32,12 +32,16 @@ public:
     void playObsSource(const std::string& obsSourceName);
     static std::vector<std::string> enumObsSources();
 
+    bool isRewardPlaybackPaused() const;
+    void setRewardPlaybackPaused(bool paused);
+
 signals:
     void onRewardRedemptionQueueUpdated(const std::vector<RewardRedemption> rewardRedemptionQueue);
 
 private:
     boost::asio::awaitable<void> asyncPlayRewardRedemptionsFromQueue();
     boost::asio::awaitable<RewardRedemption> asyncGetNextRewardRedemption();
+    void notifyRewardRedemptionQueueCondVar();
     void popPlayedRewardRedemptionFromQueue(const RewardRedemption& rewardRedemption);
     void playObsSource(OBSSourceAutoRelease source);
     boost::asio::awaitable<void> asyncPlayObsSource(OBSSourceAutoRelease source);
@@ -54,10 +58,11 @@ private:
     TwitchRewardsApi& twitchRewardsApi;
 
     IoThreadPool rewardRedemptionQueueThread;
+    std::vector<RewardRedemption> rewardRedemptionQueue;
+    bool rewardPlaybackPaused;
     mutable std::mutex rewardRedemptionQueueMutex;
     boost::asio::deadline_timer rewardRedemptionQueueCondVar;
-    std::vector<RewardRedemption> rewardRedemptionQueue;
 
-    unsigned playObsSourceState = 0;
+    unsigned playObsSourceState;
     std::map<obs_source_t*, unsigned> sourcePlayedByState;
 };

@@ -97,7 +97,7 @@ void EditRewardDialog::showColorDialog() {
             colorDialog, &QColorDialog::colorSelected, this, qOverload<QColor>(&EditRewardDialog::showSelectedColor)
         );
     }
-    colorDialog->show();
+    colorDialog->open();
 }
 
 void EditRewardDialog::saveReward() {

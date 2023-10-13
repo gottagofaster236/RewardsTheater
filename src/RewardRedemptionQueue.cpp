@@ -13,7 +13,9 @@ namespace asio = boost::asio;
 
 RewardRedemptionQueue::RewardRedemptionQueue(const Settings& settings, TwitchRewardsApi& twitchRewardsApi)
     : settings(settings), twitchRewardsApi(twitchRewardsApi), rewardRedemptionQueueThread(1),
-      rewardRedemptionQueueCondVar(rewardRedemptionQueueThread.ioContext, boost::posix_time::pos_infin) {
+      rewardPlaybackPaused(false),
+      rewardRedemptionQueueCondVar(rewardRedemptionQueueThread.ioContext, boost::posix_time::pos_infin),
+      playObsSourceState(0) {
     asio::co_spawn(rewardRedemptionQueueThread.ioContext, asyncPlayRewardRedemptionsFromQueue(), asio::detached);
 }
 
@@ -31,20 +33,21 @@ void RewardRedemptionQueue::queueRewardRedemption(const RewardRedemption& reward
     if (!obsSourceName.has_value()) {
         return;
     }
-
+    if (isRewardPlaybackPaused()) {
+        twitchRewardsApi.updateRedemptionStatus(rewardRedemption, TwitchRewardsApi::RedemptionStatus::CANCELED);
+        return;
+    }
     if (!settings.isRewardRedemptionQueueEnabled()) {
         playObsSource(obsSourceName.value());
         return;
     }
+
     {
         std::lock_guard<std::mutex> guard(rewardRedemptionQueueMutex);
         rewardRedemptionQueue.push_back(rewardRedemption);
         emit onRewardRedemptionQueueUpdated(rewardRedemptionQueue);
     }
-
-    rewardRedemptionQueueThread.ioContext.post([this]() {
-        rewardRedemptionQueueCondVar.cancel();  // Equivalent to notify_all() in a condition variable
-    });
+    notifyRewardRedemptionQueueCondVar();
 }
 
 void RewardRedemptionQueue::removeRewardRedemption(const RewardRedemption& rewardRedemption) {
@@ -83,6 +86,19 @@ std::vector<std::string> RewardRedemptionQueue::enumObsSources() {
     return sources;
 }
 
+bool RewardRedemptionQueue::isRewardPlaybackPaused() const {
+    std::lock_guard guard(rewardRedemptionQueueMutex);
+    return rewardPlaybackPaused;
+}
+
+void RewardRedemptionQueue::setRewardPlaybackPaused(bool paused) {
+    {
+        std::lock_guard guard(rewardRedemptionQueueMutex);
+        rewardPlaybackPaused = paused;
+    }
+    notifyRewardRedemptionQueueCondVar();
+}
+
 asio::awaitable<void> RewardRedemptionQueue::asyncPlayRewardRedemptionsFromQueue() {
     while (true) {
         RewardRedemption nextRewardRedemption = co_await asyncGetNextRewardRedemption();
@@ -100,16 +116,22 @@ asio::awaitable<RewardRedemption> RewardRedemptionQueue::asyncGetNextRewardRedem
     while (true) {
         {
             std::lock_guard guard(rewardRedemptionQueueMutex);
-            if (!rewardRedemptionQueue.empty()) {
+            if (!rewardPlaybackPaused && !rewardRedemptionQueue.empty()) {
                 co_return rewardRedemptionQueue.front();
             }
         }
         try {
             co_await rewardRedemptionQueueCondVar.async_wait(asio::use_awaitable);
         } catch (const boost::system::system_error&) {
-            // Condition variable signalled.
+            // Condition variable notified.
         }
     }
+}
+
+void RewardRedemptionQueue::notifyRewardRedemptionQueueCondVar() {
+    rewardRedemptionQueueThread.ioContext.post([this]() {
+        rewardRedemptionQueueCondVar.cancel();  // Equivalent to notify_all() for a condition variable
+    });
 }
 
 void RewardRedemptionQueue::popPlayedRewardRedemptionFromQueue(const RewardRedemption& rewardRedemption) {

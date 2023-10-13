@@ -36,8 +36,10 @@ private slots:
     void removeReward(const std::string& id);
     void showAddRewardDialog();
     void showUpdateAvailableLink();
+    void setRewardPlaybackPaused(int checkState);
     void saveRewardRedemptionQueueEnabled(int checkState);
     void saveIntervalBetweenRewards(double interval);
+    void openRewardRedemptionQueue();
 
 private:
     void showRewards();

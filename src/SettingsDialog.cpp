@@ -20,7 +20,7 @@
 SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
     : QDialog(parent), plugin(plugin), ui(std::make_unique<Ui::SettingsDialog>()),
       twitchAuthDialog(new TwitchAuthDialog(this, plugin.getTwitchAuth())),
-      rewardRedemptionQueueDialog(new RewardRedemptionQueueDialog(plugin.getRewardRedemptionQueue(), this)),
+      rewardRedemptionQueueDialog(new RewardRedemptionQueueDialog(plugin.getRewardRedemptionQueue(), parent)),
       errorMessageBox(new ErrorMessageBox(this)) {
     ui->setupUi(this);
     showGithubLink();
@@ -32,6 +32,7 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
         ui->reloadRewardsButton, &QPushButton::clicked, &plugin.getTwitchRewardsApi(), &TwitchRewardsApi::reloadRewards
     );
     connect(ui->addRewardButton, &QPushButton::clicked, this, &SettingsDialog::showAddRewardDialog);
+    connect(ui->pauseRewardPlaybackCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::setRewardPlaybackPaused);
     connect(
         ui->rewardRedemptionQueueEnabledCheckBox,
         &QCheckBox::stateChanged,
@@ -45,10 +46,7 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
         &SettingsDialog::saveIntervalBetweenRewards
     );
     connect(
-        ui->openRewardRedemptionQueueButton,
-        &QPushButton::clicked,
-        rewardRedemptionQueueDialog,
-        &RewardRedemptionQueueDialog::show
+        ui->openRewardRedemptionQueueButton, &QPushButton::clicked, this, &SettingsDialog::openRewardRedemptionQueue
     );
 
     connect(&plugin.getTwitchAuth(), &TwitchAuth::onUsernameChanged, this, &SettingsDialog::updateAuthButtonText);
@@ -77,7 +75,7 @@ void SettingsDialog::logInOrLogOut() {
     if (auth.isAuthenticated()) {
         auth.logOut();
     } else {
-        twitchAuthDialog->show();
+        twitchAuthDialog->open();
     }
 }
 
@@ -138,12 +136,21 @@ void SettingsDialog::showUpdateAvailableLink() {
     );
 }
 
+void SettingsDialog::setRewardPlaybackPaused(int checkState) {
+    plugin.getRewardRedemptionQueue().setRewardPlaybackPaused(checkState == Qt::Checked);
+}
+
 void SettingsDialog::saveRewardRedemptionQueueEnabled(int checkState) {
     plugin.getSettings().setRewardRedemptionQueueEnabled(checkState == Qt::Checked);
 }
 
 void SettingsDialog::saveIntervalBetweenRewards(double interval) {
     plugin.getSettings().setIntervalBetweenRewardsSeconds(interval);
+}
+
+void SettingsDialog::openRewardRedemptionQueue() {
+    rewardRedemptionQueueDialog->show();
+    rewardRedemptionQueueDialog->activateWindow();
 }
 
 void SettingsDialog::showRewards() {

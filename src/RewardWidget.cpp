@@ -97,4 +97,5 @@ void RewardWidget::showEditRewardDialog() {
         connect(editRewardDialog, &EditRewardDialog::onRewardDeleted, this, &RewardWidget::onRewardDeleted);
     }
     editRewardDialog->show();
+    editRewardDialog->activateWindow();
 }
