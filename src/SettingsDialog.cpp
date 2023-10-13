@@ -118,6 +118,9 @@ void SettingsDialog::removeReward(const std::string& id) {
 }
 
 void SettingsDialog::showAddRewardDialog() {
+    if (!plugin.getTwitchAuth().isAuthenticated()) {
+        return;
+    }
     EditRewardDialog* editRewardDialog = new EditRewardDialog(
         {},
         plugin.getTwitchAuth(),

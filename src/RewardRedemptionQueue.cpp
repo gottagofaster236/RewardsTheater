@@ -103,7 +103,7 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayRewardRedemptionsFromQueue
     while (true) {
         RewardRedemption nextRewardRedemption = co_await asyncGetNextRewardRedemption();
         co_await asyncPlayObsSource(getObsSource(nextRewardRedemption));
-        popPlayedRewardRedemptionFromQueue(nextRewardRedemption);
+        co_await popPlayedRewardRedemptionFromQueue(nextRewardRedemption);
 
         auto timeBeforeNextReward =
             std::chrono::milliseconds(static_cast<long long>(1000 * settings.getIntervalBetweenRewardsSeconds()));
@@ -134,12 +134,17 @@ void RewardRedemptionQueue::notifyRewardRedemptionQueueCondVar() {
     });
 }
 
-void RewardRedemptionQueue::popPlayedRewardRedemptionFromQueue(const RewardRedemption& rewardRedemption) {
+boost::asio::awaitable<void> RewardRedemptionQueue::popPlayedRewardRedemptionFromQueue(
+    const RewardRedemption& rewardRedemption
+) {
     {
         std::lock_guard guard(rewardRedemptionQueueMutex);
         if (rewardRedemptionQueue.empty() || rewardRedemptionQueue.front() != rewardRedemption) {
             // The reward was removed and canceled by the user.
-            return;
+            // Wait for a bit so that the cancellation doesn't affect the next reward.
+            co_await asio::steady_timer(rewardRedemptionQueueThread.ioContext, std::chrono::milliseconds(500))
+                .async_wait(asio::use_awaitable);
+            co_return;
         }
         rewardRedemptionQueue.erase(rewardRedemptionQueue.begin());
     }

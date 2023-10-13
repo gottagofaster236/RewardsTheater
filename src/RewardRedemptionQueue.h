@@ -42,7 +42,7 @@ private:
     boost::asio::awaitable<void> asyncPlayRewardRedemptionsFromQueue();
     boost::asio::awaitable<RewardRedemption> asyncGetNextRewardRedemption();
     void notifyRewardRedemptionQueueCondVar();
-    void popPlayedRewardRedemptionFromQueue(const RewardRedemption& rewardRedemption);
+    boost::asio::awaitable<void> popPlayedRewardRedemptionFromQueue(const RewardRedemption& rewardRedemption);
     void playObsSource(OBSSourceAutoRelease source);
     boost::asio::awaitable<void> asyncPlayObsSource(OBSSourceAutoRelease source);
     boost::asio::deadline_timer createDeadlineTimer(obs_source_t* source);

@@ -81,6 +81,10 @@ const char* TwitchRewardsApi::EmptyRewardTitleException::what() const noexcept {
     return "EmptyRewardTitleException";
 }
 
+const char* TwitchRewardsApi::SameRewardTitleException::what() const noexcept {
+    return "SameRewardTitleException";
+}
+
 const char* TwitchRewardsApi::NotManageableRewardException::what() const noexcept {
     return "NotManageableRewardException";
 }
@@ -191,6 +195,7 @@ asio::awaitable<Reward> TwitchRewardsApi::asyncCreateReward(const RewardData& re
         rewardDataToJson(rewardData)
     );
 
+    checkForSameRewardTitleException(response.json);
     switch (response.status) {
     case http::status::ok: break;
     case http::status::forbidden: throw NotAffiliateException();
@@ -214,6 +219,7 @@ boost::asio::awaitable<Reward> TwitchRewardsApi::asyncUpdateReward(const Reward&
         rewardDataToJson(reward)
     );
 
+    checkForSameRewardTitleException(response.json);
     if (response.status != http::status::ok) {
         throw UnexpectedHttpStatusException(response.json);
     }
@@ -238,6 +244,22 @@ json::value TwitchRewardsApi::rewardDataToJson(const RewardData& rewardData) {
         {"global_cooldown_seconds", rewardData.globalCooldownSeconds.value_or(1)},
         {"should_redemptions_skip_request_queue", false},
     };
+}
+
+void TwitchRewardsApi::checkForSameRewardTitleException(const boost::json::value& response) {
+    bool isSameRewardException;
+    try {
+        std::string errorMessage = value_to<std::string>(response.at("message"));
+        isSameRewardException = errorMessage == "CREATE_CUSTOM_REWARD_DUPLICATE_REWARD" ||
+                                errorMessage == "UPDATE_CUSTOM_REWARD_DUPLICATE_REWARD";
+    } catch (const std::exception&) {
+        // Ignore the JSON exception when a key is missing.
+        return;
+    }
+
+    if (isSameRewardException) {
+        throw SameRewardTitleException();
+    }
 }
 
 // https://dev.twitch.tv/docs/api/reference/#get-custom-reward

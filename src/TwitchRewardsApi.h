@@ -57,6 +57,11 @@ public:
         const char* what() const noexcept override;
     };
 
+    class SameRewardTitleException : public std::exception {
+    public:
+        const char* what() const noexcept override;
+    };
+
     class NotManageableRewardException : public std::exception {
         const char* what() const noexcept override;
     };
@@ -92,6 +97,7 @@ private:
     boost::asio::awaitable<Reward> asyncCreateReward(const RewardData& rewardData);
     boost::asio::awaitable<Reward> asyncUpdateReward(const Reward& reward);
     boost::json::value rewardDataToJson(const RewardData& rewardData);
+    void checkForSameRewardTitleException(const boost::json::value& response);
 
     boost::asio::awaitable<std::vector<Reward>> asyncGetRewards();
     boost::asio::awaitable<boost::json::value> asyncGetRewardsRequest(bool onlyManageableRewards);

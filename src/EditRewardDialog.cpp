@@ -131,6 +131,8 @@ void EditRewardDialog::showSaveRewardResult(std::variant<std::exception_ptr, Rew
         message = obs_module_text("CouldNotSaveRewardNotManageable");
     } catch (const TwitchRewardsApi::EmptyRewardTitleException&) {
         message = obs_module_text("CouldNotSaveRewardEmptyTitle");
+    } catch (const TwitchRewardsApi::SameRewardTitleException&) {
+        message = obs_module_text("CouldNotSaveRewardSameTitle");
     } catch (const HttpClient::NetworkException&) {
         message = obs_module_text("CouldNotSaveRewardNetwork");
     } catch (const std::exception& exception) {
