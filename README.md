@@ -1,32 +1,39 @@
 # RewardsTheater
 
-An OBS plugin to enable your viewers to redeem playing media on stream via channel points.
+An [OBS](https://obsproject.com/) plugin that lets your viewers redeem videos or sounds on stream via Twitch Channel Points.
+
+[Прочитати українською тут](README_uk.md)
 
 ## How's this better than [TR!GGER FYRE](https://overlays.thefyrewire.com/widgets/triggerfyre/)?
 
 - Free and open source.
 - Use your locally saved videos, no need to upload anything the server.
 - Has a nice UI to edit channel point rewards right inside OBS!
+- Plays the videos natively in OBS without a browser source, so they won't lag.
 - Reward redemptions can be put in a queue so that they don't play simultaneously.
 
 ![ui](readme_images/ui.png)
 
 ## Requirements
-- You are a Twitch Affiliate or Partner and have channel points enabled
-- OBS version 29.1.2 or newer
-- Windows and Linux are supported
+- You are a Twitch Affiliate or Partner and have channel points enabled.
+- OBS version 29.1.2 or newer.
+- Windows and Linux are supported.
 
 
 ## Setting up
-1. Download and run an installer for your operating system from [this link](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
-2. Add an OBS source for each video you want to play as a channel points reward. It has to be either Media Source or VLC Video Source:
+1. Download and run the installer for your operating system from [this link](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
+2. Add an OBS source for each video you want to play as a channel points reward. It has to be either Media Source or VLC Video Source. Select a video file for the source from your computer.
    
    ![source](readme_images/source.png)
+   
+   Position the source on the scene in the way that you like. You can then hide the source, so that they it doesn't play every time you start OBS.
+   
+   ![hide](readme_images/hide.png)
 3. Then go to Tools → RewardsTheater.
    
    ![tools](readme_images/tools.png)
 4. You'll have to log into Twitch first by clicking the "Log in" button.
-5. After that, you can hit "Add reward". Don't forget to select the source you added earlier as the Media Source for the reward. Due to the limitations of Twitch API, if you want to upload a custom icon, you're gonna have to do this the browser.
+5. After that, you can hit "Add reward". Don't forget to select the source you added earlier as the Media Source for the reward. Due to the limitations of Twitch API, if you want to upload a custom icon, you're gonna have to do this inside the browser.
    
    ![add_reward](readme_images/add_reward.png)
 
@@ -34,11 +41,14 @@ An OBS plugin to enable your viewers to redeem playing media on stream via chann
 
    ![settings](readme_images/settings.png)
    
-7. During stream, you can monitor the reward queue if there's a lot of redemptions at the same time and cancel them by clicking the cross. The viewer's channel points are refunded if you cancel a reward.
+7. During stream, you can monitor the reward queue if there's a lot of redemptions at the same time and cancel them by clicking the cross button. The viewer's channel points are refunded if you cancel a reward.
 
    ![rewards_queue](readme_images/rewards_queue.png)
 
 8. You can click "Pause reward playback" on the main settings screen if you don't want the videos playing for some time. During this time, the user will get their points refunded as well.
+
+## Building
+PRs are welcome! If you want to build RewardsTheater yourself, please refer to [BUILDING.md](BUILDING.md)
 
 ## License and credits
 - RewardsTheater is licensed under GNU General Public License v2.0 or later. 
