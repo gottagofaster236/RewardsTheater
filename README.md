@@ -7,7 +7,7 @@ An [OBS](https://obsproject.com/) plugin that lets your viewers redeem videos or
 ## How's this better than [TR!GGER FYRE](https://overlays.thefyrewire.com/widgets/triggerfyre/)?
 
 - Free and open source.
-- Use your locally saved videos, no need to upload anything the server.
+- Use your locally saved videos, no need to upload anything to the server.
 - Has a nice UI to edit channel point rewards right inside OBS!
 - Plays the videos natively in OBS without a browser source, so they won't lag.
 - Reward redemptions can be put in a queue so that they don't play simultaneously.
@@ -17,7 +17,7 @@ An [OBS](https://obsproject.com/) plugin that lets your viewers redeem videos or
 ## Requirements
 - You are a Twitch Affiliate or Partner and have channel points enabled.
 - OBS version 29.1.2 or newer.
-- Windows and Linux are supported.
+- Windows or Linux operating system.
 
 
 ## Setting up
@@ -47,6 +47,9 @@ An [OBS](https://obsproject.com/) plugin that lets your viewers redeem videos or
 
 8. You can click "Pause reward playback" on the main settings screen if you don't want the videos playing for some time. During this time, the user will get their points refunded as well.
 
+## Supporting the developer
+If you liked my work, please leave a star on the GitHub repository 🙂
+
 ## Building
 PRs are welcome! If you want to build RewardsTheater yourself, please refer to [BUILDING.md](BUILDING.md)
 
@@ -54,5 +57,6 @@ PRs are welcome! If you want to build RewardsTheater yourself, please refer to [
 - RewardsTheater is licensed under GNU General Public License v2.0 or later. 
 - RewardsTheater is a plugin to [OBS Studio](https://github.com/obsproject/obs-studio), which is licensed under GNU General Public License v2.0 or later.
 - RewardsTheater uses [Boost.Asio](https://www.boost.org/doc/libs/1_83_0/doc/html/boost_asio.html), [Boost.URL](https://www.boost.org/doc/libs/1_83_0/libs/url/doc/html/index.html), [Boost.Beast](https://www.boost.org/doc/libs/1_83_0/libs/beast/doc/html/index.html), [Boost.JSON](https://www.boost.org/doc/libs/1_83_0/libs/json/doc/html/index.html), which are licensed under the Boost Software License, Version 1.0.
+- RewardsTheater uses [Qt Core](https://doc.qt.io/qt-6/qtcore-index.html), [Qt Widgets](https://doc.qt.io/qt-6/qtwidgets-index.html) and [Qt GUI](https://doc.qt.io/qt-6/qtgui-index.html) modules, which are available under GNU General Public License v2.0 or later.
 - RewardsTheater uses [OpenSSL](https://openssl.org/), which is licensed under Apache-2.0 License.
 - RewardTheater uses Google's [material-design-icons](https://github.com/google/material-design-icons/tree/master), which are licensed under Apache-2.0 license.

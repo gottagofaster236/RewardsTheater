@@ -2,7 +2,7 @@
 
 ## Building locally on Windows
 1. Install a new version of [PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.3)
-2. Install [Visual Studio 2022 (or later)](https://visualstudio.microsoft.com/vs/) and install a bundled C++ compiler.
+2. Install [Visual Studio 2022 (or later)](https://visualstudio.microsoft.com/vs/) and install the bundled C++ compiler.
 3. Clone the repository recursively via Git:
 
    ```git clone --recursive https://github.com/gottagofaster236/RewardsTheater```
@@ -11,16 +11,15 @@
 ## Setting up development environment on Windows
 These steps are a continuation of the previous section on building.
 
-1. Install [pre-commit](https://pre-commit.com/) and run `pre-commit install` in the root of the repository in order to format code automatically before the commit. (It uses [.pre-commit-config.yaml](.pre-commit-config.yaml) and [.cmake-format.json](.cmake-format.json)).
-2. Navigate to `../obs-studio`. It should be cloned already by the build script. Then build it according to the instructions on the [https://obsproject.com/wiki/Building-OBS-Studio](OBS website).
-2. Open up `RewardsTheater/build64` directory. Open `CMakeCache.txt` and add the following line:  
-   ```OBS_BUILD_DIR:FILEPATH=../../obs-studio/build64```
+1. Install [pre-commit](https://pre-commit.com/) and run `pre-commit install` in the root of the repository in order to format code automatically before a commit. (This uses [.pre-commit-config.yaml](.pre-commit-config.yaml) and [.cmake-format.json](.cmake-format.json)).
+2. Navigate to `../obs-studio`. OBS Studio should be cloned already by the build script. Then build it according to the instructions on the [OBS website](https://obsproject.com/wiki/Building-OBS-Studio).
+2. Open the `RewardsTheater/build64` directory. Open `CMakeCache.txt` and add the following line:  ```OBS_BUILD_DIR:FILEPATH=../../obs-studio/build64```
    
    Then build RewardsTheater again via the build script.
-3. Open the project in Visual Studio. Right-click the `ALL_BUILD` target and set the debugging target to the OBS binary at `your_obs_clone_path\obs-studio\build64\rundir\Debug\bin\64bit\obs64.exe`, and the working directory to `your_obs_clone_path\obs-studio\build64\rundir\Debug\bin\64bit`. Then, when you hit "Run" inside Visual Studio, the plugin is copied automatically to the rundir and then VS launches OBS for debugging.
+3. Open the project in Visual Studio. Right-click the `ALL_BUILD` project and set the debugging target to the OBS binary at `your_obs_clone_path\obs-studio\build64\rundir\Debug\bin\64bit\obs64.exe`, and the working directory to `your_obs_clone_path\obs-studio\build64\rundir\Debug\bin\64bit`. Now when you hit "Run" inside Visual Studio, the plugin is copied automatically to the rundir and then VS launches OBS for debugging.
 
 ## Building locally on Linux
-1. Install the GCC 13 (or later) compiler via `sudo apt install gcc-13 g++-13` (use your favorite package manager).
+1. Install GCC 13 (or later) via `sudo apt install gcc-13 g++-13` (use your favorite package manager).
 2. Clone the repository recursively via Git:
 
    ```git clone --recursive https://github.com/gottagofaster236/RewardsTheater```

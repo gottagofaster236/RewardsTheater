@@ -17,7 +17,7 @@
 ## Вимоги
 - Ти Twitch Affiliate або Partner, і в тебе ввімкнені бали каналу.
 - OBS 29.1.2 або новішої версії.
-- Підтримуються Windows та Linux.
+- Операційна система Windows або Linux.
 
 
 ## Установлення
@@ -47,6 +47,9 @@
 
 8. Можна натиснути на «Призупинити відтворення нагород» на екрані з налаштуваннями, якщо ти не хочеш, щоб відео відтворювалися певний час. У цей час глядачам також будуть повертатися їхні бали.
 
+## Підтримати розробника
+Якщо не складно, постав зірку на GitHub репозиторій 🙂
+
 ## Building
 PRs are welcome! If you want to build RewardsTheater yourself, please refer to [BUILDING.md](BUILDING.md)
 
@@ -54,5 +57,6 @@ PRs are welcome! If you want to build RewardsTheater yourself, please refer to [
 - RewardsTheater is licensed under GNU General Public License v2.0 or later. 
 - RewardsTheater is a plugin to [OBS Studio](https://github.com/obsproject/obs-studio), which is licensed under GNU General Public License v2.0 or later.
 - RewardsTheater uses [Boost.Asio](https://www.boost.org/doc/libs/1_83_0/doc/html/boost_asio.html), [Boost.URL](https://www.boost.org/doc/libs/1_83_0/libs/url/doc/html/index.html), [Boost.Beast](https://www.boost.org/doc/libs/1_83_0/libs/beast/doc/html/index.html), [Boost.JSON](https://www.boost.org/doc/libs/1_83_0/libs/json/doc/html/index.html), which are licensed under the Boost Software License, Version 1.0.
+- RewardsTheater uses [Qt Core](https://doc.qt.io/qt-6/qtcore-index.html), [Qt Widgets](https://doc.qt.io/qt-6/qtwidgets-index.html) and [Qt GUI](https://doc.qt.io/qt-6/qtgui-index.html) modules, which are available under GNU General Public License v2.0 or later.
 - RewardsTheater uses [OpenSSL](https://openssl.org/), which is licensed under Apache-2.0 License.
 - RewardTheater uses Google's [material-design-icons](https://github.com/google/material-design-icons/tree/master), which are licensed under Apache-2.0 license.
