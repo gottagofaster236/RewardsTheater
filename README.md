@@ -9,7 +9,8 @@ An [OBS](https://obsproject.com/) plugin that lets your viewers redeem videos or
 - Free and open source.
 - Use your locally saved videos, no need to upload anything to the server.
 - Has a nice UI to edit channel point rewards right inside OBS!
-- Plays the videos natively in OBS without a browser source, so they won't lag.
+- Plays the videos natively in OBS without a browser source. This means better FPS and quality.
+- You can position videos conveniently inside OBS itself.
 - Reward redemptions can be put in a queue so that they don't play simultaneously.
 
 ![ui](readme_images/ui.png)
@@ -33,7 +34,9 @@ An [OBS](https://obsproject.com/) plugin that lets your viewers redeem videos or
    
    ![tools](readme_images/tools.png)
 4. You'll have to log into Twitch first by clicking the "Log in" button.
-5. After that, you can hit "Add reward". Don't forget to select the source you added earlier as the Media Source for the reward. Due to the limitations of Twitch API, if you want to upload a custom icon, you're gonna have to do this inside the browser.
+5. After that, you can hit "Add reward". Select the source you added earlier as the Media Source for the reward. 
+**Hit "Test source" in order to test whether the source will work.**
+ Due to the limitations of Twitch API, if you want to upload a custom icon, you're gonna have to do this inside the browser.
    
    ![add_reward](readme_images/add_reward.png)
 
