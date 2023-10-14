@@ -61,9 +61,9 @@
   <widget class="QPushButton" name="saveButton">
    <property name="geometry">
     <rect>
-     <x>140</x>
+     <x>110</x>
      <y>430</y>
-     <width>161</width>
+     <width>171</width>
      <height>31</height>
     </rect>
    </property>
@@ -74,9 +74,9 @@
   <widget class="QPushButton" name="deleteButton">
    <property name="geometry">
     <rect>
-     <x>480</x>
+     <x>470</x>
      <y>430</y>
-     <width>161</width>
+     <width>171</width>
      <height>31</height>
     </rect>
    </property>
@@ -87,9 +87,9 @@
   <widget class="QPushButton" name="cancelButton">
    <property name="geometry">
     <rect>
-     <x>310</x>
+     <x>290</x>
      <y>430</y>
-     <width>161</width>
+     <width>171</width>
      <height>31</height>
     </rect>
    </property>
@@ -165,9 +165,9 @@
   <widget class="QSpinBox" name="limitRedemptionsPerStreamSpinBox">
    <property name="geometry">
     <rect>
-     <x>480</x>
+     <x>470</x>
      <y>255</y>
-     <width>81</width>
+     <width>71</width>
      <height>31</height>
     </rect>
    </property>
@@ -194,9 +194,9 @@
   <widget class="QSpinBox" name="limitRedemptionsPerUserPerStreamSpinBox">
    <property name="geometry">
     <rect>
-     <x>480</x>
+     <x>470</x>
      <y>295</y>
-     <width>81</width>
+     <width>71</width>
      <height>31</height>
     </rect>
    </property>
@@ -220,12 +220,12 @@
     <string>EnableGlobalCooldown</string>
    </property>
   </widget>
-  <widget class="QSpinBox" name="enableGlobalCooldownSpinBox">
+  <widget class="QSpinBox" name="globalCooldownSpinBox">
    <property name="geometry">
     <rect>
-     <x>480</x>
+     <x>470</x>
      <y>335</y>
-     <width>81</width>
+     <width>71</width>
      <height>31</height>
     </rect>
    </property>
@@ -234,19 +234,6 @@
    </property>
    <property name="maximum">
     <number>604800</number>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>570</x>
-     <y>340</y>
-     <width>71</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Seconds</string>
    </property>
   </widget>
   <widget class="QLabel" name="uploadCustomIconLabel">
@@ -274,9 +261,9 @@
   <widget class="QLabel" name="timesLabel_2">
    <property name="geometry">
     <rect>
-     <x>570</x>
+     <x>550</x>
      <y>300</y>
-     <width>71</width>
+     <width>91</width>
      <height>21</height>
     </rect>
    </property>
@@ -287,9 +274,9 @@
   <widget class="QLabel" name="timesLabel">
    <property name="geometry">
     <rect>
-     <x>570</x>
+     <x>550</x>
      <y>260</y>
-     <width>71</width>
+     <width>91</width>
      <height>21</height>
     </rect>
    </property>
@@ -391,6 +378,36 @@
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
+  </widget>
+  <widget class="QComboBox" name="globalCooldownTimeUnitComboBox">
+   <property name="geometry">
+    <rect>
+     <x>550</x>
+     <y>335</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string>Seconds</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Minutes</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Hours</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Days</string>
+    </property>
+   </item>
   </widget>
  </widget>
  <resources/>

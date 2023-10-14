@@ -59,6 +59,11 @@ public:
         const char* what() const noexcept override;
     };
 
+    class RewardCooldownTooLongException : public std::exception {
+    public:
+        const char* what() const noexcept override;
+    };
+
     class NotManageableRewardException : public std::exception {
         const char* what() const noexcept override;
     };

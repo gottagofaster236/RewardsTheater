@@ -28,6 +28,9 @@ constexpr std::array DEFAULT_COLORS{
     Color{66, 21, 97},
 };
 
+// Seconds, minutes, hours, days.
+constexpr std::array<std::int64_t, 4> COOLDOWN_TIME_UNITS{1, 60, 3600, 86400};
+
 EditRewardDialog::EditRewardDialog(
     const std::optional<Reward>& originalReward,
     TwitchAuth& twitchAuth,
@@ -133,6 +136,8 @@ void EditRewardDialog::showSaveRewardResult(std::variant<std::exception_ptr, Rew
         message = obs_module_text("CouldNotSaveRewardEmptyTitle");
     } catch (const TwitchRewardsApi::SameRewardTitleException&) {
         message = obs_module_text("CouldNotSaveRewardSameTitle");
+    } catch (const TwitchRewardsApi::RewardCooldownTooLongException&) {
+        message = obs_module_text("CouldNotSaveRewardCooldownTooLong");
     } catch (const HttpClient::NetworkException&) {
         message = obs_module_text("CouldNotSaveRewardNetwork");
     } catch (const std::exception& exception) {
@@ -195,7 +200,7 @@ void EditRewardDialog::showReward(const Reward& reward) {
     ui->limitRedemptionsPerUserPerStreamCheckBox->setChecked(reward.maxRedemptionsPerUserPerStream.has_value());
     ui->limitRedemptionsPerUserPerStreamSpinBox->setValue(reward.maxRedemptionsPerUserPerStream.value_or(1));
     ui->enableGlobalCooldownCheckBox->setChecked(reward.globalCooldownSeconds.has_value());
-    ui->enableGlobalCooldownSpinBox->setValue(reward.globalCooldownSeconds.value_or(1));
+    showGlobalCooldown(reward.globalCooldownSeconds.value_or(1));
     setObsSourceName(settings.getObsSourceName(reward.id));
 
     if (reward.canManage) {
@@ -208,6 +213,19 @@ void EditRewardDialog::showReward(const Reward& reward) {
 
 void EditRewardDialog::showSelectedColor(QColor newBackgroundColor) {
     showSelectedColor(Color(newBackgroundColor.red(), newBackgroundColor.green(), newBackgroundColor.blue()));
+}
+
+void EditRewardDialog::showGlobalCooldown(std::int64_t globalCooldownSeconds) {
+    int largestTimeUnitIndex = 0;
+    for (int i = static_cast<int>(COOLDOWN_TIME_UNITS.size()) - 1; i >= 0; i--) {
+        if (globalCooldownSeconds % COOLDOWN_TIME_UNITS[i] == 0) {
+            largestTimeUnitIndex = i;
+            break;
+        }
+    }
+
+    ui->globalCooldownSpinBox->setValue(globalCooldownSeconds / COOLDOWN_TIME_UNITS[largestTimeUnitIndex]);
+    ui->globalCooldownTimeUnitComboBox->setCurrentIndex(largestTimeUnitIndex);
 }
 
 void EditRewardDialog::createConfirmDeleteReward(const Reward& reward) {
@@ -228,7 +246,8 @@ void EditRewardDialog::disableInput() {
     ui->limitRedemptionsPerUserPerStreamCheckBox->setEnabled(false);
     ui->limitRedemptionsPerUserPerStreamSpinBox->setEnabled(false);
     ui->enableGlobalCooldownCheckBox->setEnabled(false);
-    ui->enableGlobalCooldownSpinBox->setEnabled(false);
+    ui->globalCooldownSpinBox->setEnabled(false);
+    ui->globalCooldownTimeUnitComboBox->setEnabled(false);
     ui->deleteButton->setEnabled(false);
 }
 
@@ -306,13 +325,20 @@ RewardData EditRewardDialog::getRewardData() {
         selectedColor,
         getOptionalSetting(ui->limitRedemptionsPerStreamCheckBox, ui->limitRedemptionsPerStreamSpinBox),
         getOptionalSetting(ui->limitRedemptionsPerUserPerStreamCheckBox, ui->limitRedemptionsPerUserPerStreamSpinBox),
-        getOptionalSetting(ui->enableGlobalCooldownCheckBox, ui->enableGlobalCooldownSpinBox),
+        getOptionalSetting(
+            ui->enableGlobalCooldownCheckBox,
+            ui->globalCooldownSpinBox->value() * COOLDOWN_TIME_UNITS[ui->globalCooldownTimeUnitComboBox->currentIndex()]
+        ),
     };
 }
 
 std::optional<std::int64_t> EditRewardDialog::getOptionalSetting(QCheckBox* checkBox, QSpinBox* spinBox) {
+    return getOptionalSetting(checkBox, spinBox->value());
+}
+
+std::optional<std::int64_t> EditRewardDialog::getOptionalSetting(QCheckBox* checkBox, std::int64_t spinBoxValue) {
     if (checkBox->isChecked()) {
-        return spinBox->value();
+        return spinBoxValue;
     } else {
         return {};
     }

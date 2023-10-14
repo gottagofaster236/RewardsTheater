@@ -60,6 +60,7 @@ private slots:
 private:
     void showReward(const Reward& reward);
     void showSelectedColor(Color newSelectedBackgroundColor);
+    void showGlobalCooldown(std::int64_t globalCooldownSeconds);
     void createConfirmDeleteReward(const Reward& reward);
     void disableInput();
     void showAddReward();
@@ -73,6 +74,7 @@ private:
 
     RewardData getRewardData();
     std::optional<std::int64_t> getOptionalSetting(QCheckBox* checkBox, QSpinBox* spinBox);
+    std::optional<std::int64_t> getOptionalSetting(QCheckBox* checkBox, std::int64_t spinBoxValue);
 
     const std::optional<Reward> originalReward;
     TwitchAuth& twitchAuth;

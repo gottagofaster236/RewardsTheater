@@ -83,6 +83,10 @@ const char* TwitchRewardsApi::SameRewardTitleException::what() const noexcept {
     return "SameRewardTitleException";
 }
 
+const char* TwitchRewardsApi::RewardCooldownTooLongException::what() const noexcept {
+    return "RewardCooldownTooLongException";
+}
+
 const char* TwitchRewardsApi::NotManageableRewardException::what() const noexcept {
     return "NotManageableRewardException";
 }
@@ -227,6 +231,11 @@ boost::asio::awaitable<Reward> TwitchRewardsApi::asyncUpdateReward(const Reward&
 json::value TwitchRewardsApi::rewardDataToJson(const RewardData& rewardData) {
     if (rewardData.title.empty()) {
         throw EmptyRewardTitleException();
+    }
+
+    const int SEVEN_DAYS_SECONDS = 604800;
+    if (rewardData.globalCooldownSeconds > SEVEN_DAYS_SECONDS) {
+        throw RewardCooldownTooLongException();
     }
 
     return {
