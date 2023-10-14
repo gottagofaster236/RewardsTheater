@@ -107,7 +107,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="playNowButton">
+  <widget class="QPushButton" name="testObsSourceButton">
    <property name="geometry">
     <rect>
      <x>480</x>
@@ -117,7 +117,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>PlayNow</string>
+    <string>TestSource</string>
    </property>
   </widget>
   <widget class="QLabel" name="backgroundColor">

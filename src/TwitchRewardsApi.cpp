@@ -29,13 +29,13 @@ TwitchRewardsApi::~TwitchRewardsApi() = default;
 
 void TwitchRewardsApi::createReward(const RewardData& rewardData, QObject* receiver, const char* member) {
     asio::co_spawn(
-        ioContext, asyncCreateReward(rewardData, *(new detail::QObjectCallback(this, receiver, member))), asio::detached
+        ioContext, asyncCreateReward(rewardData, *(new QObjectCallback(this, receiver, member))), asio::detached
     );
 }
 
 void TwitchRewardsApi::updateReward(const Reward& reward, QObject* receiver, const char* member) {
     asio::co_spawn(
-        ioContext, asyncUpdateReward(reward, *(new detail::QObjectCallback(this, receiver, member))), asio::detached
+        ioContext, asyncUpdateReward(reward, *(new QObjectCallback(this, receiver, member))), asio::detached
     );
 }
 
@@ -45,15 +45,13 @@ void TwitchRewardsApi::reloadRewards() {
 
 void TwitchRewardsApi::deleteReward(const Reward& reward, QObject* receiver, const char* member) {
     asio::co_spawn(
-        ioContext, asyncDeleteReward(reward, *(new detail::QObjectCallback(this, receiver, member))), asio::detached
+        ioContext, asyncDeleteReward(reward, *(new QObjectCallback(this, receiver, member))), asio::detached
     );
 }
 
 void TwitchRewardsApi::downloadImage(const Reward& reward, QObject* receiver, const char* member) {
     asio::co_spawn(
-        ioContext,
-        asyncDownloadImage(reward.imageUrl, *(new detail::QObjectCallback(this, receiver, member))),
-        asio::detached
+        ioContext, asyncDownloadImage(reward.imageUrl, *(new QObjectCallback(this, receiver, member))), asio::detached
     );
 }
 
@@ -100,7 +98,7 @@ const char* TwitchRewardsApi::UnexpectedHttpStatusException::what() const noexce
     return message.c_str();
 }
 
-asio::awaitable<void> TwitchRewardsApi::asyncCreateReward(RewardData rewardData, detail::QObjectCallback& callback) {
+asio::awaitable<void> TwitchRewardsApi::asyncCreateReward(RewardData rewardData, QObjectCallback& callback) {
     std::variant<std::exception_ptr, Reward> reward;
     try {
         reward = co_await asyncCreateReward(rewardData);
@@ -111,7 +109,7 @@ asio::awaitable<void> TwitchRewardsApi::asyncCreateReward(RewardData rewardData,
     callback("std::variant<std::exception_ptr, Reward>", reward);
 }
 
-asio::awaitable<void> TwitchRewardsApi::asyncUpdateReward(Reward reward, detail::QObjectCallback& callback) {
+asio::awaitable<void> TwitchRewardsApi::asyncUpdateReward(Reward reward, QObjectCallback& callback) {
     std::variant<std::exception_ptr, Reward> result;
     try {
         result = co_await asyncUpdateReward(reward);
@@ -133,7 +131,7 @@ asio::awaitable<void> TwitchRewardsApi::asyncReloadRewards() {
     emit onRewardsUpdated(rewards);
 }
 
-asio::awaitable<void> TwitchRewardsApi::asyncDeleteReward(Reward reward, detail::QObjectCallback& callback) {
+asio::awaitable<void> TwitchRewardsApi::asyncDeleteReward(Reward reward, QObjectCallback& callback) {
     std::exception_ptr result;
     try {
         co_await asyncDeleteReward(reward);
@@ -144,7 +142,7 @@ asio::awaitable<void> TwitchRewardsApi::asyncDeleteReward(Reward reward, detail:
     callback("std::exception_ptr", result);
 }
 
-asio::awaitable<void> TwitchRewardsApi::asyncDownloadImage(boost::urls::url url, detail::QObjectCallback& callback) {
+asio::awaitable<void> TwitchRewardsApi::asyncDownloadImage(boost::urls::url url, QObjectCallback& callback) {
     try {
         callback("std::string", co_await asyncDownloadImage(url));
     } catch (const std::exception& exception) {
@@ -352,14 +350,4 @@ asio::awaitable<void> TwitchRewardsApi::asyncDeleteReward(const Reward& reward) 
 
 asio::awaitable<std::string> TwitchRewardsApi::asyncDownloadImage(const boost::urls::url& url) {
     co_return co_await httpClient.downloadFile(url.host(), url.path());
-}
-
-detail::QObjectCallback::QObjectCallback(TwitchRewardsApi* parent, QObject* receiver, const char* member)
-    : QObject(parent), receiver(receiver), member(member) {
-    connect(receiver, &QObject::destroyed, this, &QObjectCallback::clearReceiver, Qt::ConnectionType::DirectConnection);
-}
-
-void detail::QObjectCallback::clearReceiver() {
-    std::lock_guard guard(receiverMutex);
-    receiver = nullptr;
 }

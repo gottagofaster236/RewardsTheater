@@ -9,14 +9,16 @@
 #include <cstring>
 #include <utility>
 
+#include "Log.h"
+
 namespace asio = boost::asio;
+using namespace std::chrono_literals;
 
 RewardRedemptionQueue::RewardRedemptionQueue(const Settings& settings, TwitchRewardsApi& twitchRewardsApi)
     : settings(settings), twitchRewardsApi(twitchRewardsApi), rewardRedemptionQueueThread(1),
-      rewardPlaybackPaused(false),
-      rewardRedemptionQueueCondVar(rewardRedemptionQueueThread.ioContext, boost::posix_time::pos_infin),
-      playObsSourceState(0) {
-    asio::co_spawn(rewardRedemptionQueueThread.ioContext, asyncPlayRewardRedemptionsFromQueue(), asio::detached);
+      ioContext(rewardRedemptionQueueThread.ioContext), rewardPlaybackPaused(false),
+      rewardRedemptionQueueCondVar(ioContext, boost::posix_time::pos_infin), playObsSourceState(0) {
+    asio::co_spawn(ioContext, asyncPlayRewardRedemptionsFromQueue(), asio::detached);
 }
 
 RewardRedemptionQueue::~RewardRedemptionQueue() {
@@ -65,10 +67,6 @@ void RewardRedemptionQueue::removeRewardRedemption(const RewardRedemption& rewar
     twitchRewardsApi.updateRedemptionStatus(rewardRedemption, TwitchRewardsApi::RedemptionStatus::CANCELED);
 }
 
-void RewardRedemptionQueue::playObsSource(const std::string& obsSourceName) {
-    playObsSource(getObsSource(obsSourceName));
-}
-
 std::vector<std::string> RewardRedemptionQueue::enumObsSources() {
     std::vector<std::string> sources;
 
@@ -99,16 +97,37 @@ void RewardRedemptionQueue::setRewardPlaybackPaused(bool paused) {
     notifyRewardRedemptionQueueCondVar();
 }
 
+RewardRedemptionQueue::ObsSourceNotFoundException::ObsSourceNotFoundException(const std::string& obsSourceName)
+    : obsSourceName(obsSourceName) {}
+
+const char* RewardRedemptionQueue::ObsSourceNotFoundException::what() const noexcept {
+    return "ObsSourceNotFoundException";
+}
+
+RewardRedemptionQueue::ObsSourceNoVideoException::ObsSourceNoVideoException(const std::string& obsSourceName)
+    : obsSourceName(obsSourceName) {}
+
+const char* RewardRedemptionQueue::ObsSourceNoVideoException::what() const noexcept {
+    return "ObsSourceNoVideoException";
+}
+
+void RewardRedemptionQueue::testObsSource(const std::string& obsSourceName, QObject* receiver, const char* member) {
+    asio::co_spawn(
+        ioContext, asyncTestObsSource(obsSourceName, *(new QObjectCallback(this, receiver, member))), asio::detached
+    );
+}
+
 asio::awaitable<void> RewardRedemptionQueue::asyncPlayRewardRedemptionsFromQueue() {
     while (true) {
         RewardRedemption nextRewardRedemption = co_await asyncGetNextRewardRedemption();
-        co_await asyncPlayObsSource(getObsSource(nextRewardRedemption));
+        try {
+            co_await asyncPlayObsSource(getObsSource(nextRewardRedemption));
+        } catch (const ObsSourceNoVideoException&) {}
         co_await popPlayedRewardRedemptionFromQueue(nextRewardRedemption);
 
         auto timeBeforeNextReward =
             std::chrono::milliseconds(static_cast<long long>(1000 * settings.getIntervalBetweenRewardsSeconds()));
-        co_await asio::steady_timer(rewardRedemptionQueueThread.ioContext, timeBeforeNextReward)
-            .async_wait(asio::use_awaitable);
+        co_await asio::steady_timer(ioContext, timeBeforeNextReward).async_wait(asio::use_awaitable);
     }
 }
 
@@ -129,21 +148,19 @@ asio::awaitable<RewardRedemption> RewardRedemptionQueue::asyncGetNextRewardRedem
 }
 
 void RewardRedemptionQueue::notifyRewardRedemptionQueueCondVar() {
-    rewardRedemptionQueueThread.ioContext.post([this]() {
+    ioContext.post([this]() {
         rewardRedemptionQueueCondVar.cancel();  // Equivalent to notify_all() for a condition variable
     });
 }
 
-boost::asio::awaitable<void> RewardRedemptionQueue::popPlayedRewardRedemptionFromQueue(
-    const RewardRedemption& rewardRedemption
+asio::awaitable<void> RewardRedemptionQueue::popPlayedRewardRedemptionFromQueue(const RewardRedemption& rewardRedemption
 ) {
     {
         std::lock_guard guard(rewardRedemptionQueueMutex);
         if (rewardRedemptionQueue.empty() || rewardRedemptionQueue.front() != rewardRedemption) {
             // The reward was removed and canceled by the user.
             // Wait for a bit so that the cancellation doesn't affect the next reward.
-            co_await asio::steady_timer(rewardRedemptionQueueThread.ioContext, std::chrono::milliseconds(500))
-                .async_wait(asio::use_awaitable);
+            co_await asio::steady_timer(ioContext, 500ms).async_wait(asio::use_awaitable);
             co_return;
         }
         rewardRedemptionQueue.erase(rewardRedemptionQueue.begin());
@@ -152,10 +169,54 @@ boost::asio::awaitable<void> RewardRedemptionQueue::popPlayedRewardRedemptionFro
     emit onRewardRedemptionQueueUpdated(rewardRedemptionQueue);
 }
 
-void RewardRedemptionQueue::playObsSource(OBSSourceAutoRelease source) {
-    asio::co_spawn(rewardRedemptionQueueThread.ioContext, asyncPlayObsSource(std::move(source)), asio::detached);
+void RewardRedemptionQueue::playObsSource(const std::string& obsSourceName) {
+    playObsSource(getObsSource(obsSourceName));
 }
 
+void RewardRedemptionQueue::playObsSource(OBSSourceAutoRelease source) {
+    asio::co_spawn(ioContext, asyncPlayObsSource(std::move(source)), asio::detached);
+}
+
+struct MediaStartedCallback {
+    asio::io_context& ioContext;
+    asio::deadline_timer& deadlineTimer;
+    boost::posix_time::time_duration mediaEndDeadline;
+    bool mediaStarted = false;
+    bool enabled = true;
+
+    static void setMediaEndedDeadline(void* param, [[maybe_unused]] calldata_t* data) {
+        std::shared_ptr<MediaStartedCallback> callback = *static_cast<std::shared_ptr<MediaStartedCallback>*>(param);
+        callback->ioContext.post([callback]() {
+            if (callback->enabled) {
+                // The media actually started - now set a deadline for it to end.
+                // This cancels the timer, therefore waiting on it should be performed a loop.
+                callback->mediaStarted = true;
+                callback->deadlineTimer.expires_from_now(callback->mediaEndDeadline);
+            }
+        });
+    }
+};
+
+struct MediaEndedCallback {
+    asio::io_context& ioContext;
+    asio::deadline_timer& deadlineTimer;
+    bool mediaEnded = false;
+    bool enabled = true;
+
+    static void stopDeadlineTimer(void* param, [[maybe_unused]] calldata_t* data) {
+        std::shared_ptr<MediaEndedCallback> callback = *static_cast<std::shared_ptr<MediaEndedCallback>*>(param);
+        callback->ioContext.post([callback]() {
+            if (callback->enabled) {
+                callback->mediaEnded = true;
+                callback->deadlineTimer.cancel();
+            }
+        });
+    }
+};
+
+/// First the function sets the deadline timer for the source to start and waits for it.
+/// If the source does start, then the deadline timer is updated to 1.5 times the source duration.
+/// The deadline timer is cancelled when the source stops, therefore control returns to the function again.
 asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(OBSSourceAutoRelease source) {
     if (!source) {
         co_return;
@@ -163,54 +224,76 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(OBSSourceAutoRel
     unsigned state = playObsSourceState++;
     sourcePlayedByState[source] = state;
 
-    asio::deadline_timer deadlineTimer = createDeadlineTimer(source);
+    // Give one second for the source to start, otherwise stop it.
+    asio::deadline_timer deadlineTimer(ioContext, boost::posix_time::milliseconds(500));
 
-    struct StopDeadlineTimerCallback {
-        asio::deadline_timer& deadlineTimer;
-        asio::io_context& ioContext;
+    auto mediaStartedCallback =
+        std::make_shared<MediaStartedCallback>(ioContext, deadlineTimer, getMediaEndDeadline(source));
+    auto mediaEndedCallback = std::make_shared<MediaEndedCallback>(ioContext, deadlineTimer);
 
-        static void stopDeadlineTimer(void* param, [[maybe_unused]] calldata_t* data) {
-            auto& [deadlineTimer, ioContext] = *static_cast<StopDeadlineTimerCallback*>(param);
-            // Posting to ioContext so that cancellation occurs after the async_wait (we have one thread).
-            ioContext.post([&deadlineTimer]() {
-                deadlineTimer.cancel();
-            });
-        }
-    } callback(deadlineTimer, rewardRedemptionQueueThread.ioContext);
-
-    try {
+    {
         signal_handler_t* signalHandler = obs_source_get_signal_handler(source);
+        OBSSignal mediaStartedSignal(
+            signalHandler, "media_started", &MediaStartedCallback::setMediaEndedDeadline, &mediaStartedCallback
+        );
         OBSSignal mediaEndedSignal(
-            signalHandler, "media_ended", &StopDeadlineTimerCallback::stopDeadlineTimer, &callback
+            signalHandler, "media_ended", &MediaEndedCallback::stopDeadlineTimer, &mediaEndedCallback
         );
         OBSSignal mediaStoppedSignal(
-            signalHandler, "media_stopped", &StopDeadlineTimerCallback::stopDeadlineTimer, &callback
+            signalHandler, "media_stopped", &MediaEndedCallback::stopDeadlineTimer, &mediaEndedCallback
         );
         startObsSource(source);
 
-        co_await deadlineTimer.async_wait(asio::use_awaitable);
-    } catch (const boost::system::system_error&) {
-        // Timer cancelled by the media_ended signal
+        while (!mediaEndedCallback->mediaEnded) {
+            try {
+                co_await deadlineTimer.async_wait(asio::use_awaitable);
+                // We either hit the deadline of timer starting or timer ending.
+                break;
+            } catch (const boost::system::system_error&) {
+                // Timer cancelled by "media_started", "media_ended" or "media_stopped" signals.
+            }
+        }
+
+        mediaStartedCallback->enabled = mediaEndedCallback->enabled = false;
     }
 
     if (sourcePlayedByState[source] == state) {
         sourcePlayedByState.erase(source);
         stopObsSource(source);
     }
+
+    if (!mediaStartedCallback->mediaStarted) {
+        auto sourceName = obs_source_get_name(source);
+        log(LOG_ERROR, "Source failed to start in time: {}", sourceName);
+        throw ObsSourceNoVideoException(sourceName);
+    }
 }
 
-asio::deadline_timer RewardRedemptionQueue::createDeadlineTimer(obs_source_t* source) {
-    asio::deadline_timer deadlineTimer(rewardRedemptionQueueThread.ioContext);
-
+boost::posix_time::time_duration RewardRedemptionQueue::getMediaEndDeadline(obs_source_t* source) {
     std::int64_t durationMilliseconds = obs_source_media_get_duration(source);
     if (durationMilliseconds != -1) {
         std::int64_t deadlineMilliseconds = durationMilliseconds + durationMilliseconds / 2;
-        deadlineTimer.expires_from_now(boost::posix_time::milliseconds(deadlineMilliseconds));
+        return boost::posix_time::milliseconds(deadlineMilliseconds);
     } else {
-        deadlineTimer.expires_from_now(boost::posix_time::pos_infin);
+        return boost::posix_time::pos_infin;
     }
+}
 
-    return deadlineTimer;
+asio::awaitable<void> RewardRedemptionQueue::asyncTestObsSource(std::string obsSourceName, QObjectCallback& callback) {
+    try {
+        co_await asyncTestObsSource(obsSourceName);
+    } catch (const std::exception& exception) {
+        log(LOG_ERROR, "Exception in asyncTestObsSource: {}", exception.what());
+        callback("std::exception_ptr", std::current_exception());
+    }
+}
+
+asio::awaitable<void> RewardRedemptionQueue::asyncTestObsSource(const std::string& obsSourceName) {
+    OBSSourceAutoRelease obsSource = getObsSource(obsSourceName);
+    if (!obsSource) {
+        throw ObsSourceNotFoundException(obsSourceName);
+    }
+    co_await asyncPlayObsSource(std::move(obsSource));
 }
 
 OBSSourceAutoRelease RewardRedemptionQueue::getObsSource(const RewardRedemption& rewardRedemption) {

@@ -64,7 +64,8 @@ target_sources(
           src/RewardRedemptionWidget.h
           src/RewardRedemptionWidget.cpp
           src/RewardRedemptionQueueDialog.h
-          src/RewardRedemptionQueueDialog.cpp)
+          src/RewardRedemptionQueueDialog.cpp
+          src/QObjectCallback.h)
 
 # GCC ignores the "pragma GCC diagnostic ignored" in precompiled headers
 if(MSVC)

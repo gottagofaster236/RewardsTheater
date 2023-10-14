@@ -54,7 +54,8 @@ private slots:
     void saveReward();
     void showSaveRewardResult(std::variant<std::exception_ptr, Reward> result);
     void updateObsSourceComboBox();
-    void playObsSourceNow();
+    void testObsSource();
+    void showTestObsSourceException(std::exception_ptr exception);
 
 private:
     void showReward(const Reward& reward);

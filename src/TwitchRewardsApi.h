@@ -15,12 +15,9 @@
 
 #include "BoostAsio.h"
 #include "HttpClient.h"
+#include "QObjectCallback.h"
 #include "Reward.h"
 #include "TwitchAuth.h"
-
-namespace detail {
-class QObjectCallback;
-}
 
 class TwitchRewardsApi : public QObject {
     Q_OBJECT
@@ -84,11 +81,11 @@ signals:
     void onRewardsUpdated(const std::variant<std::exception_ptr, std::vector<Reward>>& newRewards);
 
 private:
-    boost::asio::awaitable<void> asyncCreateReward(RewardData rewardData, detail::QObjectCallback& callback);
-    boost::asio::awaitable<void> asyncUpdateReward(Reward rewardData, detail::QObjectCallback& callback);
+    boost::asio::awaitable<void> asyncCreateReward(RewardData rewardData, QObjectCallback& callback);
+    boost::asio::awaitable<void> asyncUpdateReward(Reward rewardData, QObjectCallback& callback);
     boost::asio::awaitable<void> asyncReloadRewards();
-    boost::asio::awaitable<void> asyncDeleteReward(Reward reward, detail::QObjectCallback& callback);
-    boost::asio::awaitable<void> asyncDownloadImage(boost::urls::url url, detail::QObjectCallback& callback);
+    boost::asio::awaitable<void> asyncDeleteReward(Reward reward, QObjectCallback& callback);
+    boost::asio::awaitable<void> asyncDownloadImage(boost::urls::url url, QObjectCallback& callback);
     boost::asio::awaitable<void> asyncUpdateRedemptionStatus(
         RewardRedemption rewardRedemption,
         RedemptionStatus status
@@ -112,37 +109,3 @@ private:
     HttpClient& httpClient;
     boost::asio::io_context& ioContext;
 };
-
-namespace detail {
-
-/// Calls a method on a QObject, or does nothing if the QObject no longer exists.
-class QObjectCallback : public QObject {
-    Q_OBJECT
-
-public:
-    QObjectCallback(TwitchRewardsApi* parent, QObject* receiver, const char* member);
-
-    template <typename Result>
-    void operator()(const char* typeName, const Result& result) {
-        qRegisterMetaType<Result>(typeName);
-        {
-            std::lock_guard guard(receiverMutex);
-            if (receiver) {
-                QMetaObject::invokeMethod(
-                    receiver, member, Qt::ConnectionType::QueuedConnection, QArgument(typeName, result)
-                );
-            }
-        }
-        deleteLater();
-    }
-
-private slots:
-    void clearReceiver();
-
-private:
-    QObject* receiver;
-    std::mutex receiverMutex;
-    const char* member;
-};
-
-}  // namespace detail

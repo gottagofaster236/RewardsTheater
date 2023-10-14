@@ -60,7 +60,7 @@ EditRewardDialog::EditRewardDialog(
     connect(ui->cancelButton, &QPushButton::clicked, this, &EditRewardDialog::close);
     connect(ui->backgroundColorButton, &QPushButton::clicked, this, &EditRewardDialog::showColorDialog);
     connect(ui->updateObsSourcesButton, &QToolButton::clicked, this, &EditRewardDialog::updateObsSourceComboBox);
-    connect(ui->playNowButton, &QToolButton::clicked, this, &EditRewardDialog::playObsSourceNow);
+    connect(ui->testObsSourceButton, &QToolButton::clicked, this, &EditRewardDialog::testObsSource);
     connect(&twitchAuth, &TwitchAuth::onUsernameChanged, this, &EditRewardDialog::showUploadCustomIconLabel);
 }
 
@@ -159,11 +159,30 @@ void EditRewardDialog::updateObsSourceComboBox() {
     showObsSourceComboBoxIcon();
 }
 
-void EditRewardDialog::playObsSourceNow() {
+void EditRewardDialog::testObsSource() {
     std::optional<std::string> obsSourceName = getObsSourceName();
     if (obsSourceName.has_value()) {
-        rewardRedemptionQueue.playObsSource(obsSourceName.value());
+        rewardRedemptionQueue.testObsSource(obsSourceName.value(), this, "showTestObsSourceException");
     }
+}
+
+void EditRewardDialog::showTestObsSourceException(std::exception_ptr exception) {
+    std::string message;
+    try {
+        std::rethrow_exception(exception);
+    } catch (const RewardRedemptionQueue::ObsSourceNotFoundException& exception) {
+        message = std::vformat(
+            obs_module_text("TestSourceCouldNotFindSource"), std::make_format_args(exception.obsSourceName)
+        );
+        updateObsSourceComboBox();
+    } catch (const RewardRedemptionQueue::ObsSourceNoVideoException& exception) {
+        message = std::vformat(
+            obs_module_text("TestSourcePleaseCheckVideoFile"), std::make_format_args(exception.obsSourceName)
+        );
+    } catch (const std::exception& exception) {
+        message = std::vformat(obs_module_text("TestSourceOther"), std::make_format_args(exception.what()));
+    }
+    errorMessageBox->show(message);
 }
 
 void EditRewardDialog::showReward(const Reward& reward) {
