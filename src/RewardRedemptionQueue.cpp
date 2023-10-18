@@ -224,7 +224,7 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(OBSSourceAutoRel
     unsigned state = playObsSourceState++;
     sourcePlayedByState[source] = state;
 
-    // Give one second for the source to start, otherwise stop it.
+    // Give some time for the source to start, otherwise stop it.
     asio::deadline_timer deadlineTimer(ioContext, boost::posix_time::milliseconds(500));
 
     auto mediaStartedCallback =
@@ -247,7 +247,7 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(OBSSourceAutoRel
         while (!mediaEndedCallback->mediaEnded) {
             try {
                 co_await deadlineTimer.async_wait(asio::use_awaitable);
-                // We either hit the deadline of timer starting or timer ending.
+                // We either hit the deadline of media starting or media ending.
                 break;
             } catch (const boost::system::system_error&) {
                 // Timer cancelled by "media_started", "media_ended" or "media_stopped" signals.

@@ -323,7 +323,7 @@ std::string TwitchAuth::getDoNotShowOnStreamPageUrl() {
 }
 
 std::string TwitchAuth::getDoNotShowOnStreamPageHtml(const std::string& csrfState) {
-    constexpr auto doNotShowOnStreamTemplate = R"(
+    static constexpr auto doNotShowOnStreamTemplate = R"(
         <!DOCTYPE html>
         <html>
         <head>
@@ -393,7 +393,7 @@ std::string TwitchAuth::getAuthRedirectPageUrl() {
 }
 
 std::string TwitchAuth::getAuthRedirectPageHtml() {
-    constexpr auto authRedirectPageTemplate = R"(
+    static constexpr auto authRedirectPageTemplate = R"(
         <html>
           <head>
             <meta charset="UTF-8">

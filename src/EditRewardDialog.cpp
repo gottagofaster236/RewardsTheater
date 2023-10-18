@@ -15,7 +15,7 @@
 #include "HttpClient.h"
 #include "ui_EditRewardDialog.h"
 
-constexpr std::array DEFAULT_COLORS{
+static constexpr std::array DEFAULT_COLORS{
     Color{0, 199, 172},
     Color{250, 179, 255},
     Color{189, 0, 120},
@@ -29,7 +29,7 @@ constexpr std::array DEFAULT_COLORS{
 };
 
 // Seconds, minutes, hours, days.
-constexpr std::array<std::int64_t, 4> COOLDOWN_TIME_UNITS{1, 60, 3600, 86400};
+static constexpr std::array<std::int64_t, 4> COOLDOWN_TIME_UNITS{1, 60, 3600, 86400};
 
 EditRewardDialog::EditRewardDialog(
     const std::optional<Reward>& originalReward,
