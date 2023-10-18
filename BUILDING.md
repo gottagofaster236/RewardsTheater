@@ -23,7 +23,12 @@ These steps are a continuation of the previous section on building.
 2. Clone the repository recursively via Git:
 
    ```git clone --recursive https://github.com/gottagofaster236/RewardsTheater```
-3. Run `sudo ./.github/scripts/build-linux.sh`
+3. Run
+   ```bash
+   export CC=gcc-13
+   export CXX=g++-13
+   sudo ./.github/scripts/build-linux.sh
+   ```
 
 ## GitHub Actions & CI
 
