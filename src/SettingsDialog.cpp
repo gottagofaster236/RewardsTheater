@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-3.0-only
 // Copyright (c) 2023, Lev Leontev
 
 #include "SettingsDialog.h"
