@@ -96,6 +96,10 @@ const char* TwitchRewardsApi::NotAffiliateException::what() const noexcept {
     return "NotAffiliateException";
 }
 
+const char* TwitchRewardsApi::RewardNotUpdatedException::what() const noexcept {
+    return "RewardNotUpdatedException";
+}
+
 TwitchRewardsApi::UnexpectedHttpStatusException::UnexpectedHttpStatusException(const boost::json::value& response)
     : message(serialize(response)) {}
 
@@ -225,6 +229,11 @@ boost::asio::awaitable<Reward> TwitchRewardsApi::asyncUpdateReward(const Reward&
     checkForSameRewardTitleException(response.json);
     if (response.status != http::status::ok) {
         throw UnexpectedHttpStatusException(response.json);
+    }
+
+    Reward updatedReward = parseReward(response.json.at("data").at(0), true);
+    if (updatedReward != reward) {
+        throw RewardNotUpdatedException();
     }
     co_return reward;
 }

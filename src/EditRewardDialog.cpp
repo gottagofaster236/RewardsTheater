@@ -138,6 +138,8 @@ void EditRewardDialog::showSaveRewardResult(std::variant<std::exception_ptr, Rew
         message = obs_module_text("CouldNotSaveRewardSameTitle");
     } catch (const TwitchRewardsApi::RewardCooldownTooLongException&) {
         message = obs_module_text("CouldNotSaveRewardCooldownTooLong");
+    } catch (const TwitchRewardsApi::RewardNotUpdatedException&) {
+        message = obs_module_text("CouldNotSaveRewardNotUpdated");
     } catch (const HttpClient::NetworkException&) {
         message = obs_module_text("CouldNotSaveRewardNetwork");
     } catch (const std::exception& exception) {
