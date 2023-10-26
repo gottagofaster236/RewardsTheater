@@ -23,6 +23,7 @@ struct Color {
 
 struct RewardData {
     std::string title;
+    std::string description;
     std::int32_t cost;
     bool isEnabled;
     Color backgroundColor;
@@ -43,6 +44,7 @@ struct Reward : RewardData {
     Reward(
         const std::string& id,
         const std::string& title,
+        const std::string& description,
         std::int32_t cost,
         const boost::urls::url& imageUrl,
         bool isEnabled,

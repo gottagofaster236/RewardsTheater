@@ -64,6 +64,7 @@ Reward TwitchRewardsApi::parsePubsubReward(const json::value& reward) {
     return Reward{
         value_to<std::string>(reward.at("id")),
         value_to<std::string>(reward.at("title")),
+        value_to<std::string>(reward.at("prompt")),
         value_to<std::int32_t>(reward.at("cost")),
         getImageUrl(reward),
         reward.at("is_enabled").as_bool(),
@@ -240,6 +241,7 @@ json::value TwitchRewardsApi::rewardDataToJson(const RewardData& rewardData) {
 
     return {
         {"title", rewardData.title},
+        {"prompt", rewardData.description},
         {"cost", rewardData.cost},
         {"is_enabled", rewardData.isEnabled},
         {"background_color", rewardData.backgroundColor.toHex()},
@@ -312,6 +314,7 @@ Reward TwitchRewardsApi::parseReward(const json::value& reward, bool isManageabl
     return Reward{
         value_to<std::string>(reward.at("id")),
         value_to<std::string>(reward.at("title")),
+        value_to<std::string>(reward.at("prompt")),
         value_to<std::int32_t>(reward.at("cost")),
         getImageUrl(reward),
         reward.at("is_enabled").as_bool(),

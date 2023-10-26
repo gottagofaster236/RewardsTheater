@@ -38,6 +38,7 @@ bool Reward::operator==(const Reward& other) const = default;
 Reward::Reward(
     const std::string& id,
     const std::string& title,
+    const std::string& description,
     std::int32_t cost,
     const boost::urls::url& imageUrl,
     bool isEnabled,
@@ -47,7 +48,7 @@ Reward::Reward(
     std::optional<std::int64_t> globalCooldownSeconds,
     bool canManage
 )
-    : RewardData{title, cost, isEnabled, backgroundColor, maxRedemptionsPerStream, maxRedemptionsPerUserPerStream, globalCooldownSeconds},
+    : RewardData{title, description, cost, isEnabled, backgroundColor, maxRedemptionsPerStream, maxRedemptionsPerUserPerStream, globalCooldownSeconds},
       id(id), imageUrl(imageUrl), canManage(canManage) {}
 
 Reward::Reward(const Reward& reward, const RewardData& newRewardData)

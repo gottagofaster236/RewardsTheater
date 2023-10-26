@@ -193,6 +193,7 @@ void EditRewardDialog::showTestObsSourceException(std::exception_ptr exception) 
 void EditRewardDialog::showReward(const Reward& reward) {
     ui->enabledCheckBox->setChecked(reward.isEnabled);
     ui->titleEdit->setText(QString::fromStdString(reward.title));
+    ui->descriptionEdit->setText(QString::fromStdString(reward.description));
     ui->costSpinBox->setValue(reward.cost);
     showSelectedColor(reward.backgroundColor);
     ui->limitRedemptionsPerStreamCheckBox->setChecked(reward.maxRedemptionsPerStream.has_value());
@@ -239,6 +240,7 @@ void EditRewardDialog::createConfirmDeleteReward(const Reward& reward) {
 void EditRewardDialog::disableInput() {
     ui->enabledCheckBox->setEnabled(false);
     ui->titleEdit->setEnabled(false);
+    ui->descriptionEdit->setEnabled(false);
     ui->costSpinBox->setEnabled(false);
     ui->backgroundColorButton->setEnabled(false);
     ui->limitRedemptionsPerStreamCheckBox->setEnabled(false);
@@ -320,6 +322,7 @@ std::optional<std::string> EditRewardDialog::getObsSourceName() {
 RewardData EditRewardDialog::getRewardData() {
     return RewardData{
         ui->titleEdit->text().toStdString(),
+        ui->descriptionEdit->text().toStdString(),
         ui->costSpinBox->value(),
         ui->enabledCheckBox->isChecked(),
         selectedColor,
