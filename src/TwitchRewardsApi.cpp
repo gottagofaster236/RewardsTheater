@@ -20,8 +20,13 @@ namespace asio = boost::asio;
 namespace http = boost::beast::http;
 namespace json = boost::json;
 
-TwitchRewardsApi::TwitchRewardsApi(TwitchAuth& twitchAuth, HttpClient& httpClient, asio::io_context& ioContext)
-    : twitchAuth(twitchAuth), httpClient(httpClient), ioContext(ioContext) {
+TwitchRewardsApi::TwitchRewardsApi(
+    TwitchAuth& twitchAuth,
+    HttpClient& httpClient,
+    Settings& settings,
+    asio::io_context& ioContext
+)
+    : twitchAuth(twitchAuth), httpClient(httpClient), settings(settings), ioContext(ioContext) {
     connect(&twitchAuth, &TwitchAuth::onUserChanged, this, &TwitchRewardsApi::reloadRewards);
 }
 
@@ -367,6 +372,8 @@ asio::awaitable<void> TwitchRewardsApi::asyncDeleteReward(const Reward& reward) 
     if (response.status != http::status::no_content) {
         throw UnexpectedHttpStatusException(response.json);
     }
+
+    settings.deleteReward(reward.id);
 }
 
 asio::awaitable<std::string> TwitchRewardsApi::asyncDownloadImage(const boost::urls::url& url) {

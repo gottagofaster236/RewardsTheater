@@ -23,7 +23,12 @@ class TwitchRewardsApi : public QObject {
     Q_OBJECT
 
 public:
-    TwitchRewardsApi(TwitchAuth& twitchAuth, HttpClient& httpClient, boost::asio::io_context& ioContext);
+    TwitchRewardsApi(
+        TwitchAuth& twitchAuth,
+        HttpClient& httpClient,
+        Settings& settings,
+        boost::asio::io_context& ioContext
+    );
     ~TwitchRewardsApi();
 
     // Calls the receiver with the created reward as std::variant<std::exception_ptr, Reward>.
@@ -117,5 +122,6 @@ private:
 
     TwitchAuth& twitchAuth;
     HttpClient& httpClient;
+    Settings& settings;
     boost::asio::io_context& ioContext;
 };
