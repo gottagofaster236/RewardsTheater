@@ -23,32 +23,33 @@ An [OBS](https://obsproject.com/) plugin that lets your viewers redeem videos or
 
 ## Setting up
 1. Download and run the installer for your operating system from [this link](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
-2. Add an OBS source for each video you want to play as a channel points reward. It has to be either Media Source or VLC Video Source. Select a video file for the source from your computer.
+2. RewardsTheater supports videos and sounds. The instructions are identical in both cases.
+3. Add an OBS source for each video you want to play as a channel points reward. It has to be either Media Source or VLC Video Source. Select a video file for the source from your computer.
    
    ![source](readme_images/source.png)
    
    Position the source on the scene in the way that you like. You can then hide the source, so that they it doesn't play every time you start OBS.
    
    ![hide](readme_images/hide.png)
-3. Then go to Tools → RewardsTheater.
+4. Then go to Tools → RewardsTheater.
    
    ![tools](readme_images/tools.png)
-4. You'll have to log into Twitch first by clicking the "Log in" button.
-5. After that, you can hit "Add reward". Select the source you added earlier as the Media Source for the reward. 
+5. You'll have to log into Twitch first by clicking the "Log in" button.
+6. After that, you can hit "Add reward". Select the source you added earlier as the Media Source for the reward. 
 **Hit "Test source" in order to test whether the source will work.**
  Due to the limitations of Twitch API, if you want to upload a custom icon, you're gonna have to do this inside the browser.
    
    ![add_reward](readme_images/add_reward.png)
 
-6. You can edit the reward later by clicking on it in the Tools → RewardsTheater menu.
+7. You can edit the reward later by clicking on it in the Tools → RewardsTheater menu.
 
    ![settings](readme_images/settings.png)
    
-7. During stream, you can monitor the reward queue if there's a lot of redemptions at the same time and cancel them by clicking the cross button. The viewer's channel points are refunded if you cancel a reward.
+8. During stream, you can monitor the reward queue if there's a lot of redemptions at the same time and cancel them by clicking the cross button. The viewer's channel points are refunded if you cancel a reward.
 
    ![rewards_queue](readme_images/rewards_queue.png)
 
-8. You can click "Pause reward playback" on the main settings screen if you don't want the videos playing for some time. During this time, the user will get their points refunded as well.
+9. You can click "Pause reward playback" on the main settings screen if you don't want the videos playing for some time. During this time, the user will get their points refunded as well.
 
 ## Supporting the developer
 If you liked my work, please leave a star on the GitHub repository 🙂
