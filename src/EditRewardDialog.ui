@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>661</width>
-    <height>521</height>
+    <height>531</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -61,8 +61,8 @@
   <widget class="QPushButton" name="saveButton">
    <property name="geometry">
     <rect>
-     <x>110</x>
-     <y>470</y>
+     <x>100</x>
+     <y>480</y>
      <width>171</width>
      <height>31</height>
     </rect>
@@ -75,7 +75,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>470</y>
+     <y>480</y>
      <width>171</width>
      <height>31</height>
     </rect>
@@ -88,7 +88,7 @@
    <property name="geometry">
     <rect>
      <x>290</x>
-     <y>470</y>
+     <y>480</y>
      <width>171</width>
      <height>31</height>
     </rect>
@@ -153,7 +153,7 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>295</y>
+     <y>320</y>
      <width>341</width>
      <height>31</height>
     </rect>
@@ -166,7 +166,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>295</y>
+     <y>320</y>
      <width>71</width>
      <height>31</height>
     </rect>
@@ -182,7 +182,7 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>335</y>
+     <y>360</y>
      <width>341</width>
      <height>31</height>
     </rect>
@@ -195,7 +195,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>335</y>
+     <y>360</y>
      <width>71</width>
      <height>31</height>
     </rect>
@@ -211,9 +211,9 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>370</y>
+     <y>390</y>
      <width>341</width>
-     <height>41</height>
+     <height>51</height>
     </rect>
    </property>
    <property name="text">
@@ -224,7 +224,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>375</y>
+     <y>400</y>
      <width>71</width>
      <height>31</height>
     </rect>
@@ -240,7 +240,7 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>420</y>
+     <y>440</y>
      <width>341</width>
      <height>31</height>
     </rect>
@@ -262,7 +262,7 @@
    <property name="geometry">
     <rect>
      <x>550</x>
-     <y>335</y>
+     <y>360</y>
      <width>91</width>
      <height>31</height>
     </rect>
@@ -275,7 +275,7 @@
    <property name="geometry">
     <rect>
      <x>550</x>
-     <y>295</y>
+     <y>320</y>
      <width>91</width>
      <height>31</height>
     </rect>
@@ -383,7 +383,7 @@
    <property name="geometry">
     <rect>
      <x>550</x>
-     <y>375</y>
+     <y>400</y>
      <width>91</width>
      <height>31</height>
     </rect>
@@ -436,6 +436,19 @@
    </property>
    <property name="maxLength">
     <number>200</number>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="enableRandomPositionCheckBox">
+   <property name="geometry">
+    <rect>
+     <x>130</x>
+     <y>280</y>
+     <width>341</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>EnableRandomPosition</string>
    </property>
   </widget>
  </widget>

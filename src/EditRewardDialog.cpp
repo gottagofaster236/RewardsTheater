@@ -111,7 +111,7 @@ void EditRewardDialog::saveReward() {
         Reward newReward(originalReward.value(), rewardData);
         twitchRewardsApi.updateReward(newReward, this, "showSaveRewardResult");
     } else {
-        settings.setObsSourceName(originalReward.value().id, getObsSourceName());
+        saveLocalRewardSettings(originalReward.value().id);
         close();
     }
 }
@@ -119,7 +119,7 @@ void EditRewardDialog::saveReward() {
 void EditRewardDialog::showSaveRewardResult(std::variant<std::exception_ptr, Reward> result) {
     if (std::holds_alternative<Reward>(result)) {
         Reward reward = std::get<Reward>(result);
-        settings.setObsSourceName(reward.id, getObsSourceName());
+        saveLocalRewardSettings(reward.id);
         emit onRewardSaved(reward);
         close();
         return;
@@ -198,6 +198,7 @@ void EditRewardDialog::showReward(const Reward& reward) {
     ui->descriptionEdit->setText(QString::fromStdString(reward.description));
     ui->costSpinBox->setValue(reward.cost);
     showSelectedColor(reward.backgroundColor);
+    ui->enableRandomPositionCheckBox->setChecked(settings.isRandomPositionEnabled(reward.id));
     ui->limitRedemptionsPerStreamCheckBox->setChecked(reward.maxRedemptionsPerStream.has_value());
     ui->limitRedemptionsPerStreamSpinBox->setValue(reward.maxRedemptionsPerStream.value_or(1));
     ui->limitRedemptionsPerUserPerStreamCheckBox->setChecked(reward.maxRedemptionsPerUserPerStream.has_value());
@@ -347,4 +348,9 @@ std::optional<std::int64_t> EditRewardDialog::getOptionalSetting(QCheckBox* chec
     } else {
         return {};
     }
+}
+
+void EditRewardDialog::saveLocalRewardSettings(const std::string& rewardId) {
+    settings.setObsSourceName(rewardId, getObsSourceName());
+    settings.setRandomPositionEnabled(rewardId, ui->enableRandomPositionCheckBox->isChecked());
 }
