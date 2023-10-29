@@ -24,13 +24,17 @@ An [OBS](https://obsproject.com/) plugin that lets your viewers redeem videos or
 ## Setting up
 1. Download and run the installer for your operating system from [this link](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
 2. RewardsTheater supports videos and sounds. The instructions are identical in both cases.
-3. Add an OBS source for each video you want to play as a channel points reward. It has to be either Media Source or VLC Video Source. Select a video file for the source from your computer.
+3. - Add an OBS source for each video you want to play as a channel points reward. It has to be either Media Source or VLC Video Source:
+     
+     ![source](readme_images/source.png)
+   - Select a video file for the source from your computer.
+   - Position the source on the scene in the way that you like.
+   - If you want the video to appear and hide smoothly, you can select a transition for the source:
    
-   ![source](readme_images/source.png)
-   
-   Position the source on the scene in the way that you like. You can then hide the source, so that they it doesn't play every time you start OBS.
-   
-   ![hide](readme_images/hide.png)
+     ![transition](readme_images/transition.png)
+   - Then hide the source, so that it doesn't play every time you start OBS:
+     
+     ![hide](readme_images/hide.png)
 4. Then go to Tools → RewardsTheater.
    
    ![tools](readme_images/tools.png)
@@ -38,6 +42,7 @@ An [OBS](https://obsproject.com/) plugin that lets your viewers redeem videos or
 6. After that, you can hit "Add reward". Select the source you added earlier as the Media Source for the reward. 
 **Hit "Test source" in order to test whether the source will work.**
  Due to the limitations of Twitch API, if you want to upload a custom icon, you're gonna have to do this inside the browser.
+
    
    ![add_reward](readme_images/add_reward.png)
 
