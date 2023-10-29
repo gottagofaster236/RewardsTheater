@@ -425,8 +425,10 @@ asio::awaitable<void> RewardRedemptionQueue::asyncHideObsSource(obs_source_t* so
             }
 
             obs_sceneitem_set_visible(sceneItem, false);
-            hideTransitionDurationMs =
-                std::max(hideTransitionDurationMs, obs_sceneitem_get_transition_duration(sceneItem, false));
+            if (obs_sceneitem_get_transition(sceneItem, false)) {
+                hideTransitionDurationMs =
+                    std::max(hideTransitionDurationMs, obs_sceneitem_get_transition_duration(sceneItem, false));
+            }
             return true;
         }
     } callback(source);

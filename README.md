@@ -27,11 +27,11 @@ An [OBS](https://obsproject.com/) plugin that lets your viewers redeem videos or
 3. - Add an OBS source for each video you want to play as a channel points reward. It has to be either Media Source or VLC Video Source:
      
      ![source](readme_images/source.png)
-   - Select a video file for the source from your computer.
-   - Position the source on the scene in the way that you like.
-   - If you want the video to appear and hide smoothly, you can select a transition for the source:
-   
+   - Select a video file for the source from your computer. If you want the video to appear and hide smoothly, uncheck "Show nothing when playback ends" and select show/hide transitions for the source:
+     
+     ![media_source](readme_images/media_source.png)
      ![transition](readme_images/transition.png)
+   - Position the source on the scene in the way that you like.
    - Then hide the source, so that it doesn't play every time you start OBS:
      
      ![hide](readme_images/hide.png)

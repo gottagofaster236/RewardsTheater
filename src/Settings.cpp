@@ -156,6 +156,7 @@ std::string getRandomPositionEnabledKey(const std::string& rewardId) {
 std::string getLastVideoWidthKey(const std::string& rewardId) {
     return rewardId + LAST_VIDEO_WIDTH_KEY;
 }
+
 std::string getLastVideoHeightKey(const std::string& rewardId) {
     return rewardId + LAST_VIDEO_HEIGHT_KEY;
 }
