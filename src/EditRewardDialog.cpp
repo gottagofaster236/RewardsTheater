@@ -168,9 +168,24 @@ void EditRewardDialog::updateObsSourceComboBox() {
 
 void EditRewardDialog::testObsSource() {
     std::optional<std::string> obsSourceName = getObsSourceName();
-    if (obsSourceName.has_value()) {
-        rewardRedemptionQueue.testObsSource(obsSourceName.value(), this, "showTestObsSourceException");
+    if (!obsSourceName.has_value()) {
+        return;
     }
+
+    std::string rewardId;
+    if (originalReward.has_value()) {
+        rewardId = originalReward.value().id;
+    } else {
+        rewardId = "new";
+    }
+
+    rewardRedemptionQueue.testObsSource(
+        rewardId,
+        obsSourceName.value(),
+        ui->enableRandomPositionCheckBox->isChecked(),
+        this,
+        "showTestObsSourceException"
+    );
 }
 
 void EditRewardDialog::showTestObsSourceException(std::exception_ptr exception) {

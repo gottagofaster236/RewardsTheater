@@ -6,6 +6,7 @@
 #include <util/config-file.h>
 
 #include <cstdint>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <utility>
@@ -31,14 +32,25 @@ public:
     bool isRandomPositionEnabled(const std::string& rewardId) const;
     void setRandomPositionEnabled(const std::string& rewardId, bool randomPositionEnabled);
 
-    std::optional<std::pair<std::uint32_t, std::uint32_t>> getLastVideoSize(const std::string& rewardId) const;
+    // We can't get the video size of a Media Source while it's not playing, thus, we save the size while it is playing.
+    std::optional<std::pair<std::uint32_t, std::uint32_t>> getLastVideoSize(
+        const std::string& rewardId,
+        const std::string& obsSourceName
+    ) const;
     void setLastVideoSize(
         const std::string& rewardId,
+        const std::string& obsSourceName,
         const std::optional<std::pair<std::uint32_t, std::uint32_t>>& lastVideoSize
     );
 
     void deleteReward(const std::string& rewardId);
 
 private:
+    std::string getLastObsSourceName(const std::string& rewardId) const;
+    void setLastObsSourceName(const std::string& rewardId, const std::string& lastObsSource);
+
     config_t* config;
+    // config_get_string returns a char* which we copy to a std::string.
+    // But that char* can be freed - therefore we need a mutex for string get/set operations.
+    mutable std::recursive_mutex configMutex;
 };
