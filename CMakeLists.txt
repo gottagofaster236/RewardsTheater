@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 cmake_policy(SET CMP0111 OLD)
 
-project(RewardsTheater VERSION 1.0.2)
+project(RewardsTheater VERSION 1.0.3)
 add_library(${CMAKE_PROJECT_NAME} MODULE)
 
 # Replace `Your Name Here` with the name (yours or your organization's) you want to see as the
