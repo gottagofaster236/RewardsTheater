@@ -104,10 +104,16 @@ private:
         static void stopDeadlineTimer(void* param, calldata_t* data);
     };
 
-    void checkMediaStarted(SourcePlayback& sourcePlayback, MediaStartedCallback& mediaStartedCallback);
+    boost::asio::awaitable<void> asyncCheckMediaStarted(
+        SourcePlayback& sourcePlayback,
+        MediaStartedCallback& mediaStartedCallback
+    );
     void saveLastVideoSize(SourcePlayback& sourcePlayback);
     boost::posix_time::time_duration getMediaEndDeadline(obs_source_t* source);
-    void stopObsSourceIfPlayedByState(SourcePlayback& sourcePlayback);
+    boost::asio::awaitable<void> asyncStopObsSourceIfPlayedByState(
+        SourcePlayback& sourcePlayback,
+        bool waitForHideTransition
+    );
 
     boost::asio::awaitable<void> asyncTestObsSource(
         std::string rewardId,
@@ -125,8 +131,12 @@ private:
     OBSSourceAutoRelease getObsSource(const std::string& sourceName);
 
     void startObsSource(SourcePlayback& sourcePlayback);
-    void stopObsSource(SourcePlayback& sourcePlayback);
-    void setSourceVisible(SourcePlayback& sourcePlayback, bool visible);
+    void showObsSource(SourcePlayback& sourcePlayback);
+    boost::asio::awaitable<void> asyncStopObsSource(obs_source_t* source, bool waitForHideTransition);
+    boost::asio::awaitable<void> asyncHideObsSource(obs_source_t* source, bool waitForHideTransition);
+    void restoreSourcePosition(obs_source_t* source);
+    static obs_sceneitem_t* findObsSource(obs_scene_t* scene, obs_source_t* source);
+
     static void setSourceRandomPosition(
         const std::string& rewardId,
         obs_scene_t* scene,

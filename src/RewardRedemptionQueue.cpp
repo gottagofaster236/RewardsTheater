@@ -252,14 +252,14 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(
     try {
         co_await deadlineTimer.async_wait(asio::use_awaitable);
     } catch (const boost::system::system_error&) {}
-    checkMediaStarted(sourcePlayback, *mediaStartedCallback);
+    co_await asyncCheckMediaStarted(sourcePlayback, *mediaStartedCallback);
     saveLastVideoSize(sourcePlayback);
 
     deadlineTimer.expires_from_now(getMediaEndDeadline(source));
     try {
         co_await deadlineTimer.async_wait(asio::use_awaitable);
     } catch (const boost::system::system_error&) {}
-    stopObsSourceIfPlayedByState(sourcePlayback);
+    co_await asyncStopObsSourceIfPlayedByState(sourcePlayback, true);
 }
 
 void RewardRedemptionQueue::MediaStartedCallback::setMediaStarted(void* param, [[maybe_unused]] calldata_t* data) {
@@ -281,12 +281,12 @@ void RewardRedemptionQueue::MediaEndedCallback::stopDeadlineTimer(void* param, [
     });
 }
 
-void RewardRedemptionQueue::checkMediaStarted(
+boost::asio::awaitable<void> RewardRedemptionQueue::asyncCheckMediaStarted(
     SourcePlayback& sourcePlayback,
     MediaStartedCallback& mediaStartedCallback
 ) {
     if (!mediaStartedCallback.mediaStarted) {
-        stopObsSourceIfPlayedByState(sourcePlayback);
+        co_await asyncStopObsSourceIfPlayedByState(sourcePlayback, false);
         auto sourceName = obs_source_get_name(sourcePlayback.source);
         log(LOG_ERROR, "Source failed to start in time: {}", sourceName);
         throw ObsSourceNoVideoException(sourceName);
@@ -314,11 +314,15 @@ boost::posix_time::time_duration RewardRedemptionQueue::getMediaEndDeadline(obs_
     }
 }
 
-void RewardRedemptionQueue::stopObsSourceIfPlayedByState(SourcePlayback& sourcePlayback) {
-    if (sourcePlayedByState[sourcePlayback.source] == sourcePlayback.state) {
-        stopObsSource(sourcePlayback);
-        sourcePlayedByState.erase(sourcePlayback.source);
-        sourcePositionOnScenes.erase(sourcePlayback.source);
+asio::awaitable<void> RewardRedemptionQueue::asyncStopObsSourceIfPlayedByState(
+    SourcePlayback& sourcePlayback,
+    bool waitForHideTransition
+) {
+    obs_source_t* source = sourcePlayback.source;
+    if (sourcePlayedByState[source] == sourcePlayback.state) {
+        co_await asyncStopObsSource(source, waitForHideTransition);
+        sourcePlayedByState.erase(source);
+        sourcePositionOnScenes.erase(source);
     }
 }
 
@@ -365,55 +369,102 @@ OBSSourceAutoRelease RewardRedemptionQueue::getObsSource(const std::string& obsS
 }
 
 void RewardRedemptionQueue::startObsSource(SourcePlayback& sourcePlayback) {
-    setSourceVisible(sourcePlayback, true);
+    showObsSource(sourcePlayback);
     obs_source_media_restart(sourcePlayback.source);
 }
 
-void RewardRedemptionQueue::stopObsSource(SourcePlayback& sourcePlayback) {
-    obs_source_media_stop(sourcePlayback.source);
-    setSourceVisible(sourcePlayback, false);
-}
-
-void RewardRedemptionQueue::setSourceVisible(SourcePlayback& sourcePlayback, bool visible) {
-    struct SetSourceVisibleCallback {
+void RewardRedemptionQueue::showObsSource(SourcePlayback& sourcePlayback) {
+    struct ShowObsSourceCallback {
         SourcePlayback& sourcePlayback;
-        bool visible;
         std::map<std::string, vec2>& sourcePositionOnScenes;
         Settings& settings;
         std::default_random_engine& randomEngine;
 
-        static bool setSourceVisibleOnScene(void* param, obs_source_t* sceneSource) {
-            auto& [sourcePlayback, visible, sourcePositionOnScenes, settings, randomEngine] =
-                *static_cast<SetSourceVisibleCallback*>(param);
+        static bool showObsSourceOnScene(void* param, obs_source_t* sceneSource) {
+            auto& [sourcePlayback, sourcePositionOnScenes, settings, randomEngine] =
+                *static_cast<ShowObsSourceCallback*>(param);
             obs_scene_t* scene = obs_scene_from_source(sceneSource);
             std::string sceneUuid = obs_source_get_uuid(sceneSource);
-
-            obs_sceneitem_t* sceneItem =
-                obs_scene_find_source_recursive(scene, obs_source_get_name(sourcePlayback.source));
+            obs_sceneitem_t* sceneItem = findObsSource(scene, sourcePlayback.source);
             if (!sceneItem) {
                 return true;
             }
 
-            if (visible) {
+            if (sourcePlayback.randomPositionEnabled) {
                 if (!sourcePositionOnScenes.contains(sceneUuid)) {
                     sourcePositionOnScenes[sceneUuid] = getSourcePosition(scene, sceneItem);
                 }
-                if (sourcePlayback.randomPositionEnabled) {
-                    RewardRedemptionQueue::setSourceRandomPosition(
-                        sourcePlayback.rewardId, scene, sceneItem, settings, randomEngine
-                    );
-                }
-                obs_sceneitem_set_visible(sceneItem, true);
-            } else {
-                obs_sceneitem_set_visible(sceneItem, false);
-                setSourcePosition(scene, sceneItem, sourcePositionOnScenes[sceneUuid]);
+                RewardRedemptionQueue::setSourceRandomPosition(
+                    sourcePlayback.rewardId, scene, sceneItem, settings, randomEngine
+                );
             }
-
+            obs_sceneitem_set_visible(sceneItem, true);
             return true;
         }
-    } callback(sourcePlayback, visible, sourcePositionOnScenes[sourcePlayback.source], settings, randomEngine);
+    } callback(sourcePlayback, sourcePositionOnScenes[sourcePlayback.source], settings, randomEngine);
 
-    obs_enum_scenes(&SetSourceVisibleCallback::setSourceVisibleOnScene, &callback);
+    obs_enum_scenes(&ShowObsSourceCallback::showObsSourceOnScene, &callback);
+}
+
+asio::awaitable<void> RewardRedemptionQueue::asyncStopObsSource(obs_source_t* source, bool waitForHideTransition) {
+    co_await asyncHideObsSource(source, waitForHideTransition);
+    obs_source_media_stop(source);
+}
+
+asio::awaitable<void> RewardRedemptionQueue::asyncHideObsSource(obs_source_t* source, bool waitForHideTransition) {
+    struct HideObsSourceCallback {
+        obs_source_t* source;
+        uint32_t hideTransitionDurationMs = 0;
+
+        static bool hideObsSourceOnScene(void* param, obs_source_t* sceneSource) {
+            auto& [source, hideTransitionDurationMs] = *static_cast<HideObsSourceCallback*>(param);
+            obs_scene_t* scene = obs_scene_from_source(sceneSource);
+            obs_sceneitem_t* sceneItem = findObsSource(scene, source);
+            if (!sceneItem) {
+                return false;
+            }
+
+            obs_sceneitem_set_visible(sceneItem, false);
+            hideTransitionDurationMs =
+                std::max(hideTransitionDurationMs, obs_sceneitem_get_transition_duration(sceneItem, false));
+            return true;
+        }
+    } callback(source);
+
+    obs_enum_scenes(&HideObsSourceCallback::hideObsSourceOnScene, &callback);
+
+    if (waitForHideTransition) {
+        std::chrono::milliseconds hideTransitionDuration{callback.hideTransitionDurationMs};
+        co_await asio::steady_timer(ioContext, hideTransitionDuration).async_wait(asio::use_awaitable);
+    }
+    restoreSourcePosition(source);
+}
+
+void RewardRedemptionQueue::restoreSourcePosition(obs_source_t* source) {
+    struct RestoreSourcePositionCallback {
+        obs_source_t* source;
+        std::map<std::string, vec2>& sourcePositionOnScenes;
+
+        static bool restoreSourcePositionOnScene(void* param, obs_source_t* sceneSource) {
+            auto& [source, sourcePositionOnScenes] = *static_cast<RestoreSourcePositionCallback*>(param);
+            obs_scene_t* scene = obs_scene_from_source(sceneSource);
+            std::string sceneUuid = obs_source_get_uuid(sceneSource);
+            if (!sourcePositionOnScenes.contains(sceneUuid)) {
+                return true;
+            }
+            obs_sceneitem_t* sceneItem = findObsSource(scene, source);
+            if (sceneItem) {
+                setSourcePosition(scene, sceneItem, sourcePositionOnScenes[sceneUuid]);
+            }
+            return true;
+        }
+    } callback(source, sourcePositionOnScenes[source]);
+
+    obs_enum_scenes(&RestoreSourcePositionCallback::restoreSourcePositionOnScene, &callback);
+}
+
+obs_sceneitem_t* RewardRedemptionQueue::findObsSource(obs_scene_t* scene, obs_source_t* source) {
+    return obs_scene_find_source_recursive(scene, obs_source_get_name(source));
 }
 
 void RewardRedemptionQueue::setSourceRandomPosition(
