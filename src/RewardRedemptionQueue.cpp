@@ -421,7 +421,7 @@ asio::awaitable<void> RewardRedemptionQueue::asyncHideObsSource(obs_source_t* so
             obs_scene_t* scene = obs_scene_from_source(sceneSource);
             obs_sceneitem_t* sceneItem = findObsSource(scene, source);
             if (!sceneItem) {
-                return false;
+                return true;
             }
 
             obs_sceneitem_set_visible(sceneItem, false);
