@@ -49,12 +49,14 @@ An [OBS](https://obsproject.com/) plugin that lets your viewers redeem videos or
 7. You can edit the reward later by clicking on it in the Tools → RewardsTheater menu.
 
    ![settings](readme_images/settings.png)
-   
-8. During stream, you can monitor the reward queue if there's a lot of redemptions at the same time and cancel them by clicking the cross button. The viewer's channel points are refunded if you cancel a reward.
+
+8. If there are a lot of rewards, you can put the media sources onto a separate scene, and add that scene to other scenes.
+
+9. During stream, you can monitor the reward queue if there's a lot of redemptions at the same time and cancel them by clicking the cross button. The viewer's channel points are refunded if you cancel a reward.
 
    ![rewards_queue](readme_images/rewards_queue.png)
 
-9. You can click "Pause reward playback" on the main settings screen if you don't want the videos playing for some time. During this time, the user will get their points refunded as well.
+10. You can click "Pause reward playback" on the main settings screen if you don't want the videos playing for some time. During this time, the user will get their points refunded as well.
 
 ## Supporting the developer
 If you liked my work, please leave a star on the GitHub repository 🙂
