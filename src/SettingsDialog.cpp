@@ -135,7 +135,9 @@ void SettingsDialog::showAddRewardDialog() {
 
 void SettingsDialog::showUpdateAvailableLink() {
     showRewardsTheaterLink(
-        obs_module_text("UpdateAvailable"), "https://github.com/gottagofaster236/RewardsTheater/releases/latest"
+        obs_module_text("UpdateAvailable"),
+        "https://github.com/gottagofaster236/RewardsTheater/releases/latest",
+        "#ff3639"
     );
 }
 
@@ -234,8 +236,21 @@ void SettingsDialog::showGithubLink() {
     showRewardsTheaterLink(obs_module_text("GitHub"), "https://github.com/gottagofaster236/RewardsTheater");
 }
 
-void SettingsDialog::showRewardsTheaterLink(const std::string& linkText, const std::string& url) {
-    std::string updateAvailableLink =
-        std::format("{} <a href=\"{}\">{}</a>", obs_module_text("RewardsTheater"), url, linkText);
-    ui->titleLabel->setText(QString::fromStdString(updateAvailableLink));
+void SettingsDialog::showRewardsTheaterLink(
+    const std::string& linkText,
+    const std::string& url,
+    std::optional<std::string> linkColor
+) {
+    std::string rewardsTheaterLink;
+
+    std::string rewardsTheater = obs_module_text("RewardsTheater");
+    if (linkColor.has_value()) {
+        rewardsTheaterLink = std::format(
+            "{} <a href=\"{}\"><font color=\"{}\">{}</font></a>", rewardsTheater, url, linkColor.value(), linkText
+        );
+    } else {
+        rewardsTheaterLink = std::format("{} <a href=\"{}\">{}</a>", rewardsTheater, url, linkText);
+    }
+
+    ui->titleLabel->setText(QString::fromStdString(rewardsTheaterLink));
 }

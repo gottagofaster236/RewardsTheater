@@ -47,7 +47,11 @@ private:
     void showRewardWidgets();
     void showRewardLoadException(std::exception_ptr exception);
     void showGithubLink();
-    void showRewardsTheaterLink(const std::string& linkText, const std::string& url);
+    void showRewardsTheaterLink(
+        const std::string& linkText,
+        const std::string& url,
+        std::optional<std::string> linkColor = {}
+    );
 
     RewardsTheaterPlugin& plugin;
     std::unique_ptr<Ui::SettingsDialog> ui;
