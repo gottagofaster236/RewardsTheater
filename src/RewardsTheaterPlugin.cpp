@@ -13,6 +13,8 @@
 #include <memory>
 #include <thread>
 
+#include "Log.h"
+#include "RewardsTheaterVersion.generated.h"
 #include "SettingsDialog.h"
 
 // https://dev.twitch.tv/docs/authentication/register-app/
@@ -33,6 +35,7 @@ RewardsTheaterPlugin::RewardsTheaterPlugin()
       twitchRewardsApi(twitchAuth, httpClient, settings, ioThreadPool.ioContext),
       githubUpdateApi(httpClient, ioThreadPool.ioContext), rewardRedemptionQueue(settings, twitchRewardsApi),
       pubsubListener(twitchAuth, rewardRedemptionQueue) {
+    log(LOG_INFO, "Loading plugin, version {}", REWARDS_THEATER_VERSION);
     QMainWindow* mainWindow = static_cast<QMainWindow*>(obs_frontend_get_main_window());
 
     obs_frontend_push_ui_translation(obs_module_get_string);
