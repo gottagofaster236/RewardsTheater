@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <exception>
+
 #include "GithubUpdateApi.h"
 #include "HttpClient.h"
 #include "IoThreadPool.h"
@@ -22,7 +24,13 @@ public:
     GithubUpdateApi& getGithubUpdateApi();
     RewardRedemptionQueue& getRewardRedemptionQueue();
 
+    class UnsupportedObsVersionException : public std::exception {
+        const char* what() const noexcept override;
+    };
+
 private:
+    void checkMinObsVersion();
+
     Settings settings;
     IoThreadPool ioThreadPool;
     HttpClient httpClient;

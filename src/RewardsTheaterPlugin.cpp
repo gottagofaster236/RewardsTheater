@@ -9,7 +9,9 @@
 
 #include <QAction>
 #include <QMainWindow>
+#include <QMessageBox>
 #include <algorithm>
+#include <format>
 #include <memory>
 #include <thread>
 
@@ -21,6 +23,9 @@
 static const char* const TWITCH_CLIENT_ID = "2u4jgrdekf0pwdpq7cmqcarifv93z3";
 // Use several ports to minimize the probability of collision between several running OBS instances.
 static constexpr std::array AUTH_SERVER_PORTS = {19910, 19911, 19912, 19913, 19914, 19915, 19916, 19917, 19918, 19919};
+
+static const int MIN_OBS_VERSION = 486604802;
+static const char* const MIN_OBS_VERSION_STRING = "29.1.2";
 
 RewardsTheaterPlugin::RewardsTheaterPlugin()
     : settings(obs_frontend_get_global_config()), ioThreadPool(std::max(2u, std::thread::hardware_concurrency())),
@@ -36,6 +41,8 @@ RewardsTheaterPlugin::RewardsTheaterPlugin()
       githubUpdateApi(httpClient, ioThreadPool.ioContext), rewardRedemptionQueue(settings, twitchRewardsApi),
       pubsubListener(twitchAuth, rewardRedemptionQueue) {
     log(LOG_INFO, "Loading plugin, version {}", REWARDS_THEATER_VERSION);
+    checkMinObsVersion();
+
     QMainWindow* mainWindow = static_cast<QMainWindow*>(obs_frontend_get_main_window());
 
     obs_frontend_push_ui_translation(obs_module_get_string);
@@ -73,4 +80,19 @@ GithubUpdateApi& RewardsTheaterPlugin::getGithubUpdateApi() {
 
 RewardRedemptionQueue& RewardsTheaterPlugin::getRewardRedemptionQueue() {
     return rewardRedemptionQueue;
+}
+
+void RewardsTheaterPlugin::checkMinObsVersion() {
+    if (obs_get_version() < MIN_OBS_VERSION) {
+        std::string message = std::vformat(
+            obs_module_text("ObsVersionUnsupported"),
+            std::make_format_args(MIN_OBS_VERSION_STRING, obs_get_version_string())
+        );
+        QMessageBox::critical(nullptr, obs_module_text("RewardsTheater"), QString::fromStdString(message));
+        throw UnsupportedObsVersionException();
+    }
+}
+
+const char* RewardsTheaterPlugin::UnsupportedObsVersionException::what() const noexcept {
+    return "UnsupportedObsVersionException";
 }

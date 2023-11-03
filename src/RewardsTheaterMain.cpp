@@ -21,6 +21,9 @@ bool obs_module_load(void) {
     } catch (const std::exception& exception) {
         log(LOG_ERROR, "Error while loading RewardsTheater: {}", exception.what());
         return false;
+    } catch (...) {
+        log(LOG_ERROR, "Unknown error while loading RewardsTheater.");
+        return false;
     }
 }
 
