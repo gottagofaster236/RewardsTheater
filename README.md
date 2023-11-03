@@ -2,6 +2,9 @@
 
 An [OBS](https://obsproject.com/) plugin that lets your viewers redeem videos or sounds on stream via Twitch Channel Points.
 
+[Watch this video](https://youtu.be/-0evZCAlXVU) on how to set everything up.
+Or you can read the full instructions below.
+
 [Прочитати українською тут](README_uk.md)
 
 ## How's this better than [TR!GGER FYRE](https://overlays.thefyrewire.com/widgets/triggerfyre/)?

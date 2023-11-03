@@ -2,6 +2,9 @@
 
 Плагін до [OBS](https://obsproject.com/), який дозволяє твоїм глядачам замовляти відео та звуки на стримі за бали каналу.
 
+[Подивись це відео](https://youtu.be/-0evZCAlXVU) (якщо знаєш англійську) про те, як усе налаштувати. 
+Або можна прочитати повні інструкції нижче.
+
 [Read in English here](README.md)
 
 ## Чим він кращий ніж [TR!GGER FYRE](https://overlays.thefyrewire.com/widgets/triggerfyre/)?
