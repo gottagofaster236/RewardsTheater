@@ -238,6 +238,11 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(
     ObsSignalWithCallback mediaStartedSignal(
         source, "media_started", &MediaStartedCallback::setMediaStarted, mediaStartedCallback
     );
+
+    SourcePlayback sourcePlayback{state, rewardId, source, randomPositionEnabled};
+    startObsSource(sourcePlayback);
+
+    // Source may be stopped while we are starting it - therefore, register the signals later.
     ObsSignalWithCallback mediaEndedSignal(
         source, "media_ended", &MediaEndedCallback::stopDeadlineTimer, mediaEndedCallback
     );
@@ -245,8 +250,6 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(
         source, "media_stopped", &MediaEndedCallback::stopDeadlineTimer, mediaEndedCallback
     );
 
-    SourcePlayback sourcePlayback{state, rewardId, source, randomPositionEnabled};
-    startObsSource(sourcePlayback);
     // Give some time for the source to start, otherwise stop it.
     deadlineTimer.expires_from_now(boost::posix_time::milliseconds(500));
     try {
@@ -369,8 +372,46 @@ OBSSourceAutoRelease RewardRedemptionQueue::getObsSource(const std::string& obsS
 }
 
 void RewardRedemptionQueue::startObsSource(SourcePlayback& sourcePlayback) {
+    obs_source_t* source = sourcePlayback.source;
+
+    if (std::strcmp(obs_source_get_id(source), "vlc_source") == 0) {
+        startVlcSource(source);
+    } else {
+        startMediaSource(source);
+    }
+
     showObsSource(sourcePlayback);
-    obs_source_media_restart(sourcePlayback.source);
+}
+
+void RewardRedemptionQueue::startVlcSource(obs_source_t* source) {
+    OBSDataAutoRelease sourceSettings = obs_source_get_settings(source);
+    if (!sourceSettings) {
+        log(LOG_ERROR, "VLC Source settings are null");
+        return;
+    }
+    OBSDataArrayAutoRelease files = obs_data_get_array(sourceSettings, "playlist");
+    if (!files) {
+        log(LOG_ERROR, "VLC Source playlist is null");
+        return;
+    }
+    std::size_t filesCount = obs_data_array_count(files);
+    if (filesCount == 0) {
+        log(LOG_ERROR, "VLC Source doesn't have any files");
+        return;
+    }
+
+    std::uniform_int_distribution<std::size_t> randomSourceIndex(1, filesCount);
+    std::size_t sourceIndex = randomSourceIndex(randomEngine);
+
+    obs_source_media_stop(source);
+    for (std::size_t i = 0; i < sourceIndex; i++) {
+        obs_source_media_next(source);
+    }
+    obs_source_media_play_pause(source, false);
+}
+
+void RewardRedemptionQueue::startMediaSource(obs_source_t* source) {
+    obs_source_media_restart(source);
 }
 
 void RewardRedemptionQueue::showObsSource(SourcePlayback& sourcePlayback) {
