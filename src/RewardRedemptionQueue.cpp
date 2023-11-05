@@ -58,17 +58,21 @@ void RewardRedemptionQueue::queueRewardRedemption(const RewardRedemption& reward
 }
 
 void RewardRedemptionQueue::removeRewardRedemption(const RewardRedemption& rewardRedemption) {
+    bool shouldStopSource;
     {
         std::lock_guard<std::mutex> guard(rewardRedemptionQueueMutex);
         auto position = std::find(rewardRedemptionQueue.begin(), rewardRedemptionQueue.end(), rewardRedemption);
         if (position == rewardRedemptionQueue.end()) {
             return;
         }
+        shouldStopSource = (position == rewardRedemptionQueue.begin());
         rewardRedemptionQueue.erase(position);
         emit onRewardRedemptionQueueUpdated(rewardRedemptionQueue);
     }
 
-    obs_source_media_stop(getObsSource(rewardRedemption));
+    if (shouldStopSource) {
+        obs_source_media_stop(getObsSource(rewardRedemption));
+    }
     twitchRewardsApi.updateRedemptionStatus(rewardRedemption, TwitchRewardsApi::RedemptionStatus::CANCELED);
 }
 
