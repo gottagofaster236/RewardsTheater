@@ -81,10 +81,12 @@ private:
     );
 
     struct SourcePlayback {
-        unsigned state;
-        std::string rewardId;
-        obs_source_t* source;
-        bool randomPositionEnabled;
+        const unsigned state;
+        const std::string rewardId;
+        obs_source_t* const source;
+        const bool randomPositionEnabled;
+        std::size_t playlistIndex;
+        std::size_t playlistSize;
     };
 
     struct MediaStartedCallback {
@@ -114,6 +116,7 @@ private:
         SourcePlayback& sourcePlayback,
         bool waitForHideTransition
     );
+    bool isSourcePlayedByState(const SourcePlayback& sourcePlayback);
 
     boost::asio::awaitable<void> asyncTestObsSource(
         std::string rewardId,
@@ -131,17 +134,17 @@ private:
     OBSSourceAutoRelease getObsSource(const std::string& sourceName);
 
     void startObsSource(SourcePlayback& sourcePlayback);
-    void startVlcSource(obs_source_t* source);
+    void startVlcSource(SourcePlayback& sourcePlayback);
     void startMediaSource(obs_source_t* source);
 
     void showObsSource(SourcePlayback& sourcePlayback);
     boost::asio::awaitable<void> asyncStopObsSource(obs_source_t* source, bool waitForHideTransition);
     boost::asio::awaitable<void> asyncHideObsSource(obs_source_t* source, bool waitForHideTransition);
     void restoreSourcePosition(obs_source_t* source);
-    static obs_sceneitem_t* findObsSource(obs_scene_t* scene, obs_source_t* source);
+    static obs_sceneitem_t* findObsSource(obs_scene_t* scene, const obs_source_t* source);
 
     static void setSourceRandomPosition(
-        const std::string& rewardId,
+        SourcePlayback& sourcePlayback,
         obs_scene_t* scene,
         obs_scene_item* sceneItem,
         Settings& settings,
@@ -151,6 +154,7 @@ private:
     static void setSourcePosition(obs_scene_t* scene, obs_scene_item* sceneItem, vec2 position);
     static vec2 getSourceScale(obs_scene_t* scene, obs_scene_item* sceneItem);
     static bool isMediaSource(const obs_source_t* source);
+    static bool isVlcSource(const obs_source_t* source);
 
     Settings& settings;
     TwitchRewardsApi& twitchRewardsApi;

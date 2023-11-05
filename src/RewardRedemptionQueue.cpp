@@ -239,7 +239,7 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(
         source, "media_started", &MediaStartedCallback::setMediaStarted, mediaStartedCallback
     );
 
-    SourcePlayback sourcePlayback{state, rewardId, source, randomPositionEnabled};
+    SourcePlayback sourcePlayback{state, rewardId, source, randomPositionEnabled, 0, 1};
     startObsSource(sourcePlayback);
 
     // Source may be stopped while we are starting it - therefore, register the signals later.
@@ -255,6 +255,9 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(
     try {
         co_await deadlineTimer.async_wait(asio::use_awaitable);
     } catch (const boost::system::system_error&) {}
+    if (!isSourcePlayedByState(sourcePlayback)) {
+        co_return;
+    }
     co_await asyncCheckMediaStarted(sourcePlayback, *mediaStartedCallback);
     saveLastVideoSize(sourcePlayback);
 
@@ -303,7 +306,11 @@ void RewardRedemptionQueue::saveLastVideoSize(SourcePlayback& sourcePlayback) {
         return;
     }
     settings.setLastVideoSize(
-        sourcePlayback.rewardId, obs_source_get_name(sourcePlayback.source), std::make_pair(width, height)
+        sourcePlayback.rewardId,
+        obs_source_get_name(sourcePlayback.source),
+        sourcePlayback.playlistIndex,
+        sourcePlayback.playlistSize,
+        std::make_pair(width, height)
     );
 }
 
@@ -321,12 +328,16 @@ asio::awaitable<void> RewardRedemptionQueue::asyncStopObsSourceIfPlayedByState(
     SourcePlayback& sourcePlayback,
     bool waitForHideTransition
 ) {
-    obs_source_t* source = sourcePlayback.source;
-    if (sourcePlayedByState[source] == sourcePlayback.state) {
+    if (isSourcePlayedByState(sourcePlayback)) {
+        obs_source_t* source = sourcePlayback.source;
         co_await asyncStopObsSource(source, waitForHideTransition);
         sourcePlayedByState.erase(source);
         sourcePositionOnScenes.erase(source);
     }
+}
+
+bool RewardRedemptionQueue::isSourcePlayedByState(const SourcePlayback& sourcePlayback) {
+    return sourcePlayedByState[sourcePlayback.source] == sourcePlayback.state;
 }
 
 asio::awaitable<void> RewardRedemptionQueue::asyncTestObsSource(
@@ -372,39 +383,38 @@ OBSSourceAutoRelease RewardRedemptionQueue::getObsSource(const std::string& obsS
 }
 
 void RewardRedemptionQueue::startObsSource(SourcePlayback& sourcePlayback) {
-    obs_source_t* source = sourcePlayback.source;
-
-    if (std::strcmp(obs_source_get_id(source), "vlc_source") == 0) {
-        startVlcSource(source);
+    if (isVlcSource(sourcePlayback.source)) {
+        startVlcSource(sourcePlayback);
     } else {
-        startMediaSource(source);
+        startMediaSource(sourcePlayback.source);
     }
 
     showObsSource(sourcePlayback);
 }
 
-void RewardRedemptionQueue::startVlcSource(obs_source_t* source) {
+void RewardRedemptionQueue::startVlcSource(SourcePlayback& sourcePlayback) {
+    obs_source_t* source = sourcePlayback.source;
     OBSDataAutoRelease sourceSettings = obs_source_get_settings(source);
     if (!sourceSettings) {
         log(LOG_ERROR, "VLC Source settings are null");
         return;
     }
-    OBSDataArrayAutoRelease files = obs_data_get_array(sourceSettings, "playlist");
-    if (!files) {
+    OBSDataArrayAutoRelease playlist = obs_data_get_array(sourceSettings, "playlist");
+    if (!playlist) {
         log(LOG_ERROR, "VLC Source playlist is null");
         return;
     }
-    std::size_t filesCount = obs_data_array_count(files);
-    if (filesCount == 0) {
-        log(LOG_ERROR, "VLC Source doesn't have any files");
+    sourcePlayback.playlistSize = obs_data_array_count(playlist);
+    if (sourcePlayback.playlistSize == 0) {
+        log(LOG_ERROR, "VLC Source has an empty playlist");
         return;
     }
 
-    std::uniform_int_distribution<std::size_t> randomSourceIndex(1, filesCount);
-    std::size_t sourceIndex = randomSourceIndex(randomEngine);
+    std::uniform_int_distribution<std::size_t> randomSourceIndex(1, sourcePlayback.playlistSize);
+    sourcePlayback.playlistIndex = randomSourceIndex(randomEngine);
 
     obs_source_media_stop(source);
-    for (std::size_t i = 0; i < sourceIndex; i++) {
+    for (std::size_t i = 0; i < sourcePlayback.playlistIndex; i++) {
         obs_source_media_next(source);
     }
     obs_source_media_play_pause(source, false);
@@ -436,7 +446,7 @@ void RewardRedemptionQueue::showObsSource(SourcePlayback& sourcePlayback) {
                     sourcePositionOnScenes[sceneUuid] = getSourcePosition(scene, sceneItem);
                 }
                 RewardRedemptionQueue::setSourceRandomPosition(
-                    sourcePlayback.rewardId, scene, sceneItem, settings, randomEngine
+                    sourcePlayback, scene, sceneItem, settings, randomEngine
                 );
             }
             obs_sceneitem_set_visible(sceneItem, true);
@@ -453,12 +463,18 @@ asio::awaitable<void> RewardRedemptionQueue::asyncStopObsSource(obs_source_t* so
 }
 
 asio::awaitable<void> RewardRedemptionQueue::asyncHideObsSource(obs_source_t* source, bool waitForHideTransition) {
+    // VLC source immediately switches to the next video (or to black if playing the last video),
+    // so there's no good way to show the hide transition.
+    bool ignoreHideTransition = isVlcSource(source);
+
     struct HideObsSourceCallback {
         obs_source_t* source;
+        bool ignoreHideTransition;
         uint32_t hideTransitionDurationMs = 0;
 
         static bool hideObsSourceOnScene(void* param, obs_source_t* sceneSource) {
-            auto& [source, hideTransitionDurationMs] = *static_cast<HideObsSourceCallback*>(param);
+            auto& [source, ignoreHideTransition, hideTransitionDurationMs] =
+                *static_cast<HideObsSourceCallback*>(param);
             obs_scene_t* scene = obs_scene_from_source(sceneSource);
             obs_sceneitem_t* sceneItem = findObsSource(scene, source);
             if (!sceneItem) {
@@ -467,12 +483,16 @@ asio::awaitable<void> RewardRedemptionQueue::asyncHideObsSource(obs_source_t* so
 
             obs_sceneitem_set_visible(sceneItem, false);
             if (obs_sceneitem_get_transition(sceneItem, false)) {
-                hideTransitionDurationMs =
-                    std::max(hideTransitionDurationMs, obs_sceneitem_get_transition_duration(sceneItem, false));
+                if (ignoreHideTransition) {
+                    obs_sceneitem_set_transition(sceneItem, false, nullptr);
+                } else {
+                    hideTransitionDurationMs =
+                        std::max(hideTransitionDurationMs, obs_sceneitem_get_transition_duration(sceneItem, false));
+                }
             }
             return true;
         }
-    } callback(source);
+    } callback(source, ignoreHideTransition);
 
     obs_enum_scenes(&HideObsSourceCallback::hideObsSourceOnScene, &callback);
 
@@ -506,12 +526,12 @@ void RewardRedemptionQueue::restoreSourcePosition(obs_source_t* source) {
     obs_enum_scenes(&RestoreSourcePositionCallback::restoreSourcePositionOnScene, &callback);
 }
 
-obs_sceneitem_t* RewardRedemptionQueue::findObsSource(obs_scene_t* scene, obs_source_t* source) {
+obs_sceneitem_t* RewardRedemptionQueue::findObsSource(obs_scene_t* scene, const obs_source_t* source) {
     return obs_scene_find_source_recursive(scene, obs_source_get_name(source));
 }
 
 void RewardRedemptionQueue::setSourceRandomPosition(
-    const std::string& rewardId,
+    SourcePlayback& sourcePlayback,
     obs_scene_t* scene,
     obs_scene_item* sceneItem,
     Settings& settings,
@@ -519,7 +539,8 @@ void RewardRedemptionQueue::setSourceRandomPosition(
 ) {
     obs_source_t* source = obs_sceneitem_get_source(sceneItem);
     std::string sourceName = obs_source_get_name(source);
-    std::optional<std::pair<std::uint32_t, std::uint32_t>> size = settings.getLastVideoSize(rewardId, sourceName);
+    std::optional<std::pair<std::uint32_t, std::uint32_t>> size =
+        settings.getLastVideoSize(sourcePlayback.rewardId, sourceName, sourcePlayback.playlistIndex);
     if (!size.has_value()) {
         log(LOG_INFO, "Couldn't set random position for source {} - no size saved", sourceName);
         return;
@@ -591,6 +612,17 @@ bool RewardRedemptionQueue::isMediaSource(const obs_source_t* source) {
     if (!source) {
         return false;
     }
+    if (isVlcSource(source)) {
+        return true;
+    }
     const char* sourceId = obs_source_get_id(source);
-    return std::strcmp(sourceId, "ffmpeg_source") == 0 || std::strcmp(sourceId, "vlc_source") == 0;
+    return std::strcmp(sourceId, "ffmpeg_source") == 0;
+}
+
+bool RewardRedemptionQueue::isVlcSource(const obs_source_t* source) {
+    if (!source) {
+        return false;
+    }
+    const char* sourceId = obs_source_get_id(source);
+    return std::strcmp(sourceId, "vlc_source") == 0;
 }

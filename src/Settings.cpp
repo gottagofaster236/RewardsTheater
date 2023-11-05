@@ -11,6 +11,7 @@ static const char* const RANDOM_POSITION_ENABLED_KEY = "RANDOM_POSITION_ENABLED_
 static const char* const LAST_OBS_SOURCE_NAME_KEY = "LAST_OBS_SOURCE_NAME_KEY";
 static const char* const LAST_VIDEO_WIDTH_KEY = "LAST_VIDEO_WIDTH_KEY";
 static const char* const LAST_VIDEO_HEIGHT_KEY = "LAST_VIDEO_HEIGHT_KEY";
+static const char* const LAST_PLAYLIST_SIZE_KEY = "LAST_PLAYLIST_SIZE_KEY";
 
 Settings::Settings(config_t* config) : config(config) {}
 
@@ -83,20 +84,21 @@ void Settings::setRandomPositionEnabled(const std::string& rewardId, bool random
     config_set_bool(config, PLUGIN_NAME, getRandomPositionEnabledKey(rewardId).c_str(), randomPositionEnabled);
 }
 
-static std::string getLastVideoWidthKey(const std::string& rewardId);
-static std::string getLastVideoHeightKey(const std::string& rewardId);
+static std::string getLastVideoWidthKey(const std::string& rewardId, std::size_t playlistIndex);
+static std::string getLastVideoHeightKey(const std::string& rewardId, std::size_t playlistIndex);
 
 std::optional<std::pair<std::uint32_t, std::uint32_t>> Settings::getLastVideoSize(
     const std::string& rewardId,
-    const std::string& obsSourceName
+    const std::string& obsSourceName,
+    std::size_t playlistIndex
 ) const {
     std::lock_guard lock(configMutex);
     if (getLastObsSourceName(rewardId) != obsSourceName) {
         return {};
     }
 
-    std::string lastVideoWidthKey = getLastVideoWidthKey(rewardId);
-    std::string lastVideoHeightKey = getLastVideoHeightKey(rewardId);
+    std::string lastVideoWidthKey = getLastVideoWidthKey(rewardId, playlistIndex);
+    std::string lastVideoHeightKey = getLastVideoHeightKey(rewardId, playlistIndex);
     config_set_default_uint(config, PLUGIN_NAME, lastVideoWidthKey.c_str(), 0);
     config_set_default_uint(config, PLUGIN_NAME, lastVideoHeightKey.c_str(), 0);
     uint32_t lastVideoWidth = static_cast<uint32_t>(config_get_uint(config, PLUGIN_NAME, lastVideoWidthKey.c_str()));
@@ -111,12 +113,17 @@ std::optional<std::pair<std::uint32_t, std::uint32_t>> Settings::getLastVideoSiz
 void Settings::setLastVideoSize(
     const std::string& rewardId,
     const std::string& obsSourceName,
+    std::size_t playlistIndex,
+    std::size_t playlistSize,
     const std::optional<std::pair<std::uint32_t, std::uint32_t>>& lastVideoSize
 ) {
     std::lock_guard lock(configMutex);
+
     setLastObsSourceName(rewardId, obsSourceName);
-    std::string lastVideoWidthKey = getLastVideoWidthKey(rewardId);
-    std::string lastVideoHeightKey = getLastVideoHeightKey(rewardId);
+    setLastPlaylistSize(rewardId, playlistSize);
+
+    std::string lastVideoWidthKey = getLastVideoWidthKey(rewardId, playlistIndex);
+    std::string lastVideoHeightKey = getLastVideoHeightKey(rewardId, playlistIndex);
     if (lastVideoSize.has_value()) {
         config_set_uint(config, PLUGIN_NAME, lastVideoWidthKey.c_str(), lastVideoSize.value().first);
         config_set_uint(config, PLUGIN_NAME, lastVideoHeightKey.c_str(), lastVideoSize.value().second);
@@ -126,6 +133,8 @@ void Settings::setLastVideoSize(
     }
 }
 
+static std::string getLastPlaylistSizeKey(const std::string& rewardId);
+
 static std::string getLastObsSourceKey(const std::string& rewardId);
 
 void Settings::deleteReward(const std::string& rewardId) {
@@ -133,8 +142,9 @@ void Settings::deleteReward(const std::string& rewardId) {
     config_remove_value(config, PLUGIN_NAME, rewardId.c_str());
     config_remove_value(config, PLUGIN_NAME, getRandomPositionEnabledKey(rewardId).c_str());
     config_remove_value(config, PLUGIN_NAME, getLastObsSourceKey(rewardId).c_str());
-    config_remove_value(config, PLUGIN_NAME, getLastVideoWidthKey(rewardId).c_str());
-    config_remove_value(config, PLUGIN_NAME, getLastVideoHeightKey(rewardId).c_str());
+
+    setLastPlaylistSize(rewardId, 0);  // Removes the (width, height) pairs internally
+    config_remove_value(config, PLUGIN_NAME, getLastPlaylistSizeKey(rewardId).c_str());
 }
 
 std::string Settings::getLastObsSourceName(const std::string& rewardId) const {
@@ -149,16 +159,44 @@ void Settings::setLastObsSourceName(const std::string& rewardId, const std::stri
     config_set_string(config, PLUGIN_NAME, getLastObsSourceKey(rewardId).c_str(), obsSourceName.c_str());
 }
 
+std::size_t Settings::getLastPlaylistSize(const std::string& rewardId) const {
+    std::string lastPlaylistSizeKey = getLastPlaylistSizeKey(rewardId);
+    config_set_default_uint(config, PLUGIN_NAME, lastPlaylistSizeKey.c_str(), 1);
+    return config_get_uint(config, PLUGIN_NAME, lastPlaylistSizeKey.c_str());
+}
+
+void Settings::setLastPlaylistSize(const std::string& rewardId, std::size_t lastPlaylistSize) {
+    std::size_t oldPlaylistSize = getLastPlaylistSize(rewardId);
+    for (std::size_t i = lastPlaylistSize; i < oldPlaylistSize; i++) {
+        config_remove_value(config, PLUGIN_NAME, getLastVideoWidthKey(rewardId, i).c_str());
+        config_remove_value(config, PLUGIN_NAME, getLastVideoHeightKey(rewardId, i).c_str());
+    }
+
+    config_set_uint(config, PLUGIN_NAME, getLastPlaylistSizeKey(rewardId).c_str(), lastPlaylistSize);
+}
+
 std::string getRandomPositionEnabledKey(const std::string& rewardId) {
     return rewardId + RANDOM_POSITION_ENABLED_KEY;
 }
 
-std::string getLastVideoWidthKey(const std::string& rewardId) {
-    return rewardId + LAST_VIDEO_WIDTH_KEY;
+std::string getLastVideoWidthKey(const std::string& rewardId, std::size_t playlistIndex) {
+    std::string lastVideoWidthKey = rewardId + LAST_VIDEO_WIDTH_KEY;
+    if (playlistIndex > 0) {
+        lastVideoWidthKey += std::to_string(playlistIndex);
+    }
+    return lastVideoWidthKey;
 }
 
-std::string getLastVideoHeightKey(const std::string& rewardId) {
-    return rewardId + LAST_VIDEO_HEIGHT_KEY;
+std::string getLastVideoHeightKey(const std::string& rewardId, std::size_t playlistIndex) {
+    std::string lastVideoHeightKey = rewardId + LAST_VIDEO_HEIGHT_KEY;
+    if (playlistIndex > 0) {
+        lastVideoHeightKey += std::to_string(playlistIndex);
+    }
+    return lastVideoHeightKey;
+}
+
+std::string getLastPlaylistSizeKey(const std::string& rewardId) {
+    return rewardId + LAST_PLAYLIST_SIZE_KEY;
 }
 
 std::string getLastObsSourceKey(const std::string& rewardId) {
