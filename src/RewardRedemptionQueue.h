@@ -138,8 +138,8 @@ private:
     void startMediaSource(obs_source_t* source);
 
     void showObsSource(SourcePlayback& sourcePlayback);
-    boost::asio::awaitable<void> asyncStopObsSource(obs_source_t* source, bool waitForHideTransition);
-    boost::asio::awaitable<void> asyncHideObsSource(obs_source_t* source, bool waitForHideTransition);
+    boost::asio::awaitable<void> asyncStopObsSource(SourcePlayback& sourcePlayback, bool waitForHideTransition);
+    boost::asio::awaitable<void> asyncHideObsSource(SourcePlayback& sourcePlayback, bool waitForHideTransition);
     void restoreSourcePosition(obs_source_t* source);
     static obs_sceneitem_t* findObsSource(obs_scene_t* scene, const obs_source_t* source);
 

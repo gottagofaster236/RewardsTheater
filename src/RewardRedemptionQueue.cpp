@@ -334,7 +334,7 @@ asio::awaitable<void> RewardRedemptionQueue::asyncStopObsSourceIfPlayedByState(
 ) {
     if (isSourcePlayedByState(sourcePlayback)) {
         obs_source_t* source = sourcePlayback.source;
-        co_await asyncStopObsSource(source, waitForHideTransition);
+        co_await asyncStopObsSource(sourcePlayback, waitForHideTransition);
         sourcePlayedByState.erase(source);
         sourcePositionOnScenes.erase(source);
     }
@@ -461,24 +461,29 @@ void RewardRedemptionQueue::showObsSource(SourcePlayback& sourcePlayback) {
     obs_enum_scenes(&ShowObsSourceCallback::showObsSourceOnScene, &callback);
 }
 
-asio::awaitable<void> RewardRedemptionQueue::asyncStopObsSource(obs_source_t* source, bool waitForHideTransition) {
-    co_await asyncHideObsSource(source, waitForHideTransition);
-    obs_source_media_stop(source);
+asio::awaitable<void> RewardRedemptionQueue::asyncStopObsSource(
+    SourcePlayback& sourcePlayback,
+    bool waitForHideTransition
+) {
+    co_await asyncHideObsSource(sourcePlayback, waitForHideTransition);
+    obs_source_media_stop(sourcePlayback.source);
 }
 
-asio::awaitable<void> RewardRedemptionQueue::asyncHideObsSource(obs_source_t* source, bool waitForHideTransition) {
+asio::awaitable<void> RewardRedemptionQueue::asyncHideObsSource(
+    SourcePlayback& sourcePlayback,
+    bool waitForHideTransition
+) {
     // VLC source immediately switches to the next video (or to black if playing the last video),
     // so there's no good way to show the hide transition.
-    bool ignoreHideTransition = isVlcSource(source);
+    bool vlcSource = isVlcSource(sourcePlayback.source);
 
     struct HideObsSourceCallback {
         obs_source_t* source;
-        bool ignoreHideTransition;
+        bool vlcSource;
         uint32_t hideTransitionDurationMs = 0;
 
         static bool hideObsSourceOnScene(void* param, obs_source_t* sceneSource) {
-            auto& [source, ignoreHideTransition, hideTransitionDurationMs] =
-                *static_cast<HideObsSourceCallback*>(param);
+            auto& [source, vlcSource, hideTransitionDurationMs] = *static_cast<HideObsSourceCallback*>(param);
             obs_scene_t* scene = obs_scene_from_source(sceneSource);
             obs_sceneitem_t* sceneItem = findObsSource(scene, source);
             if (!sceneItem) {
@@ -487,7 +492,7 @@ asio::awaitable<void> RewardRedemptionQueue::asyncHideObsSource(obs_source_t* so
 
             obs_sceneitem_set_visible(sceneItem, false);
             if (obs_sceneitem_get_transition(sceneItem, false)) {
-                if (ignoreHideTransition) {
+                if (vlcSource) {
                     obs_sceneitem_set_transition(sceneItem, false, nullptr);
                 } else {
                     hideTransitionDurationMs =
@@ -496,15 +501,20 @@ asio::awaitable<void> RewardRedemptionQueue::asyncHideObsSource(obs_source_t* so
             }
             return true;
         }
-    } callback(source, ignoreHideTransition);
+    } callback(sourcePlayback.source, vlcSource);
 
     obs_enum_scenes(&HideObsSourceCallback::hideObsSourceOnScene, &callback);
+
+    if (vlcSource && sourcePlayback.playlistSize > 1) {
+        // Playlists don't work well when chained together.
+        callback.hideTransitionDurationMs = 500;
+    }
 
     if (waitForHideTransition) {
         std::chrono::milliseconds hideTransitionDuration{callback.hideTransitionDurationMs};
         co_await asio::steady_timer(ioContext, hideTransitionDuration).async_wait(asio::use_awaitable);
     }
-    restoreSourcePosition(source);
+    restoreSourcePosition(sourcePlayback.source);
 }
 
 void RewardRedemptionQueue::restoreSourcePosition(obs_source_t* source) {
