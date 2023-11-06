@@ -414,11 +414,11 @@ void RewardRedemptionQueue::startVlcSource(SourcePlayback& sourcePlayback) {
         return;
     }
 
-    std::uniform_int_distribution<std::size_t> randomSourceIndex(1, sourcePlayback.playlistSize);
+    std::uniform_int_distribution<std::size_t> randomSourceIndex(0, sourcePlayback.playlistSize - 1);
     sourcePlayback.playlistIndex = randomSourceIndex(randomEngine);
 
     obs_source_media_stop(source);
-    for (std::size_t i = 0; i < sourcePlayback.playlistIndex; i++) {
+    for (std::size_t i = 0; i < sourcePlayback.playlistIndex + 1; i++) {
         obs_source_media_next(source);
     }
     obs_source_media_play_pause(source, false);
