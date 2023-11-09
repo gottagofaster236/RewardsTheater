@@ -11,6 +11,7 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <algorithm>
+#include <cstdlib>
 #include <format>
 #include <memory>
 #include <thread>
@@ -42,6 +43,7 @@ RewardsTheaterPlugin::RewardsTheaterPlugin()
       pubsubListener(twitchAuth, rewardRedemptionQueue) {
     log(LOG_INFO, "Loading plugin, version {}", REWARDS_THEATER_VERSION);
     checkMinObsVersion();
+    checkRestrictedRegion();
 
     QMainWindow* mainWindow = static_cast<QMainWindow*>(obs_frontend_get_main_window());
 
@@ -82,6 +84,14 @@ RewardRedemptionQueue& RewardsTheaterPlugin::getRewardRedemptionQueue() {
     return rewardRedemptionQueue;
 }
 
+const char* RewardsTheaterPlugin::UnsupportedObsVersionException::what() const noexcept {
+    return "UnsupportedObsVersionException";
+}
+
+const char* RewardsTheaterPlugin::RestrictedRegionException::what() const noexcept {
+    return "RestrictedRegionException";
+}
+
 void RewardsTheaterPlugin::checkMinObsVersion() {
     if (obs_get_version() < MIN_OBS_VERSION) {
         std::string message = std::vformat(
@@ -93,6 +103,22 @@ void RewardsTheaterPlugin::checkMinObsVersion() {
     }
 }
 
-const char* RewardsTheaterPlugin::UnsupportedObsVersionException::what() const noexcept {
-    return "UnsupportedObsVersionException";
+void RewardsTheaterPlugin::checkRestrictedRegion() {
+    if (std::strcmp(obs_get_locale(), "ru-RU") != 0) {
+        return;
+    }
+
+    const char* restrictionsSkipValue = std::getenv("SLAVA_UKRAINI");
+    if (restrictionsSkipValue && std::strcmp(restrictionsSkipValue, "1") == 0) {
+        return;
+    }
+
+    QMessageBox::critical(
+        nullptr,
+        "Restricted region",
+        "Based on your system settings, it appears you're located in Russia.\n\n"
+        "You cannot use RewardsTheater on the territory of a terrorist state.\n\n"
+        "If you wish to bypass this check, set the environment variable `SLAVA_UKRAINI=1` in your system settings."
+    );
+    throw RestrictedRegionException();
 }

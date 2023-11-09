@@ -24,12 +24,17 @@ public:
     GithubUpdateApi& getGithubUpdateApi();
     RewardRedemptionQueue& getRewardRedemptionQueue();
 
+private:
     class UnsupportedObsVersionException : public std::exception {
         const char* what() const noexcept override;
     };
 
-private:
+    class RestrictedRegionException : public std::exception {
+        const char* what() const noexcept override;
+    };
+
     void checkMinObsVersion();
+    void checkRestrictedRegion();
 
     Settings settings;
     IoThreadPool ioThreadPool;
