@@ -3,11 +3,11 @@
 
 #include "SettingsDialog.h"
 
+#include <fmt/core.h>
 #include <obs-module.h>
 #include <obs.h>
 
 #include <algorithm>
-#include <format>
 #include <iostream>
 #include <obs.hpp>
 #include <ranges>
@@ -88,7 +88,7 @@ void SettingsDialog::updateAuthButtonText(const std::optional<std::string>& user
         } else {
             usernameShown = obs_module_text("ErrorUsername");
         }
-        newText = std::vformat(obs_module_text("LogOut"), std::make_format_args(usernameShown));
+        newText = fmt::format(fmt::runtime(obs_module_text("LogOut")), usernameShown);
     } else {
         newText = obs_module_text("LogIn");
     }
@@ -226,8 +226,7 @@ void SettingsDialog::showRewardLoadException(std::exception_ptr exception) {
     } catch (const HttpClient::NetworkException&) {
         message = obs_module_text("CouldNotLoadRewardsNetwork");
     } catch (const std::exception& otherException) {
-        message =
-            std::vformat(obs_module_text("CouldNotLoadRewardsOther"), std::make_format_args(otherException.what()));
+        message = fmt::format(fmt::runtime(obs_module_text("CouldNotLoadRewardsOther")), otherException.what());
     }
     errorMessageBox->show(message);
 }
@@ -245,11 +244,11 @@ void SettingsDialog::showRewardsTheaterLink(
 
     std::string rewardsTheater = obs_module_text("RewardsTheater");
     if (linkColor.has_value()) {
-        rewardsTheaterLink = std::format(
+        rewardsTheaterLink = fmt::format(
             "{} <a href=\"{}\"><font color=\"{}\">{}</font></a>", rewardsTheater, url, linkColor.value(), linkText
         );
     } else {
-        rewardsTheaterLink = std::format("{} <a href=\"{}\">{}</a>", rewardsTheater, url, linkText);
+        rewardsTheaterLink = fmt::format("{} <a href=\"{}\">{}</a>", rewardsTheater, url, linkText);
     }
 
     ui->titleLabel->setText(QString::fromStdString(rewardsTheaterLink));

@@ -3,6 +3,7 @@
 
 #include "RewardsTheaterPlugin.h"
 
+#include <fmt/core.h>
 #include <obs-frontend-api.h>
 #include <obs-module.h>
 #include <obs.h>
@@ -12,7 +13,6 @@
 #include <QMessageBox>
 #include <algorithm>
 #include <cstdlib>
-#include <format>
 #include <memory>
 #include <thread>
 
@@ -94,9 +94,8 @@ const char* RewardsTheaterPlugin::RestrictedRegionException::what() const noexce
 
 void RewardsTheaterPlugin::checkMinObsVersion() {
     if (obs_get_version() < MIN_OBS_VERSION) {
-        std::string message = std::vformat(
-            obs_module_text("ObsVersionUnsupported"),
-            std::make_format_args(MIN_OBS_VERSION_STRING, obs_get_version_string())
+        std::string message = fmt::format(
+            fmt::runtime(obs_module_text("ObsVersionUnsupported")), MIN_OBS_VERSION_STRING, obs_get_version_string()
         );
         QMessageBox::critical(nullptr, obs_module_text("RewardsTheater"), QString::fromStdString(message));
         throw UnsupportedObsVersionException();

@@ -3,10 +3,10 @@
 
 #include "TwitchAuthDialog.h"
 
+#include <fmt/core.h>
 #include <obs-module.h>
 #include <obs.h>
 
-#include <format>
 #include <iostream>
 #include <obs.hpp>
 
@@ -56,9 +56,7 @@ void TwitchAuthDialog::showAuthenticationFailureMessage(std::exception_ptr reaso
     } catch (const TwitchAuth::EmptyAccessTokenException&) {
         message = obs_module_text("TwitchAuthenticationFailedNoAccessToken");
     } catch (const std::exception& otherException) {
-        message = std::vformat(
-            obs_module_text("TwitchAuthenticationFailedOther"), std::make_format_args(otherException.what())
-        );
+        message = fmt::format(fmt::runtime(obs_module_text("TwitchAuthenticationFailedOther")), otherException.what());
     }
 
     showAuthenticationMessage(message);
@@ -66,8 +64,7 @@ void TwitchAuthDialog::showAuthenticationFailureMessage(std::exception_ptr reaso
 
 void TwitchAuthDialog::showAccessTokenAboutToExpireMessage(std::chrono::seconds expiresIn) {
     int expiresInHours = std::ceil(expiresIn.count() / 3600);
-    std::string message =
-        std::vformat(obs_module_text("TwitchTokenAboutToExpire"), std::make_format_args(expiresInHours));
+    std::string message = fmt::format(fmt::runtime(obs_module_text("TwitchTokenAboutToExpire")), expiresInHours);
     showAuthenticationMessage(message);
 }
 

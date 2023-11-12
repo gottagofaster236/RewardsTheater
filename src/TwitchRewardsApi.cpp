@@ -3,9 +3,10 @@
 
 #include "TwitchRewardsApi.h"
 
+#include <fmt/core.h>
+
 #include <QMetaType>
 #include <boost/url.hpp>
-#include <format>
 #include <iomanip>
 #include <ranges>
 #include <set>
@@ -311,7 +312,7 @@ asio::awaitable<json::value> TwitchRewardsApi::asyncGetRewardsRequest(bool onlyM
         twitchAuth,
         {
             {"broadcaster_id", twitchAuth.getUserIdOrThrow()},
-            {"only_manageable_rewards", std::format("{}", onlyManageableRewards)},
+            {"only_manageable_rewards", fmt::format("{}", onlyManageableRewards)},
         }
     );
 

@@ -3,6 +3,7 @@
 
 #include "EditRewardDialog.h"
 
+#include <fmt/core.h>
 #include <obs-frontend-api.h>
 #include <obs-module.h>
 
@@ -10,7 +11,6 @@
 #include <QPixmap>
 #include <algorithm>
 #include <array>
-#include <format>
 
 #include "HttpClient.h"
 #include "ui_EditRewardDialog.h"
@@ -79,7 +79,7 @@ void EditRewardDialog::showUploadCustomIconLabel(const std::optional<std::string
     if (!username.has_value()) {
         return;
     }
-    std::string uploadCustomIconLink = std::format(
+    std::string uploadCustomIconLink = fmt::format(
         "<a href=\"https://dashboard.twitch.tv/u/{}/viewer-rewards/channel-points/rewards\">{}</a>",
         username.value(),
         obs_module_text("UploadCustomIconHere")
@@ -89,7 +89,7 @@ void EditRewardDialog::showUploadCustomIconLabel(const std::optional<std::string
 
 void EditRewardDialog::showSelectedColor(Color newBackgroundColor) {
     selectedColor = newBackgroundColor;
-    std::string backgroundColorStyle = std::format("background: {}", selectedColor.toHex());
+    std::string backgroundColorStyle = fmt::format("background: {}", selectedColor.toHex());
     ui->backgroundColorButton->setStyleSheet(QString::fromStdString(backgroundColorStyle));
 }
 
@@ -143,7 +143,7 @@ void EditRewardDialog::showSaveRewardResult(std::variant<std::exception_ptr, Rew
     } catch (const HttpClient::NetworkException&) {
         message = obs_module_text("CouldNotSaveRewardNetwork");
     } catch (const std::exception& exception) {
-        message = std::vformat(obs_module_text("CouldNotSaveRewardOther"), std::make_format_args(exception.what()));
+        message = fmt::format(fmt::runtime(obs_module_text("CouldNotSaveRewardOther")), exception.what());
     }
     errorMessageBox->show(message);
 }
@@ -193,16 +193,12 @@ void EditRewardDialog::showTestObsSourceException(std::exception_ptr exception) 
     try {
         std::rethrow_exception(exception);
     } catch (const RewardRedemptionQueue::ObsSourceNotFoundException& exception) {
-        message = std::vformat(
-            obs_module_text("TestSourceCouldNotFindSource"), std::make_format_args(exception.obsSourceName)
-        );
+        message = fmt::format(fmt::runtime(obs_module_text("TestSourceCouldNotFindSource")), exception.obsSourceName);
         updateObsSourceComboBox();
     } catch (const RewardRedemptionQueue::ObsSourceNoVideoException& exception) {
-        message = std::vformat(
-            obs_module_text("TestSourcePleaseCheckVideoFile"), std::make_format_args(exception.obsSourceName)
-        );
+        message = fmt::format(fmt::runtime(obs_module_text("TestSourcePleaseCheckVideoFile")), exception.obsSourceName);
     } catch (const std::exception& exception) {
-        message = std::vformat(obs_module_text("TestSourceOther"), std::make_format_args(exception.what()));
+        message = fmt::format(fmt::runtime(obs_module_text("TestSourceOther")), exception.what());
     }
     errorMessageBox->show(message);
 }

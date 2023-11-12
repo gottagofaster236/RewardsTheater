@@ -3,6 +3,7 @@
 
 #include "ConfirmDeleteReward.h"
 
+#include <fmt/core.h>
 #include <obs-module.h>
 
 ConfirmDeleteReward::ConfirmDeleteReward(const Reward& reward, TwitchRewardsApi& twitchRewardsApi, QWidget* parent)
@@ -55,8 +56,7 @@ void ConfirmDeleteReward::showDeleteRewardResult(std::exception_ptr result) {
     } catch (const HttpClient::NetworkException&) {
         message = obs_module_text("CouldNotDeleteRewardNetwork");
     } catch (const std::exception& otherException) {
-        message =
-            std::vformat(obs_module_text("CouldNotDeleteRewardOther"), std::make_format_args(otherException.what()));
+        message = fmt::format(fmt::runtime(obs_module_text("CouldNotDeleteRewardOther")), otherException.what());
     }
     errorMessageBox->setStandardButtons(QMessageBox::Ok);
     errorMessageBox->show(message);

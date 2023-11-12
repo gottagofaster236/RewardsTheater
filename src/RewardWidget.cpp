@@ -3,12 +3,12 @@
 
 #include "RewardWidget.h"
 
+#include <fmt/core.h>
 #include <obs-module.h>
 
 #include <QBuffer>
 #include <QImageReader>
 #include <QPixmap>
-#include <format>
 #include <string>
 
 #include "HttpClient.h"
@@ -84,7 +84,7 @@ void RewardWidget::showImage(const std::string& imageBytes) {
 void RewardWidget::showReward() {
     ui->costLabel->setText(QString::number(reward.cost));
     ui->titleLabel->setText(QString::fromStdString(reward.title));
-    std::string backgroundColorStyle = std::format("QFrame {{ background: {} }}", reward.backgroundColor.toHex());
+    std::string backgroundColorStyle = fmt::format("QFrame {{ background: {} }}", reward.backgroundColor.toHex());
     ui->costAndImageFrame->setStyleSheet(QString::fromStdString(backgroundColorStyle));
     twitchRewardsApi.downloadImage(reward, this, "showImage");
 }

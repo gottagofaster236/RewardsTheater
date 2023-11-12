@@ -3,7 +3,7 @@
 
 #include "PubsubListener.h"
 
-#include <format>
+#include <fmt/core.h>
 
 #include "Log.h"
 #include "TwitchRewardsApi.h"
@@ -98,7 +98,7 @@ asio::awaitable<PubsubListener::WebsocketStream> PubsubListener::asyncConnect(co
 }
 
 asio::awaitable<void> PubsubListener::asyncSubscribeToChannelPoints(WebsocketStream& ws) {
-    std::string topicName = std::format("{}.{}", CHANNEL_POINTS_TOPIC, twitchAuth.getUserIdOrThrow());
+    std::string topicName = fmt::format("{}.{}", CHANNEL_POINTS_TOPIC, twitchAuth.getUserIdOrThrow());
     co_await asyncSendMessage(
         ws,
         {

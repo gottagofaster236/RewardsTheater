@@ -3,6 +3,7 @@
 
 #include "TwitchAuth.h"
 
+#include <fmt/core.h>
 #include <obs-module.h>
 
 #include <QDesktopServices>
@@ -10,7 +11,6 @@
 #include <algorithm>
 #include <boost/url.hpp>
 #include <cstdint>
-#include <format>
 #include <iterator>
 #include <ranges>
 
@@ -358,7 +358,7 @@ std::string TwitchAuth::getDoNotShowOnStreamPageHtml(const std::string& csrfStat
         </body>
         </html>
     )";
-    return std::format(
+    return fmt::format(
         doNotShowOnStreamTemplate,
         obs_module_text("RewardsTheater"),
         obs_module_text("DoNotShowOnStream"),
@@ -389,7 +389,7 @@ std::string TwitchAuth::getAuthPageUrl(const std::string& csrfState) {
 }
 
 std::string TwitchAuth::getAuthRedirectPageUrl() {
-    return std::format("http://localhost:{}/authRedirect", authServerPort);
+    return fmt::format("http://localhost:{}/authRedirect", authServerPort);
 }
 
 std::string TwitchAuth::getAuthRedirectPageHtml() {
@@ -441,7 +441,7 @@ std::string TwitchAuth::getAuthRedirectPageHtml() {
           </body>
         </html>
     )";
-    return std::format(
+    return fmt::format(
         authRedirectPageTemplate,
         obs_module_text("RewardsTheater"),
         obs_module_text("TwitchAuthenticationFailedNoAccessToken"),
