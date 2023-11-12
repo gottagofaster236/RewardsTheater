@@ -19,14 +19,14 @@ These steps are a continuation of the previous section on building.
 3. Open the project in Visual Studio. Right-click the `ALL_BUILD` project and set the debugging target to the OBS binary at `your_obs_clone_path\obs-studio\build64\rundir\Debug\bin\64bit\obs64.exe`, and the working directory to `your_obs_clone_path\obs-studio\build64\rundir\Debug\bin\64bit`. Now when you hit "Run" inside Visual Studio, the plugin is copied automatically to the rundir and then VS launches OBS for debugging.
 
 ## Building locally on Linux
-1. Install GCC 13 (or later) via `sudo apt install gcc-13 g++-13` (use your favorite package manager).
+1. Install GCC 12 (or later) via `sudo apt install gcc-12 g++-12` (use your favorite package manager).
 2. Clone the repository recursively via Git:
 
    ```git clone --recursive https://github.com/gottagofaster236/RewardsTheater```
 3. Run
    ```bash
-   export CC=gcc-13
-   export CXX=g++-13
+   export CC=gcc-12
+   export CXX=g++-12
    sudo ./.github/scripts/build-linux.sh
    ```
 
