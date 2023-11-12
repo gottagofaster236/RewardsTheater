@@ -99,28 +99,27 @@ asio::awaitable<PubsubListener::WebsocketStream> PubsubListener::asyncConnect(co
 
 asio::awaitable<void> PubsubListener::asyncSubscribeToChannelPoints(WebsocketStream& ws) {
     std::string topicName = fmt::format("{}.{}", CHANNEL_POINTS_TOPIC, twitchAuth.getUserIdOrThrow());
-    co_await asyncSendMessage(
-        ws,
+    json::value message{
+        {"type", "LISTEN"},
         {
-            {"type", "LISTEN"},
+            "data",
             {
-                "data",
                 {
-                    {
-                        "topics",
-                        {topicName},
-                    },
-                    {"auth_token", twitchAuth.getAccessTokenOrThrow()},
+                    "topics",
+                    {topicName},
                 },
+                {"auth_token", twitchAuth.getAccessTokenOrThrow()},
             },
-        }
-    );
+        },
+    };
+    co_await asyncSendMessage(ws, message);
 }
 
 asio::awaitable<void> PubsubListener::asyncSendPingMessages(WebsocketStream& ws) {
     while (true) {
         auto sentPingAt = std::chrono::steady_clock::now();
-        co_await asyncSendMessage(ws, {{"type", "PING"}});
+        json::value message{{"type", "PING"}};
+        co_await asyncSendMessage(ws, message);
         co_await asio::steady_timer(pubsubThread.ioContext, PING_PERIOD).async_wait(asio::use_awaitable);
         if (lastPongReceivedAt < sentPingAt) {
             throw NoPingAnswerException();

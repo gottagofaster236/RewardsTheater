@@ -176,17 +176,20 @@ boost::asio::awaitable<void> TwitchRewardsApi::asyncUpdateRedemptionStatus(
         case RedemptionStatus::CANCELED: statusString = "CANCELED"; break;
         }
 
+        std::string userId = twitchAuth.getUserIdOrThrow();
+        std::initializer_list<boost::urls::param_view> requestParams{
+            {"id", rewardRedemption.redemptionId},
+            {"broadcaster_id", userId},
+            {"reward_id", rewardRedemption.reward.id},
+        };
+        json::value requestBody{{"status", statusString}};
         HttpClient::Response response = co_await httpClient.request(
             "api.twitch.tv",
             "/helix/channel_points/custom_rewards/redemptions",
             twitchAuth,
-            {
-                {"id", rewardRedemption.redemptionId},
-                {"broadcaster_id", twitchAuth.getUserIdOrThrow()},
-                {"reward_id", rewardRedemption.reward.id},
-            },
+            requestParams,
             http::verb::patch,
-            {{"status", statusString}}
+            requestBody
         );
         if (response.status != http::status::ok) {
             throw UnexpectedHttpStatusException(response.json);
@@ -199,11 +202,13 @@ boost::asio::awaitable<void> TwitchRewardsApi::asyncUpdateRedemptionStatus(
 
 // https://dev.twitch.tv/docs/api/reference/#create-custom-rewards
 asio::awaitable<Reward> TwitchRewardsApi::asyncCreateReward(const RewardData& rewardData) {
+    std::string userId = twitchAuth.getUserIdOrThrow();
+    std::initializer_list<boost::urls::param_view> requestParams{{"broadcaster_id", userId}};
     HttpClient::Response response = co_await httpClient.request(
         "api.twitch.tv",
         "/helix/channel_points/custom_rewards",
         twitchAuth,
-        {{"broadcaster_id", twitchAuth.getUserIdOrThrow()}},
+        requestParams,
         http::verb::post,
         rewardDataToJson(rewardData)
     );
@@ -223,11 +228,13 @@ boost::asio::awaitable<Reward> TwitchRewardsApi::asyncUpdateReward(const Reward&
         throw NotManageableRewardException();
     }
 
+    std::string userId = twitchAuth.getUserIdOrThrow();
+    std::initializer_list<boost::urls::param_view> requestParams{{"broadcaster_id", userId}, {"id", reward.id}};
     HttpClient::Response response = co_await httpClient.request(
         "api.twitch.tv",
         "/helix/channel_points/custom_rewards",
         twitchAuth,
-        {{"broadcaster_id", twitchAuth.getUserIdOrThrow()}, {"id", reward.id}},
+        requestParams,
         http::verb::patch,
         rewardDataToJson(reward)
     );
@@ -290,14 +297,14 @@ void TwitchRewardsApi::checkForSameRewardTitleException(const boost::json::value
 asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards() {
     json::value manageableRewardsJson = co_await asyncGetRewardsRequest(true);
     auto manageableRewardIdsView =
-        manageableRewardsJson.at("data").as_array() | std::views::transform([this](const auto& reward) {
+        manageableRewardsJson.at("data").as_array() | std::views::transform([](const auto& reward) {
             return value_to<std::string>(reward.at("id"));
         });
     std::set<std::string> manageableRewardIds(manageableRewardIdsView.begin(), manageableRewardIdsView.end());
 
     auto allRewardsJson = co_await asyncGetRewardsRequest(false);
     auto rewards =
-        allRewardsJson.at("data").as_array() | std::views::transform([this, &manageableRewardIds](const auto& reward) {
+        allRewardsJson.at("data").as_array() | std::views::transform([&manageableRewardIds](const auto& reward) {
             std::string id = value_to<std::string>(reward.at("id"));
             bool isManageable = manageableRewardIds.contains(id);
             return parseReward(reward, isManageable);
@@ -306,15 +313,14 @@ asio::awaitable<std::vector<Reward>> TwitchRewardsApi::asyncGetRewards() {
 }
 
 asio::awaitable<json::value> TwitchRewardsApi::asyncGetRewardsRequest(bool onlyManageableRewards) {
-    HttpClient::Response response = co_await httpClient.request(
-        "api.twitch.tv",
-        "/helix/channel_points/custom_rewards",
-        twitchAuth,
-        {
-            {"broadcaster_id", twitchAuth.getUserIdOrThrow()},
-            {"only_manageable_rewards", fmt::format("{}", onlyManageableRewards)},
-        }
-    );
+    std::string userId = twitchAuth.getUserIdOrThrow();
+    std::string onlyManageableRewardsString = fmt::format("{}", onlyManageableRewards);
+    std::initializer_list<boost::urls::param_view> requestParams{
+        {"broadcaster_id", userId},
+        {"only_manageable_rewards", onlyManageableRewardsString},
+    };
+    HttpClient::Response response =
+        co_await httpClient.request("api.twitch.tv", "/helix/channel_points/custom_rewards", twitchAuth, requestParams);
 
     switch (response.status) {
     case http::status::ok: break;
@@ -362,12 +368,11 @@ asio::awaitable<void> TwitchRewardsApi::asyncDeleteReward(const Reward& reward) 
     if (!reward.canManage) {
         throw NotManageableRewardException();
     }
+
+    std::string userId = twitchAuth.getUserIdOrThrow();
+    std::initializer_list<boost::urls::param_view> requestParams{{"broadcaster_id", userId}, {"id", reward.id}};
     HttpClient::Response response = co_await httpClient.request(
-        "api.twitch.tv",
-        "/helix/channel_points/custom_rewards",
-        twitchAuth,
-        {{"broadcaster_id", twitchAuth.getUserIdOrThrow()}, {"id", reward.id}},
-        http::verb::delete_
+        "api.twitch.tv", "/helix/channel_points/custom_rewards", twitchAuth, requestParams, http::verb::delete_
     );
 
     if (response.status != http::status::no_content) {
