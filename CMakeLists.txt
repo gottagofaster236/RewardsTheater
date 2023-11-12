@@ -74,6 +74,7 @@ if(MSVC)
 endif()
 
 # Libraries from vcpkg
+set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED COMPONENTS system url json)
 find_package(OpenSSL REQUIRED)
 find_package(fmt REQUIRED)
