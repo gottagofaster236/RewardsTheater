@@ -72,6 +72,7 @@ if(MSVC)
   target_precompile_headers(${CMAKE_PROJECT_NAME} PRIVATE src/BoostAsio.h)
   target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE /bigobj)
 endif()
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 # Libraries from vcpkg
 set(Boost_USE_STATIC_LIBS ON)
