@@ -25,10 +25,19 @@
 
 
 ## Налаштування
-### Установлення
+### Установлення на Windows
 1. Установи останню версію Visual C++ Redistributable [звідси](https://aka.ms/vs/17/release/vc_redist.x64.exe).
-2. Завантаж та запусти інсталятор для своєї операційної системи [за цим посиланням](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
+2. Завантаж та запусти exe інсталятор за [цим посиланням](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
 3. Замість інсталятора, можна завантажити zip файл та розпакувати його в папку, куди встановлено OBS (зазвичай `C:\Program Files\obs-studio`).
+### Установлення на Linux
+1. Для Ubuntu та інших дистрибутивів, заснованих на Debian, можна завантажити deb файл за [цим посиланням](https://github.com/gottagofaster236/RewardsTheater/releases/latest). Потім установи його наступним чином:
+   ```
+   sudo dpkg -i /path/to/deb/file
+   ```
+2. Також RewardsTheater можна встановити з Flathub:
+   ```
+   flatpak install flathub com.obsproject.Studio.Plugin.RewardsTheater
+   ```
 
 ### Додавання джерела
 1. RewardsTheater підтримує відео і звуки. Інструкції для цього аналогічні.

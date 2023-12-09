@@ -26,10 +26,19 @@ Or you can read the full instructions below.
 
 ## Setting up
 
-### Installing
+### Installing on Windows
 1. Install the latest version of Visual C++ Redistributable from [here](https://aka.ms/vs/17/release/vc_redist.x64.exe).
-2. Download and run the installer for your operating system from [this link](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
+2. Download and run the exe installer from [this link](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
 3. Instead of the installer, you can download the zip file and unpack it into your OBS installation folder (usually `C:\Program Files\obs-studio`).
+### Installing on Linux
+1. For Ubuntu and other Debian-based distros, you can download the deb file from [this link](https://github.com/gottagofaster236/RewardsTheater/releases/latest). Then install it via
+   ```
+   sudo dpkg -i /path/to/deb/file
+   ```
+2. You can also install RewardsTheater from Flathub:
+   ```
+   flatpak install flathub com.obsproject.Studio.Plugin.RewardsTheater
+   ```
 
 ### Adding a source
 1. RewardsTheater supports videos and sounds. The instructions are identical in both cases.
