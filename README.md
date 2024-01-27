@@ -31,14 +31,24 @@ Or you can read the full instructions below.
 2. Download and run the exe installer from [this link](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
 3. Instead of the installer, you can download the zip file and unpack it into your OBS installation folder (usually `C:\Program Files\obs-studio`).
 ### Installing on Linux
-1. For Ubuntu and other Debian-based distros, you can download the deb file from [this link](https://github.com/gottagofaster236/RewardsTheater/releases/latest). Then install it via
-   ```
-   sudo dpkg -i /path/to/deb/file
-   ```
-2. You can also install RewardsTheater from Flathub:
-   ```
-   flatpak install flathub com.obsproject.Studio.Plugin.RewardsTheater
-   ```
+
++ #### **Debian/Ubuntu**
+
+  For Ubuntu and other Debian-based distros, you can download the deb file from [this link](https://github.com/gottagofaster236/RewardsTheater/releases/latest). Then install it via
+
+  ```
+  sudo dpkg -i /path/to/deb/file
+  ```
+
++ #### **Arch Linux**
+  Available in [AUR](https://wiki.archlinux.org/index.php/Arch_User_Repository) as **[rewards-theater-obs](https://aur.archlinux.org/packages/rewards-theater-obs)** (stable) and **[rewards-theater-obs-git](https://aur.archlinux.org/packages/rewards-theater-obs-git)**
+
++ #### **Flathub**
+  Available as a Flatpak app [here](https://flathub.org/apps/com.obsproject.Studio.Plugin.RewardsTheater). If your distribution has support for [flatpak](https://flathub.org), and you have enabled the [flathub repo](https://flatpak.org/setup/):
+
+  ```
+  flatpak install flathub com.obsproject.Studio.Plugin.RewardsTheater
+  ```
 
 ### Adding a source
 1. RewardsTheater supports videos and sounds. The instructions are identical in both cases.
@@ -46,7 +56,7 @@ Or you can read the full instructions below.
    
    ![source](readme_images/source.png)
 3. Select a video file for the source from your computer. If you want the video to appear and hide smoothly, uncheck "Show nothing when playback ends" and select show/hide transitions for the source:
-     
+   
      ![media_source](readme_images/media_source.png)
      ![transition](readme_images/transition.png)
 4.  Position the source on the scene in the way that you like.
