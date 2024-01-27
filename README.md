@@ -44,7 +44,7 @@ Or you can read the full instructions below.
   Available in [AUR](https://wiki.archlinux.org/index.php/Arch_User_Repository) as **[rewards-theater-obs](https://aur.archlinux.org/packages/rewards-theater-obs)** (stable) and **[rewards-theater-obs-git](https://aur.archlinux.org/packages/rewards-theater-obs-git)**
 
 + #### **Flathub**
-  Available in [AUR](https://wiki.archlinux.org/index.php/Arch_User_Repository) as **[rewards-theater-obs](https://aur.archlinux.org/packages/rewards-theater-obs)** (stable) and **[rewards-theater-obs-git](https://aur.archlinux.org/packages/rewards-theater-obs-git)**
+  Available as a Flatpak app [here](https://flathub.org/apps/com.obsproject.Studio.Plugin.RewardsTheater). If your distribution has support for [flatpak](https://flathub.org), and you have enabled the [flathub repo](https://flatpak.org/setup/):
 
   ```
   flatpak install flathub com.obsproject.Studio.Plugin.RewardsTheater
