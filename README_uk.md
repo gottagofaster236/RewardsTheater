@@ -30,25 +30,23 @@
 2. Завантаж та запусти exe інсталятор за [цим посиланням](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
 3. Замість інсталятора, можна завантажити zip файл та розпакувати його в папку, куди встановлено OBS (зазвичай `C:\Program Files\obs-studio`).
 ### Установлення на Linux
+<details>
 
-+ #### Debian/Ubuntu
-
++ #### **Debian/Ubuntu**
   Для Ubuntu та інших дистрибутивів, заснованих на Debian, можна завантажити deb файл за [цим посиланням](https://github.com/gottagofaster236/RewardsTheater/releases/latest). Потім установи його наступним чином:
   ```
   sudo dpkg -i /path/to/deb/file
   ```
 
-+ #### Arch Linux
-
-  Доступно у [AUR](https://wiki.archlinux.org/index.php/Arch_User_Repository) як пакунки **[rewards-theater-obs](https://aur.archlinux.org/packages/rewards-theater-obs)** (стабільна) та **[rewards-theater-obs-git](https://aur.archlinux.org/packages/rewards-theater-obs-git)**.
-
-+ #### Flathub
-
-  Доступно як Flatpak [тут](https://flathub.org/apps/com.obsproject.Studio.Plugin.RewardsTheater). Якщо у вашого дистрибутиву є підтримка [flatpak](https://flathub.org), і у вас увімкнений [репозиторій flathub](https://flatpak.org/setup/):
-
++ #### **Flathub**
+  Можна встановити RewardsTheater через Flathub таким чином:
   ```
   flatpak install flathub com.obsproject.Studio.Plugin.RewardsTheater
   ```
+
++ #### **Arch Linux**
+  Доступно в AUR як пакунки **[rewards-theater-obs](https://aur.archlinux.org/packages/rewards-theater-obs)** (стабільна) та **[rewards-theater-obs-git](https://aur.archlinux.org/packages/rewards-theater-obs-git)**.
+</details>
 
 ### Додавання джерела
 1. RewardsTheater підтримує відео і звуки. Інструкції для цього аналогічні.

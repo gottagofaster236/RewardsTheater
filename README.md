@@ -31,24 +31,23 @@ Or you can read the full instructions below.
 2. Download and run the exe installer from [this link](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
 3. Instead of the installer, you can download the zip file and unpack it into your OBS installation folder (usually `C:\Program Files\obs-studio`).
 ### Installing on Linux
+<details>
 
 + #### **Debian/Ubuntu**
-
   For Ubuntu and other Debian-based distros, you can download the deb file from [this link](https://github.com/gottagofaster236/RewardsTheater/releases/latest). Then install it via
-
   ```
   sudo dpkg -i /path/to/deb/file
   ```
 
-+ #### **Arch Linux**
-  Available in [AUR](https://wiki.archlinux.org/index.php/Arch_User_Repository) as **[rewards-theater-obs](https://aur.archlinux.org/packages/rewards-theater-obs)** (stable) and **[rewards-theater-obs-git](https://aur.archlinux.org/packages/rewards-theater-obs-git)**
-
 + #### **Flathub**
-  Available as a Flatpak app [here](https://flathub.org/apps/com.obsproject.Studio.Plugin.RewardsTheater). If your distribution has support for [flatpak](https://flathub.org), and you have enabled the [flathub repo](https://flatpak.org/setup/):
-
+  You can install RewardsTheater from Flathub via
   ```
   flatpak install flathub com.obsproject.Studio.Plugin.RewardsTheater
   ```
+
++ #### **Arch Linux**
+  Available in AUR as **[rewards-theater-obs](https://aur.archlinux.org/packages/rewards-theater-obs)** (stable) and **[rewards-theater-obs-git](https://aur.archlinux.org/packages/rewards-theater-obs-git)**.
+</details>
 
 ### Adding a source
 1. RewardsTheater supports videos and sounds. The instructions are identical in both cases.
