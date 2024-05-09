@@ -25,8 +25,8 @@ static const char* const TWITCH_CLIENT_ID = "2u4jgrdekf0pwdpq7cmqcarifv93z3";
 // Use several ports to minimize the probability of collision between several running OBS instances.
 static constexpr std::array AUTH_SERVER_PORTS = {19910, 19911, 19912, 19913, 19914, 19915, 19916, 19917, 19918, 19919};
 
-static const int MIN_OBS_VERSION = 486604802;
-static const char* const MIN_OBS_VERSION_STRING = "29.1.2";
+static const int MIN_OBS_VERSION = 503316480;
+static const char* const MIN_OBS_VERSION_STRING = "30.0.0";
 
 RewardsTheaterPlugin::RewardsTheaterPlugin()
     : settings(obs_frontend_get_global_config()), ioThreadPool(std::max(2u, std::thread::hardware_concurrency())),
@@ -103,6 +103,11 @@ void RewardsTheaterPlugin::checkMinObsVersion() {
 }
 
 void RewardsTheaterPlugin::checkRestrictedRegion() {
+    if (std::getenv("container")) {
+        // Inside Flatpak
+        return;
+    }
+
     if (std::strcmp(obs_get_locale(), "ru-RU") != 0) {
         return;
     }

@@ -268,11 +268,11 @@ json::value TwitchRewardsApi::rewardDataToJson(const RewardData& rewardData) {
         {"is_enabled", rewardData.isEnabled},
         {"background_color", rewardData.backgroundColor.toHex()},
         {"is_max_per_stream_enabled", rewardData.maxRedemptionsPerStream.has_value()},
-        {"max_per_stream", rewardData.maxRedemptionsPerStream.value_or(1)},
+        {"max_per_stream", rewardData.maxRedemptionsPerStream.value_or(0)},
         {"is_max_per_user_per_stream_enabled", rewardData.maxRedemptionsPerUserPerStream.has_value()},
-        {"max_per_user_per_stream", rewardData.maxRedemptionsPerUserPerStream.value_or(1)},
+        {"max_per_user_per_stream", rewardData.maxRedemptionsPerUserPerStream.value_or(0)},
         {"is_global_cooldown_enabled", rewardData.globalCooldownSeconds.has_value()},
-        {"global_cooldown_seconds", rewardData.globalCooldownSeconds.value_or(1)},
+        {"global_cooldown_seconds", rewardData.globalCooldownSeconds.value_or(0)},
         {"should_redemptions_skip_request_queue", false},
     };
 }

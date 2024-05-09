@@ -143,7 +143,7 @@ jobs:
           print "CODESIGN_IDENT_INSTALLER=${{ secrets.MACOS_SIGNING_INSTALLER_IDENTITY }}" >> $GITHUB_ENV
 
       - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
+        uses: lukka/run-vcpkg@6fe69898af670ac05f4a8427cc5cff4fb361cee5
         env:
           VCPKG_DEFAULT_TRIPLET: ${{ (matrix.arch == 'arm64' && 'arm64-osx') || 'x64-osx' }}
         with:
@@ -246,7 +246,7 @@ jobs:
         run: sudo apt-get install gcc-12 g++-12
 
       - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
+        uses: lukka/run-vcpkg@6fe69898af670ac05f4a8427cc5cff4fb361cee5
         with:
           vcpkgDirectory: '${{ github.workspace }}/plugin/vcpkg'
           doNotUpdateVcpkg: true
@@ -336,7 +336,7 @@ jobs:
           "found=$(([string]${LabelFound}).ToLower())" >> $env:GITHUB_OUTPUT
 
       - name: Setup vcpkg
-        uses: lukka/run-vcpkg@v11
+        uses: lukka/run-vcpkg@6fe69898af670ac05f4a8427cc5cff4fb361cee5
         env:
           VCPKG_DEFAULT_TRIPLET: ${{ format('{0}-windows-static-md', matrix.arch) }}
         with:

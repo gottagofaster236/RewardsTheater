@@ -1,35 +1,29 @@
 {
     "dependencies": {
         "obs-studio": {
-            "version": "29.1.2",
+            "version": "30.0.0",
             "repository": "https://github.com/obsproject/obs-studio.git",
             "branch": "master",
-            "hash": "e15a92e16fc3827027a956f6d6a1223b41aced61"
+            "hash": "34ef67e212f24a085a63705a0ab81e3401c8eca4"
         },
         "prebuilt": {
-            "version": "2023-04-12",
+            "version": "2023-10-09",
             "baseUrl": "https://github.com/obsproject/obs-deps/releases/download",
             "label": "Pre-Built obs-deps",
             "hashes": {
-                "macos-x86_64": "81120ffa33bb050c6c5fcd236e5cedfd7b80f7053fdba271fead5af20be0b5f5",
-                "macos-arm64": "b9bab79611774c4651d084e14259abe889d2b8d1653787a843d08cf3f0db881c",
-                "macos-universal": "9535c6e1ad96f7d49960251e85a245774088d48da1d602bb82f734b10219125a",
-                "windows-x64": "c13a14a1acc4224b21304d97b63da4121de1ed6981297e50496fbc474abc0503",
-                "linux-x86_64": "056425a8a7a4a0c242ed5ab9c1eba4dd6b004386877de4304524e7bea11c0ee2"
+                "windows-x64": "7585ba9cc470c1f668af6d51efe6da211b16822b884382817750d9e8b502a81c",
+                "linux-x86_64": "856a51a53981b1bd3f5e5b9670a0924f70473353e669fce52e64d5d730209564"
             }
         },
         "qt6": {
-            "version": "2023-04-12",
+            "version": "2023-10-09",
             "baseUrl": "https://github.com/obsproject/obs-deps/releases/download",
             "label": "Pre-Built Qt6",
             "hashes": {
-                "macos-x86_64": "2622d6ecd484a596da12b6a45b709fe563821eda558d0bbb27335c8c2f63945c",
-                "macos-arm64": "4f72aa1103d88a00d90c01bb3650276ffa1408e16ef40579177605483b986dc9",
-                "macos-universal": "eb7614544ab4f3d2c6052c797635602280ca5b028a6b987523d8484222ce45d1",
-                "windows-x64": "4d39364b8a8dee5aa24fcebd8440d5c22bb4551c6b440ffeacce7d61f2ed1add"
+                "windows-x64": "feadb745e622fb81aa1cdcdc1179baef4c4442d15cb8f0212cb7ceda0f1911df"
             },
             "debugSymbols": {
-                "windows-x64": "f34ee5067be19ed370268b15c53684b7b8aaa867dc800b68931df905d679e31f"
+                "windows-x64": "3c43ae5293051958bc024af3083b3a60c4c4fac2629f88446dbc671d22d9f997"
             }
         }
     },
@@ -64,7 +58,7 @@
         }
     },
     "name": "RewardsTheater",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "author": "gottagofaster",
     "email": "lr.soft.now@gmail.com"
 }

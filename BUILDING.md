@@ -13,10 +13,10 @@ These steps are a continuation of the previous section on building.
 
 1. Install [pre-commit](https://pre-commit.com/) and run `pre-commit install` in the root of the repository in order to format code automatically before a commit. (This uses [.pre-commit-config.yaml](.pre-commit-config.yaml) and [.cmake-format.json](.cmake-format.json)).
 2. Navigate to `../obs-studio`. OBS Studio should be cloned already by the build script. Then build it according to the instructions on the [OBS website](https://obsproject.com/wiki/Building-OBS-Studio).
-2. Open the `RewardsTheater/build64` directory. Open `CMakeCache.txt` and add the following line:  ```OBS_BUILD_DIR:FILEPATH=../../obs-studio/build64```
+2. Open the `RewardsTheater/build_x64` directory. Open `CMakeCache.txt` and add the following line:  ```OBS_BUILD_DIR:FILEPATH=../../obs-studio/build64```
    
    Then build RewardsTheater again via the build script.
-3. Open the project in Visual Studio. Right-click the `ALL_BUILD` project and set the debugging target to the OBS binary at `your_obs_clone_path\obs-studio\build64\rundir\Debug\bin\64bit\obs64.exe`, and the working directory to `your_obs_clone_path\obs-studio\build64\rundir\Debug\bin\64bit`. Now when you hit "Run" inside Visual Studio, the plugin is copied automatically to the rundir and then VS launches OBS for debugging.
+3. Open the project in Visual Studio. Right-click the `ALL_BUILD` project. Select "Debug" in the "Configuration:" dropdown. Set the "Command:" to the OBS binary at `your_user_dir\source\repos\obs-studio\build64\rundir\Debug\bin\64bit\obs64.exe`, and the working directory to `your_user_dir\source\repos\obs-studio\build64\rundir\Debug\bin\64bit`. Now when you hit "Run" inside Visual Studio, the plugin is copied automatically to the rundir and then VS launches OBS for debugging.
 
 ## Building locally on Linux
 1. Install GCC 12 (or later) via `sudo apt install gcc-12 g++-12` (use your favorite package manager).
