@@ -58,7 +58,8 @@ Or you can read the full instructions below.
    
      ![media_source](readme_images/media_source.png)
      ![transition](readme_images/transition.png)
-4.  Position the source on the scene in the way that you like.
+4. Position the source on the scene in the way that you like.
+5. If you want to hear the videos yourself when the chat plays them, go to Audio Mixer, right-click the source, select "Advanced Audio Properties", and choose "Monitor and Output" under "Audio Monitoring".
 
 ### Adding a random video source
 You can use a VLC Video Source with several videos in the playlist. Then RewardsTheater will play a random video from this playlist every time.
