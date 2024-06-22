@@ -33,7 +33,7 @@ Or you can read the full instructions below.
 
 ### Installing on macOS
 1. Download the `macos-universal.pkg` file from [here](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
-2. Right-click it and click "Open".
+2. Open the `Downloads` folder in Finder. Right-click the `macos-universal.pkg` file and click "Open". Then click "Open" again.
 3. Click "Next" in the installer until the plugin is installed.
 
 ### Installing on Linux
