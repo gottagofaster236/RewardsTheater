@@ -30,6 +30,12 @@ Or you can read the full instructions below.
 1. Install the latest version of Visual C++ Redistributable from [here](https://aka.ms/vs/17/release/vc_redist.x64.exe).
 2. Download and run the exe installer from [this link](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
 3. Instead of the installer, you can download the zip file and unpack it into your OBS installation folder (usually `C:\Program Files\obs-studio`).
+
+### Installing on macOS
+1. Download the `macos-universal.pkg` file from [here](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
+2. Right-click it and click "Open".
+3. Click "Next" in the installer until the plugin is installed.
+
 ### Installing on Linux
 <details>
 

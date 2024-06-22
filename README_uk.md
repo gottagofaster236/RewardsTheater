@@ -29,6 +29,12 @@
 1. Установи останню версію Visual C++ Redistributable [звідси](https://aka.ms/vs/17/release/vc_redist.x64.exe).
 2. Завантаж та запусти exe інсталятор за [цим посиланням](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
 3. Замість інсталятора, можна завантажити zip файл та розпакувати його в папку, куди встановлено OBS (зазвичай `C:\Program Files\obs-studio`).
+
+### Установлення на macOS
+1. Завантаж файл `macos-universal.pkg` [звідси](https://github.com/gottagofaster236/RewardsTheater/releases/latest).
+2. Натисни на нього правою кнопкою миші та клікни «Відкрити».
+3. Клікай «Далі» в інсталяторі поки плагін не буде встановлено.
+
 ### Установлення на Linux
 <details>
 
