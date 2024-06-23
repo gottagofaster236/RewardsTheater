@@ -69,6 +69,7 @@ Or you can read the full instructions below.
 
 ### Adding a random video source
 You can use a VLC Video Source with several videos in the playlist. Then RewardsTheater will play a random video from this playlist every time.
+**Please make sure you add videos one-by-one and not the whole directory.**
 
 Note that hide transitions are not supported in this case.
 

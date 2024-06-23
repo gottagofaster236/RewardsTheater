@@ -101,10 +101,15 @@ private:
     struct MediaEndedCallback {
         boost::asio::io_context& ioContext;
         boost::asio::deadline_timer& deadlineTimer;
+        bool skipFirstCall;
         bool mediaEnded = false;
         bool enabled = true;
 
-        MediaEndedCallback(boost::asio::io_context& ioContext, boost::asio::deadline_timer& deadlineTimer);
+        MediaEndedCallback(
+            boost::asio::io_context& ioContext,
+            boost::asio::deadline_timer& deadlineTimer,
+            bool isVlcSource
+        );
         static void stopDeadlineTimer(void* param, calldata_t* data);
     };
 

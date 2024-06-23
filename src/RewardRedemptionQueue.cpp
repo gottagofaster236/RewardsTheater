@@ -147,8 +147,9 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayRewardRedemptionsFromQueue
         } catch (const ObsSourceNoVideoException&) {}
         co_await popPlayedRewardRedemptionFromQueue(nextRewardRedemption);
 
+        double intervalBetweenRewardsSeconds = std::max(0.1, settings.getIntervalBetweenRewardsSeconds());
         auto timeBeforeNextReward =
-            std::chrono::milliseconds(static_cast<long long>(1000 * settings.getIntervalBetweenRewardsSeconds()));
+            std::chrono::milliseconds(static_cast<long long>(1000 * intervalBetweenRewardsSeconds));
         co_await asio::steady_timer(ioContext, timeBeforeNextReward).async_wait(asio::use_awaitable);
     }
 }
@@ -238,21 +239,20 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(
 
     asio::deadline_timer deadlineTimer(ioContext);
     auto mediaStartedCallback = std::make_shared<MediaStartedCallback>(ioContext);
-    auto mediaEndedCallback = std::make_shared<MediaEndedCallback>(ioContext, deadlineTimer);
+    auto mediaEndedCallback = std::make_shared<MediaEndedCallback>(ioContext, deadlineTimer, isVlcSource(source));
     ObsSignalWithCallback mediaStartedSignal(
         source, "media_started", &MediaStartedCallback::setMediaStarted, mediaStartedCallback
     );
 
-    SourcePlayback sourcePlayback{state, rewardId, source, randomPositionEnabled, 0, 1};
-    startObsSource(sourcePlayback);
-
-    // Source may be stopped while we are starting it - therefore, register the signals later.
     ObsSignalWithCallback mediaEndedSignal(
         source, "media_ended", &MediaEndedCallback::stopDeadlineTimer, mediaEndedCallback
     );
     ObsSignalWithCallback mediaStoppedSignal(
         source, "media_stopped", &MediaEndedCallback::stopDeadlineTimer, mediaEndedCallback
     );
+
+    SourcePlayback sourcePlayback{state, rewardId, source, randomPositionEnabled, 0, 1};
+    startObsSource(sourcePlayback);
 
     // Give some time for the source to start, otherwise stop it.
     deadlineTimer.expires_from_now(boost::posix_time::milliseconds(500));
@@ -285,14 +285,21 @@ void RewardRedemptionQueue::MediaStartedCallback::setMediaStarted(void* param, [
 
 RewardRedemptionQueue::MediaEndedCallback::MediaEndedCallback(
     asio::io_context& ioContext,
-    asio::deadline_timer& deadlineTimer
+    asio::deadline_timer& deadlineTimer,
+    bool isVlcSource
 )
-    : ioContext(ioContext), deadlineTimer(deadlineTimer) {}
+    : ioContext(ioContext), deadlineTimer(deadlineTimer), skipFirstCall(isVlcSource) {}
 
 void RewardRedemptionQueue::MediaEndedCallback::stopDeadlineTimer(void* param, [[maybe_unused]] calldata_t* data) {
     std::shared_ptr<MediaEndedCallback> callback = *static_cast<std::shared_ptr<MediaEndedCallback>*>(param);
     callback->ioContext.post([callback]() {
         if (callback->enabled) {
+            // We have to call obs_source_media_stop for every VLC source just before starting it.
+            // However, it shouldn't be confused with the actual signal of the video stopping.
+            if (callback->skipFirstCall) {
+                callback->skipFirstCall = false;
+                return;
+            }
             callback->mediaEnded = true;
             callback->deadlineTimer.cancel();
         }
@@ -512,11 +519,6 @@ asio::awaitable<void> RewardRedemptionQueue::asyncHideObsSource(
     } callback{sourcePlayback.source, vlcSource};
 
     obs_enum_scenes(&HideObsSourceCallback::hideObsSourceOnScene, &callback);
-
-    if (vlcSource && sourcePlayback.playlistSize > 1) {
-        // Playlists don't work well when chained together.
-        callback.hideTransitionDurationMs = 500;
-    }
 
     if (waitForHideTransition) {
         std::chrono::milliseconds hideTransitionDuration{callback.hideTransitionDurationMs};
