@@ -148,7 +148,7 @@ asio::awaitable<void> PubsubListener::asyncReadMessages(WebsocketStream& ws) {
             json::value redemption = rewardMessage.at("data").at("redemption");
             Reward reward = TwitchRewardsApi::parsePubsubReward(redemption.at("reward"));
             std::string redemptionId = value_to<std::string>(redemption.at("id"));
-            rewardRedemptionQueue.queueRewardRedemption(RewardRedemption(reward, redemptionId));
+            rewardRedemptionQueue.queueRewardRedemption(RewardRedemption{reward, redemptionId});
         }
     }
 }

@@ -2,63 +2,49 @@
     "dependencies": {
         "obs-studio": {
             "version": "30.0.0",
-            "repository": "https://github.com/obsproject/obs-studio.git",
-            "branch": "master",
-            "hash": "34ef67e212f24a085a63705a0ab81e3401c8eca4"
+            "baseUrl": "https://github.com/obsproject/obs-studio/archive/refs/tags",
+            "label": "OBS sources",
+            "hashes": {
+                "macos": "c23dd463862b1a8f40365d84fd52105d7eafc3614fb3d470b695ba28a6e4da06",
+                "windows-x64": "2bfdadf5f46ba56276d588b77653a10b9e2b2e3c05d8029b27a25b8ada9ab474"
+            }
         },
         "prebuilt": {
-            "version": "2023-10-09",
+            "version": "2023-11-03",
             "baseUrl": "https://github.com/obsproject/obs-deps/releases/download",
             "label": "Pre-Built obs-deps",
             "hashes": {
-                "windows-x64": "7585ba9cc470c1f668af6d51efe6da211b16822b884382817750d9e8b502a81c",
-                "linux-x86_64": "856a51a53981b1bd3f5e5b9670a0924f70473353e669fce52e64d5d730209564"
+                "macos": "90c2fc069847ec2768dcc867c1c63b112c615ed845a907dc44acab7a97181974",
+                "windows-x64": "d0825a6fb65822c993a3059edfba70d72d2e632ef74893588cf12b1f0d329ce6"
             }
         },
         "qt6": {
-            "version": "2023-10-09",
+            "version": "2023-11-03",
             "baseUrl": "https://github.com/obsproject/obs-deps/releases/download",
             "label": "Pre-Built Qt6",
             "hashes": {
-                "windows-x64": "feadb745e622fb81aa1cdcdc1179baef4c4442d15cb8f0212cb7ceda0f1911df"
+                "macos": "ba4a7152848da0053f63427a2a2cb0a199af3992997c0db08564df6f48c9db98",
+                "windows-x64": "bc57dedf76b47119a6dce0435a2f21b35b08c8f2948b1cb34a157320f77732d1"
             },
             "debugSymbols": {
-                "windows-x64": "3c43ae5293051958bc024af3083b3a60c4c4fac2629f88446dbc671d22d9f997"
+                "windows-x64": "fd8ecd1d8cd2ef049d9f4d7fb5c134f784836d6020758094855dfa98bd025036"
             }
         }
     },
     "platformConfig": {
-        "macos-x86_64": {
-            "qtVersion": 6,
-            "deploymentTarget": "10.15"
-        },
-        "macos-arm64": {
-            "qtVersion": 6,
-            "deploymentTarget": "11.0"
-        },
-        "macos-universal": {
-            "qtVersion": 6,
-            "deploymentTarget": "10.15"
-        },
-        "windows-x64": {
-            "qtVersion": 6,
-            "visualStudio": "Visual Studio 17 2022",
-            "platformSDK": "10.0.20348.0"
-        },
-        "windows-x86": {
-            "qtVersion": 6,
-            "visualStudio": "Visual Studio 17 2022",
-            "platformSDK": "10.0.20348.0"
-        },
-        "linux-x86_64": {
-            "qtVersion": 6
-        },
-        "linux-aarch64": {
-            "qtVersion": 6
+        "macos": {
+            "bundleId": "com.lr-soft.rewardstheater"
         }
     },
     "name": "RewardsTheater",
+    "displayName": "RewardsTheater",
     "version": "1.0.6",
     "author": "gottagofaster",
-    "email": "lr.soft.now@gmail.com"
+    "website": "https://github.com/gottagofaster236/RewardsTheater",
+    "email": "lr.soft.now@gmail.com",
+    "uuids": {
+        "macosPackage": "61ff1b4d-8aa7-4f07-bc38-d0170c36a840",
+        "macosInstaller": "b1bdffba-d497-4998-a7a2-6a950cdb0f66",
+        "windowsApp": "4e51c10c-e95c-4f00-8538-c8077bfd2eb3"
+    }
 }

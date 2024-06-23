@@ -21,3 +21,6 @@ CMakeFiles
 build_copy.txt
 .cache/
 build.ps1
+.deps
+cmake/.CMakeBuildNumber
+.ccache.conf

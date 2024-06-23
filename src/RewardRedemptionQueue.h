@@ -94,6 +94,7 @@ private:
         bool mediaStarted = false;
         bool enabled = true;
 
+        MediaStartedCallback(boost::asio::io_context& ioContext);
         static void setMediaStarted(void* param, calldata_t* data);
     };
 
@@ -103,6 +104,7 @@ private:
         bool mediaEnded = false;
         bool enabled = true;
 
+        MediaEndedCallback(boost::asio::io_context& ioContext, boost::asio::deadline_timer& deadlineTimer);
         static void stopDeadlineTimer(void* param, calldata_t* data);
     };
 

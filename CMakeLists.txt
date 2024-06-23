@@ -1,22 +1,17 @@
-cmake_minimum_required(VERSION 3.20)
-cmake_policy(SET CMP0111 OLD)
+cmake_minimum_required(VERSION 3.16...3.26)
 
-project(RewardsTheater VERSION 1.0.6)
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/common/bootstrap.cmake" NO_POLICY_SCOPE)
+
+project(${_name} VERSION ${_version})
+
+option(ENABLE_FRONTEND_API "Use obs-frontend-api for UI functionality" ON)
+option(ENABLE_QT "Use Qt functionality" ON)
+
+include(compilerconfig)
+include(defaults)
+include(helpers)
+
 add_library(${CMAKE_PROJECT_NAME} MODULE)
-
-# Replace `Your Name Here` with the name (yours or your organization's) you want to see as the
-# author of the plugin (in the plugin's metadata itself and in the installers)
-set(PLUGIN_AUTHOR "gottagofaster")
-
-# Replace 'https://www.example.com` with a link to the website of your plugin or repository
-set(PLUGIN_WEBSITE "https://github.com/gottagofaster236/RewardsTheater")
-
-# Replace `com.example.obs-plugin-template` with a unique Bundle ID for macOS releases (used both in
-# the installer and when submitting the installer for notarization)
-set(MACOS_BUNDLEID "com.gottagofaster.RewardsTheater")
-
-# Replace `me@contoso.com` with the maintainer email address you want to put in Linux packages
-set(LINUX_MAINTAINER_EMAIL "lr.soft.now@gmail.com")
 
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
@@ -74,75 +69,45 @@ if(MSVC)
 endif()
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 
-# Libraries from vcpkg
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED COMPONENTS system url json)
 find_package(OpenSSL REQUIRED)
-find_package(fmt REQUIRED)
+if(DEFINED fmt_DIR)
+  add_subdirectory(${fmt_DIR})
+else()
+  find_package(fmt REQUIRED)
+endif()
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC Boost::system Boost::url Boost::json
-                                                   OpenSSL::SSL OpenSSL::Crypto fmt::fmt)
+                                                   OpenSSL::SSL OpenSSL::Crypto fmt::fmt-header-only)
 
 # Import libobs as main plugin dependency
 find_package(libobs REQUIRED)
-include(cmake/ObsPluginHelpers.cmake)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::libobs)
 
-find_package(obs-frontend-api REQUIRED)
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::obs-frontend-api)
+if(ENABLE_FRONTEND_API)
+  find_package(obs-frontend-api REQUIRED)
+  target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::obs-frontend-api)
+endif()
 
-find_qt(COMPONENTS Core Widgets Gui)
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Qt::Core Qt::Widgets Qt::Gui)
-
-set_target_properties(
-  ${CMAKE_PROJECT_NAME}
-  PROPERTIES AUTOMOC ON
-             AUTOUIC ON
-             AUTORCC ON)
+if(ENABLE_QT)
+  find_package(Qt6 COMPONENTS Core Widgets Gui)
+  target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Gui)
+  target_compile_options(
+    ${CMAKE_PROJECT_NAME} PRIVATE $<$<C_COMPILER_ID:Clang,AppleClang>:-Wno-quoted-include-in-framework-header
+                                  -Wno-comma>)
+  set_target_properties(
+    ${CMAKE_PROJECT_NAME}
+    PROPERTIES AUTOMOC ON
+               AUTOUIC ON
+               AUTORCC ON)
+endif()
 
 configure_file(src/RewardsTheaterVersion.h.in
                ${CMAKE_SOURCE_DIR}/src/RewardsTheaterVersion.generated.h)
 
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/RewardsTheaterVersion.generated.h)
 
-# /!\ TAKE NOTE: No need to edit things past this point /!\
 
-# --- Platform-independent build settings ---
 
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
-
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::libobs)
-
-# --- End of section ---
-
-# --- Windows-specific build settings and tasks ---
-if(OS_WINDOWS)
-  configure_file(cmake/bundle/windows/installer-Windows.iss.in
-                 ${CMAKE_BINARY_DIR}/installer-Windows.generated.iss)
-
-  configure_file(cmake/bundle/windows/resource.rc.in ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.rc)
-  target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.rc)
-
-  if(MSVC)
-    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE /W4)
-  endif()
-  # --- End of section ---
-
-  # -- macOS specific build settings and tasks --
-elseif(OS_MACOS)
-  configure_file(cmake/bundle/macos/installer-macos.pkgproj.in
-                 ${CMAKE_BINARY_DIR}/installer-macos.generated.pkgproj)
-
-  set(MACOSX_PLUGIN_GUI_IDENTIFIER "${MACOS_BUNDLEID}")
-  set(MACOSX_PLUGIN_BUNDLE_VERSION "${CMAKE_PROJECT_VERSION}")
-  set(MACOSX_PLUGIN_SHORT_VERSION_STRING "1")
-
-  target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -Wall)
-  # --- End of section ---
-
-  # --- Linux-specific build settings and tasks ---
-else()
-  target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -Wall)
-endif()
-# --- End of section ---
-
-setup_plugin_target(${CMAKE_PROJECT_NAME})
+set_target_properties_plugin(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_name})

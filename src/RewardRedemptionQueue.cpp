@@ -272,6 +272,8 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(
     co_await asyncStopObsSourceIfPlayedByState(sourcePlayback, true);
 }
 
+RewardRedemptionQueue::MediaStartedCallback::MediaStartedCallback(asio::io_context& ioContext) : ioContext(ioContext) {}
+
 void RewardRedemptionQueue::MediaStartedCallback::setMediaStarted(void* param, [[maybe_unused]] calldata_t* data) {
     std::shared_ptr<MediaStartedCallback> callback = *static_cast<std::shared_ptr<MediaStartedCallback>*>(param);
     callback->ioContext.post([callback]() {
@@ -280,6 +282,12 @@ void RewardRedemptionQueue::MediaStartedCallback::setMediaStarted(void* param, [
         }
     });
 }
+
+RewardRedemptionQueue::MediaEndedCallback::MediaEndedCallback(
+    asio::io_context& ioContext,
+    asio::deadline_timer& deadlineTimer
+)
+    : ioContext(ioContext), deadlineTimer(deadlineTimer) {}
 
 void RewardRedemptionQueue::MediaEndedCallback::stopDeadlineTimer(void* param, [[maybe_unused]] calldata_t* data) {
     std::shared_ptr<MediaEndedCallback> callback = *static_cast<std::shared_ptr<MediaEndedCallback>*>(param);
@@ -456,7 +464,7 @@ void RewardRedemptionQueue::showObsSource(SourcePlayback& sourcePlayback) {
             obs_sceneitem_set_visible(sceneItem, true);
             return true;
         }
-    } callback(sourcePlayback, sourcePositionOnScenes[sourcePlayback.source], settings, randomEngine);
+    } callback{sourcePlayback, sourcePositionOnScenes[sourcePlayback.source], settings, randomEngine};
 
     obs_enum_scenes(&ShowObsSourceCallback::showObsSourceOnScene, &callback);
 }
@@ -501,7 +509,7 @@ asio::awaitable<void> RewardRedemptionQueue::asyncHideObsSource(
             }
             return true;
         }
-    } callback(sourcePlayback.source, vlcSource);
+    } callback{sourcePlayback.source, vlcSource};
 
     obs_enum_scenes(&HideObsSourceCallback::hideObsSourceOnScene, &callback);
 
@@ -535,7 +543,7 @@ void RewardRedemptionQueue::restoreSourcePosition(obs_source_t* source) {
             }
             return true;
         }
-    } callback(source, sourcePositionOnScenes[source]);
+    } callback{source, sourcePositionOnScenes[source]};
 
     obs_enum_scenes(&RestoreSourcePositionCallback::restoreSourcePositionOnScene, &callback);
 }
