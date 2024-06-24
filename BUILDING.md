@@ -14,16 +14,26 @@
 These steps are a continuation of the previous section on building.
 
 1. Install [pre-commit](https://pre-commit.com/) and run `pre-commit install` in the root of the repository in order to format code automatically before a commit. (This uses [.pre-commit-config.yaml](.pre-commit-config.yaml) and [.cmake-format.json](.cmake-format.json)).
-2. Clone [OBS Studio](https://github.com/obsproject/obs-studio) **recursively** (`git clone https://github.com/obsproject/obs-studio/ --recursive`), checkout a tag you want to compile (e.g. `git reset --hard 30.0.0`). Execute the following command:
-   ```
-   cmake --preset windows-x64
-   ```
+2. - Clone [OBS Studio](https://github.com/obsproject/obs-studio) **recursively**:
+     ```
+     git clone https://github.com/obsproject/obs-studio --recursive
+     ```
+   - Check out a tag you want to compile (e.g. `git reset --hard 30.0.0`).
+   - Execute the following command to generate a Visual Studio solution:
+     ```
+     cmake --preset windows-x64
+     ```
 
-   Then open the `obs-studio/build_x64` folder in Visual Studio and build it as Debug.
-3. Open the `RewardsTheater/build_x64` directory. Open `CMakeCache.txt` and add the following line:  ```OBS_BUILD_DIR:FILEPATH=../../obs-studio/build_x64/rundir/Debug```
+   - Open the `obs-studio/build_x64` folder in Visual Studio and build the solution as `Debug`.
+3. Open the `RewardsTheater/build_x64` directory. Open `CMakeCache.txt` and add the following line:
+   ```
+   OBS_BUILD_DIR:FILEPATH=../../obs-studio/build_x64/rundir/Debug
+   ```
+   This is needed for CMake to copy the plugin into the OBS installation.
 
-   Then build RewardsTheater again via its build script.
-4. Open the project in Visual Studio. Right-click the `ALL_BUILD` project. Select "Debug" in the "Configuration:" dropdown. Open the "Debugging" pane. Set the "Command:" to the OBS binary at `your_user_dir\source\repos\obs-studio\build64\rundir\Debug\bin\64bit\obs64.exe`, and the working directory to `your_user_dir\source\repos\obs-studio\build64\rundir\Debug\bin\64bit`. Now when you hit "Run" inside Visual Studio, the plugin is copied automatically to the rundir and then VS launches OBS for debugging.
+4. Then build RewardsTheater again via `.github/scripts/Build-Windows.ps1`.
+5. Open the project in Visual Studio. Right-click the `ALL_BUILD` project. Select "Debug" in the "Configuration:" dropdown. Open the "Debugging" pane. Set the "Command:" to the OBS binary at `your_user_dir\source\repos\obs-studio\build64\rundir\Debug\bin\64bit\obs64.exe`, and the working directory to `your_user_dir\source\repos\obs-studio\build64\rundir\Debug\bin\64bit`.
+6. Now when you hit "Run" inside Visual Studio, the plugin is copied automatically to the rundir and then Visual Studio launches OBS for debugging.
 
 ## Building locally on Linux
 1. Install GCC 12 (or later) via `sudo apt install gcc-12 g++-12` (use your favorite package manager).
@@ -42,16 +52,20 @@ These steps are a continuation of the previous section on building.
 
 ## GitHub Actions & CI
 
-The scripts contained in `github/scripts` can be used to build and package the plugin and take care of setting up obs-studio as well as its own dependencies. A workflow for GitHub Actions is provided and will use these scripts.
+Default GitHub Actions workflows are available for the following repository actions:
+
+* `push`: Run for commits or tags pushed to `master` or `main` branches.
+* `pr-pull`: Run when a Pull Request has been pushed or synchronized.
+* `dispatch`: Run when triggered by the workflow dispatch in GitHub's user interface.
+* `build-project`: Builds the actual project and is triggered by other workflows.
+* `check-format`: Checks CMake and plugin source code formatting and is triggered by other workflows.
+
+The workflows make use of GitHub repository actions (contained in `.github/actions`) and build scripts (contained in `.github/scripts`) which are not needed for local development, but might need to be adjusted if additional/different steps are required to build the plugin.
 
 ### Retrieving build artifacts
 
-Each build produces installers and packages that you can use for testing and releases. These artifacts can be found on the action result page via the "Actions" tab in your GitHub repository.
+Successful builds on GitHub Actions will produce build artifacts that can be downloaded for testing. These artifacts are commonly simple archives and will not contain package installers or installation programs.
 
-#### Building a Release
+### Building a Release
 
-Simply create and push a tag and GitHub Actions will run the pipeline in Release Mode. This mode uses the tag as its version number instead of the git ref in normal mode.
-
-### Packaging on Linux
-
-The install step results in different directory structures depending on the value of `LINUX_PORTABLE` - "OFF" will organize outputs to be placed in the system root, such as `/usr/`, and "ON" will organize outputs for portable installations in the user's home directory. If you are packaging for a Linux distribution, you probably want to set `-DLINUX_PORTABLE=OFF`.
+To create a release, an appropriately named tag needs to be pushed to the `main`/`master` branch using semantic versioning (e.g., `12.3.4`, `23.4.5-beta2`). A draft release will be created on the associated repository with generated installer packages or installation programs attached as release artifacts.
