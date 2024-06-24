@@ -21,8 +21,6 @@ Or you can read the full instructions below.
 ## Requirements
 - You are a Twitch Affiliate or Partner and have channel points enabled.
 - OBS version 30.0.0 or newer.
-- Windows or Linux operating system.
-
 
 ## Setting up
 
