@@ -116,9 +116,9 @@ asio::awaitable<void> PubsubListener::asyncSubscribeToChannelPoints(WebsocketStr
 }
 
 asio::awaitable<void> PubsubListener::asyncSendPingMessages(WebsocketStream& ws) {
+    json::value message{{"type", "PING"}};
     while (true) {
         auto sentPingAt = std::chrono::steady_clock::now();
-        json::value message{{"type", "PING"}};
         co_await asyncSendMessage(ws, message);
         co_await asio::steady_timer(pubsubThread.ioContext, PING_PERIOD).async_wait(asio::use_awaitable);
         if (lastPongReceivedAt < sentPingAt) {
