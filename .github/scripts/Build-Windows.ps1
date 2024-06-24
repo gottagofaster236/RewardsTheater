@@ -102,6 +102,9 @@ function Build {
     }
     Log-Group "Install ${ProductName}..."
     Invoke-External cmake @CmakeInstallArgs
+    
+    Remove-Item -LiteralPath "${ProjectRoot}/release/${Configuration}/lib" -Force -Recurse
+    Remove-Item -LiteralPath "${ProjectRoot}/release/${Configuration}/include" -Force -Recurse
 
     Pop-Location -Stack BuildTemp
     Log-Group
