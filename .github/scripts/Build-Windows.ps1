@@ -3,10 +3,7 @@ param(
     [ValidateSet('x64')]
     [string] $Target = 'x64',
     [ValidateSet('Debug', 'RelWithDebInfo', 'Release', 'MinSizeRel')]
-    [string] $Configuration = 'RelWithDebInfo',
-    [switch] $SkipAll,
-    [switch] $SkipBuild,
-    [switch] $SkipDeps
+    [string] $Configuration = 'RelWithDebInfo'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -16,12 +13,16 @@ if ( $DebugPreference -eq 'Continue' ) {
     $InformationPreference = 'Continue'
 }
 
+if ( $env:CI -eq $null ) {
+    throw "Build-Windows.ps1 requires CI environment"
+}
+
 if ( ! ( [System.Environment]::Is64BitOperatingSystem ) ) {
     throw "A 64-bit system is required to build the project."
 }
 
-if ( $PSVersionTable.PSVersion -lt '7.0.0' ) {
-    Write-Warning 'The obs-deps PowerShell build script requires PowerShell Core 7. Install or upgrade your PowerShell version: https://aka.ms/pscore6'
+if ( $PSVersionTable.PSVersion -lt '7.2.0' ) {
+    Write-Warning 'The obs-studio PowerShell build script requires PowerShell Core 7. Install or upgrade your PowerShell version: https://aka.ms/pscore6'
     exit 2
 }
 
@@ -35,7 +36,6 @@ function Build {
 
     $ScriptHome = $PSScriptRoot
     $ProjectRoot = Resolve-Path -Path "$PSScriptRoot/../.."
-    $BuildSpecFile = "${ProjectRoot}/buildspec.json"
 
     $UtilityFunctions = Get-ChildItem -Path $PSScriptRoot/utils.pwsh/*.ps1 -Recurse
 
@@ -44,63 +44,49 @@ function Build {
         . $Utility.FullName
     }
 
-    $BuildSpec = Get-Content -Path ${BuildSpecFile} -Raw | ConvertFrom-Json
-    $ProductName = $BuildSpec.name
-    $ProductVersion = $BuildSpec.version
-
-    if ( ! $SkipDeps ) {
-        Install-BuildDependencies -WingetFile "${ScriptHome}/.Wingetfile"
-    }
+    Log-Group 'Install Boost and fmtlib'
+    Windows-Deps
+    Log-Group
 
     Push-Location -Stack BuildTemp
-    if ( ! ( ( $SkipAll ) -or ( $SkipBuild ) ) ) {
-        Ensure-Location $ProjectRoot
+    Ensure-Location $ProjectRoot
 
-        $CmakeArgs = @()
-        $CmakeBuildArgs = @()
-        $CmakeInstallArgs = @()
+    $CmakeArgs = @('--preset', "windows-ci-${Target}")
+    $CmakeBuildArgs = @('--build')
+    $CmakeInstallArgs = @()
 
-        if ( $VerbosePreference -eq 'Continue' ) {
-            $CmakeBuildArgs += ('--verbose')
-            $CmakeInstallArgs += ('--verbose')
-        }
-
-        if ( $DebugPreference -eq 'Continue' ) {
-            $CmakeArgs += ('--debug-output')
-        }
-
-        $Preset = "windows-$(if ( $Env:CI -ne $null ) { 'ci-' })${Target}"
-
-        $CmakeArgs += @(
-            '--preset', $Preset
-        )
-        
-        $CmakeArgs += @(
-            "-DBoost_DIR=${ProjectRoot}/.deps/boost/stage/lib/cmake/Boost-1.87.0"
-            "-DFMT_DIRECTORY=${ProjectRoot}/.deps/fmt"
-        )
-
-        $CmakeBuildArgs += @(
-            '--build'
-            '--preset', $Preset
-            '--config', $Configuration
-            '--parallel'
-            '--', '/consoleLoggerParameters:Summary', '/noLogo'
-        )
-
-        $CmakeInstallArgs += @(
-            '--install', "build_${Target}"
-            '--prefix', "${ProjectRoot}/release/${Configuration}"
-            '--config', $Configuration
-        )
-
-        Log-Group "Configuring ${ProductName}..."
-        Invoke-External cmake @CmakeArgs
-
-        Log-Group "Building ${ProductName}..."
-        Invoke-External cmake @CmakeBuildArgs
+    if ( $DebugPreference -eq 'Continue' ) {
+        $CmakeArgs += ('--debug-output')
+        $CmakeBuildArgs += ('--verbose')
+        $CmakeInstallArgs += ('--verbose')
     }
-    Log-Group "Install ${ProductName}..."
+
+    $CmakeBuildArgs += @(
+        '--preset', "windows-${Target}"
+        '--config', $Configuration
+        '--parallel'
+        '--', '/consoleLoggerParameters:Summary', '/noLogo'
+    )
+
+    $CmakeInstallArgs += @(
+        '--install', "build_${Target}"
+        '--prefix', "${ProjectRoot}/release/${Configuration}"
+        '--config', $Configuration
+    )
+
+        
+    $CmakeArgs += @(
+        "-DBoost_DIR=${ProjectRoot}/.deps/boost/stage/lib/cmake/Boost-1.87.0"
+        "-DFMT_DIRECTORY=${ProjectRoot}/.deps/fmt"
+    )
+
+    Log-Group "Configuring ${ProductName}..."
+    Invoke-External cmake @CmakeArgs
+
+    Log-Group "Building ${ProductName}..."
+    Invoke-External cmake @CmakeBuildArgs
+
+    Log-Group "Installing ${ProductName}..."
     Invoke-External cmake @CmakeInstallArgs
     
     Remove-Item -LiteralPath "${ProjectRoot}/release/${Configuration}/lib" -Force -Recurse
