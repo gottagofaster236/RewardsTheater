@@ -24,8 +24,9 @@ static const char* const TWITCH_CLIENT_ID = "2u4jgrdekf0pwdpq7cmqcarifv93z3";
 // Use several ports to minimize the probability of collision between several running OBS instances.
 static constexpr std::array AUTH_SERVER_PORTS = {19910, 19911, 19912, 19913, 19914, 19915, 19916, 19917, 19918, 19919};
 
-static const int MIN_OBS_VERSION = 503316480;
-static const char* const MIN_OBS_VERSION_STRING = "30.0.0";
+// See https://github.com/obsproject/obs-studio/blob/release/31.0/libobs/obs-config.h
+static const int MIN_OBS_VERSION = (31 << 24);
+static const char* const MIN_OBS_VERSION_STRING = "31.0.0";
 
 RewardsTheaterPlugin::RewardsTheaterPlugin()
     : settings(getConfig()), ioThreadPool(std::max(2u, std::thread::hardware_concurrency())),
@@ -86,12 +87,8 @@ const char* RewardsTheaterPlugin::UnsupportedObsVersionException::what() const n
 }
 
 config_t* RewardsTheaterPlugin::getConfig() {
-#if LIBOBS_API_MAJOR_VER >= 31
     // TODO: this should be obs_frontend_get_user_config, but then the settings must be migrated
     return obs_frontend_get_app_config();
-#else
-    return obs_frontend_get_global_config();
-#endif
 }
 
 void RewardsTheaterPlugin::checkMinObsVersion() {
