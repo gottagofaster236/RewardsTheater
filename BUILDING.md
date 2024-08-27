@@ -32,7 +32,7 @@ These steps are a continuation of the previous section on building.
    This is needed for CMake to copy the plugin into the OBS installation.
 
 4. Then build RewardsTheater again via `.github/scripts/Build-Windows.ps1`.
-5. Open the project in Visual Studio. Right-click the `ALL_BUILD` project. Select "Debug" in the "Configuration:" dropdown. Open the "Debugging" pane. Set the "Command:" to the OBS binary at `your_user_dir\source\repos\obs-studio\build64\rundir\Debug\bin\64bit\obs64.exe`, and the working directory to `your_user_dir\source\repos\obs-studio\build64\rundir\Debug\bin\64bit`.
+5. Open the project in Visual Studio. Right-click the `ALL_BUILD` project. Select "Debug" in the "Configuration:" dropdown. Open the "Debugging" pane on the left. Set the "Command:" to the OBS binary at `your_user_dir\source\repos\obs-studio\build64\rundir\Debug\bin\64bit\obs64.exe`, and the working directory to `your_user_dir\source\repos\obs-studio\build64\rundir\Debug\bin\64bit`.
 6. Now when you hit "Run" inside Visual Studio, the plugin is copied automatically to the rundir and then Visual Studio launches OBS for debugging.
 
 ## Building locally on Linux
