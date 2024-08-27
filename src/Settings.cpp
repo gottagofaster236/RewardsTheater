@@ -8,6 +8,7 @@ static const char* const REWARD_REDEMPTIONS_QUEUE_ENABLED_KEY = "REWARD_REDEMPTI
 static const char* const INTERVAL_BETWEEN_REWARDS_SECONDS_KEY = "INTERVAL_BETWEEN_REWARDS_SECONDS_KEY";
 static const char* const TWITCH_ACCESS_TOKEN_KEY = "TWITCH_ACCESS_TOKEN_KEY";
 static const char* const RANDOM_POSITION_ENABLED_KEY = "RANDOM_POSITION_ENABLED_KEY";
+static const char* const PLUGIN_DISABLED_KEY = "PLUGIN_DISABLED_KEY";
 static const char* const LAST_OBS_SOURCE_NAME_KEY = "LAST_OBS_SOURCE_NAME_KEY";
 static const char* const LAST_VIDEO_WIDTH_KEY = "LAST_VIDEO_WIDTH_KEY";
 static const char* const LAST_VIDEO_HEIGHT_KEY = "LAST_VIDEO_HEIGHT_KEY";
@@ -101,8 +102,10 @@ std::optional<std::pair<std::uint32_t, std::uint32_t>> Settings::getLastVideoSiz
     std::string lastVideoHeightKey = getLastVideoHeightKey(rewardId, playlistIndex);
     config_set_default_uint(config, PLUGIN_NAME, lastVideoWidthKey.c_str(), 0);
     config_set_default_uint(config, PLUGIN_NAME, lastVideoHeightKey.c_str(), 0);
-    uint32_t lastVideoWidth = static_cast<uint32_t>(config_get_uint(config, PLUGIN_NAME, lastVideoWidthKey.c_str()));
-    uint32_t lastVideoHeight = static_cast<uint32_t>(config_get_uint(config, PLUGIN_NAME, lastVideoHeightKey.c_str()));
+    std::uint32_t lastVideoWidth =
+        static_cast<std::uint32_t>(config_get_uint(config, PLUGIN_NAME, lastVideoWidthKey.c_str()));
+    std::uint32_t lastVideoHeight =
+        static_cast<std::uint32_t>(config_get_uint(config, PLUGIN_NAME, lastVideoHeightKey.c_str()));
     if (lastVideoWidth == 0 || lastVideoHeight == 0) {
         return {};
     } else {
@@ -201,4 +204,18 @@ std::string getLastPlaylistSizeKey(const std::string& rewardId) {
 
 std::string getLastObsSourceKey(const std::string& rewardId) {
     return rewardId + LAST_OBS_SOURCE_NAME_KEY;
+}
+
+std::optional<bool> Settings::isPluginDisabled() const {
+    config_set_default_int(config, PLUGIN_NAME, PLUGIN_DISABLED_KEY, -1);
+    std::int64_t result = config_get_int(config, PLUGIN_NAME, PLUGIN_DISABLED_KEY);
+    if (result == -1) {
+        return {};
+    } else {
+        return static_cast<bool>(result);
+    }
+}
+
+void Settings::setPluginDisabled(bool pluginDisabled) {
+    config_set_int(config, PLUGIN_NAME, PLUGIN_DISABLED_KEY, pluginDisabled);
 }

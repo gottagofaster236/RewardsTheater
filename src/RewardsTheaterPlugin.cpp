@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-only
+﻿// SPDX-License-Identifier: GPL-3.0-only
 // Copyright (c) 2023, Lev Leontev
 
 #include "RewardsTheaterPlugin.h"
@@ -103,11 +103,6 @@ void RewardsTheaterPlugin::checkMinObsVersion() {
 }
 
 void RewardsTheaterPlugin::checkRestrictedRegion() {
-    if (std::getenv("container")) {
-        // Inside Flatpak
-        return;
-    }
-
     if (std::strcmp(obs_get_locale(), "ru-RU") != 0) {
         return;
     }
@@ -117,12 +112,29 @@ void RewardsTheaterPlugin::checkRestrictedRegion() {
         return;
     }
 
-    QMessageBox::critical(
+    std::optional<bool> pluginDisabledOptional = settings.isPluginDisabled();
+    if (pluginDisabledOptional.has_value()) {
+        bool pluginDisabled = pluginDisabledOptional.value();
+        if (pluginDisabled) {
+            throw RestrictedRegionException();
+        } else {
+            return;
+        }
+    }
+
+    int response = QMessageBox::question(
         nullptr,
-        "Restricted region",
-        "Based on your system settings, it appears you're located in Russia.\n\n"
-        "You cannot use RewardsTheater on the territory of a terrorist state.\n\n"
-        "If you wish to bypass this check, set the environment variable `SLAVA_UKRAINI=1` in your system settings."
+        "Пожалуйста, не пользуйся плагином, если поддерживаешь россию.",
+        "Вопрос №1/5: Я признаю территориальную целостность Украины, включая Крым, Донецкую и Луганскую области, в "
+        "границах 1991 года.",
+        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
+        QMessageBox::Cancel
     );
-    throw RestrictedRegionException();
+
+    if (response == QMessageBox::Yes) {
+        settings.setPluginDisabled(false);
+    } else {
+        settings.setPluginDisabled(true);
+        throw RestrictedRegionException();
+    }
 }
