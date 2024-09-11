@@ -105,6 +105,13 @@ asio::awaitable<ssl::stream<asio::ip::tcp::socket>> HttpClient::resolveHost(cons
     asio::ip::tcp::resolver resolver{ioContext};
     ssl::stream<asio::ip::tcp::socket> stream{ioContext, sslContext};
 
+    if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str())) {
+        throw boost::system::system_error(
+            boost::system::error_code(static_cast<int>(::ERR_get_error()), asio::error::get_ssl_category()),
+            "Failed to set SNI Hostname"
+        );
+    }
+
     const auto resolveResults = co_await resolver.async_resolve(host, "https", asio::use_awaitable);
     co_await asio::async_connect(
         stream.next_layer(), resolveResults.begin(), resolveResults.end(), asio::use_awaitable
