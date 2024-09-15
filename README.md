@@ -50,7 +50,12 @@ Or you can read the full instructions below.
   ```
 
 + #### **Arch Linux**
-  Available in AUR as **[rewards-theater-obs](https://aur.archlinux.org/packages/rewards-theater-obs)** (stable) and **[rewards-theater-obs-git](https://aur.archlinux.org/packages/rewards-theater-obs-git)**.
+  ```
+  sudo pacman -S --needed base-devel
+  git clone https://github.com/gottagofaster236/RewardsTheater
+  cd RewardsTheater
+  makepkg -si
+  ```
 </details>
 
 ### Adding a source
