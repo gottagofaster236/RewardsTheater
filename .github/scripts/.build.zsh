@@ -231,7 +231,7 @@ ${_usage_host:-}"
           -DBoost_ROOT="${project_root}/.deps/boost"
           -DBOOST_LIBRARYDIR="${project_root}/.deps/boost/universal"
           -DOPENSSL_ROOT_DIR="${project_root}/.deps/openssl"
-          -DOPENSSL_CRYPTO_LIBRARY="${project_root}/.deps/openssl/libcrypto.dylib"
+          -DOPENSSL_CRYPTO_LIBRARY="${project_root}/.deps/openssl/libcrypto.a"
         )
 
         cmake_build_args+=(--preset ${_preset} --parallel --config ${config} -- ONLY_ACTIVE_ARCH=NO -arch arm64 -arch x86_64)

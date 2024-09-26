@@ -33,8 +33,8 @@ if [[ ! -d ./.deps/openssl ]]; then
   rm openssl.tar.gz
   cp ${project_root}/.github/scripts/utils.zsh/macos-openssl.zsh .
   export CC=$(pwd)/macos-openssl.zsh
-  ./Configure enable-rc5 zlib no-asm darwin64-x86_64-cc
-  make -j16
+  ./Configure no-shared no-comp enable-rc5 zlib no-asm darwin64-x86_64-cc
+  make -j16 -s
   popd
 else
   echo "OpenSSL directory exists, skipping build"
