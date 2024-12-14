@@ -33,6 +33,8 @@ pkgver() {
 
 build() {
 	cd "${srcdir}/${_pkgname%-git}"
+	# https://github.com/gottagofaster236/RewardsTheater/issues/16
+	export CXXFLAGS+=" -Wno-error=deprecated-declarations"
 	cmake -B build -DCMAKE_INSTALL_PREFIX=/usr -DLINUX_PORTABLE=OFF
 	cd build
 	make
