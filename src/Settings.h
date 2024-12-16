@@ -32,6 +32,12 @@ public:
     bool isRandomPositionEnabled(const std::string& rewardId) const;
     void setRandomPositionEnabled(const std::string& rewardId, bool randomPositionEnabled);
 
+    bool isLoopVideoEnabled(const std::string& rewardId) const;
+    void setLoopVideoEnabled(const std::string& rewardId, bool loopVideoEnabled);
+
+    double getLoopVideoDuration(const std::string& rewardId) const;
+    void setLoopVideoDuration(const std::string& rewardId, double loopVideoDuration);
+
     // We can't get the video size of a Media Source while it's not playing, thus, we save the size while it is playing.
     std::optional<std::pair<std::uint32_t, std::uint32_t>> getLastVideoSize(
         const std::string& rewardId,

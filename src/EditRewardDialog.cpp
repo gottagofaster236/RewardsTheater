@@ -210,6 +210,8 @@ void EditRewardDialog::showReward(const Reward& reward) {
     ui->costSpinBox->setValue(reward.cost);
     showSelectedColor(reward.backgroundColor);
     ui->enableRandomPositionCheckBox->setChecked(settings.isRandomPositionEnabled(reward.id));
+    ui->loopVideoEnabledCheckBox->setChecked(settings.isLoopVideoEnabled(reward.id));
+    ui->loopVideoDurationSpinBox->setValue(settings.getLoopVideoDuration(reward.id));
     ui->limitRedemptionsPerStreamCheckBox->setChecked(reward.maxRedemptionsPerStream.has_value());
     ui->limitRedemptionsPerStreamSpinBox->setValue(reward.maxRedemptionsPerStream.value_or(1));
     ui->limitRedemptionsPerUserPerStreamCheckBox->setChecked(reward.maxRedemptionsPerUserPerStream.has_value());
@@ -364,4 +366,6 @@ std::optional<std::int64_t> EditRewardDialog::getOptionalSetting(QCheckBox* chec
 void EditRewardDialog::saveLocalRewardSettings(const std::string& rewardId) {
     settings.setObsSourceName(rewardId, getObsSourceName());
     settings.setRandomPositionEnabled(rewardId, ui->enableRandomPositionCheckBox->isChecked());
+    settings.setLoopVideoEnabled(rewardId, ui->loopVideoEnabledCheckBox->isChecked());
+    settings.setLoopVideoDuration(rewardId, ui->loopVideoDurationSpinBox->value());
 }
