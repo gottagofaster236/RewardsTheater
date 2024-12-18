@@ -76,6 +76,7 @@ private:
     std::optional<std::int64_t> getOptionalSetting(QCheckBox* checkBox, QSpinBox* spinBox);
     std::optional<std::int64_t> getOptionalSetting(QCheckBox* checkBox, std::int64_t spinBoxValue);
     void saveLocalRewardSettings(const std::string& rewardId);
+    SourcePlaybackSettings getSourcePlaybackSettings();
 
     const std::optional<Reward> originalReward;
     TwitchAuth& twitchAuth;

@@ -62,9 +62,8 @@
 2. Додай джерело OBS для кожного відео, яке те хочеш додати як нагороду за бали каналу. Підтримуються «Джерело мультимедіа» або «Джерело відео VLC»:
    
    ![source](readme_images/source_uk.png)
-3. Вибери файл із відео зі свого комп'ютера. Якщо ти хочеш, щоб відео з'являлося та зникало плавно, вимкни галочку «Не показувати джерело, коли відтворення завершено», і вибери переходи (показати/сховати) для джерела:
+3. Вибери файл із відео зі свого комп'ютера. Якщо ти хочеш, щоб відео з'являлося та зникало плавно, вибери переходи (показати/сховати) для джерела:
    
-   ![media_source](readme_images/media_source_uk.png)
    ![transition](readme_images/transition_uk.png)
 4. Розташуй джерело на сцені так, як тобі хочеться.
 5. Якщо ти хочеш чути відео, коли чат його замовляє, то знайди джерело в «Мікшер аудіо», натисни на нього правою кнопкою миші, вибери «Розширені властивості аудіо» і вибери «Прослуховування та вивід» у стовбці «Прослуховування звуку».
@@ -111,3 +110,4 @@ PRs are welcome! If you want to build RewardsTheater yourself, please refer to [
 - RewardsTheater uses [Qt Core](https://doc.qt.io/qt-6/qtcore-index.html), [Qt Widgets](https://doc.qt.io/qt-6/qtwidgets-index.html) and [Qt GUI](https://doc.qt.io/qt-6/qtgui-index.html) modules, which are available under GNU General Public License v2.0 or later.
 - RewardsTheater uses [OpenSSL](https://openssl.org/), which is licensed under Apache-2.0 License.
 - RewardTheater uses Google's [material-design-icons](https://github.com/google/material-design-icons/tree/master), which are licensed under Apache-2.0 license.
+- Arch Linux PLGBUILD file contributed by @deadYokai

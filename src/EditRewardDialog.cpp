@@ -180,11 +180,7 @@ void EditRewardDialog::testObsSource() {
     }
 
     rewardRedemptionQueue.testObsSource(
-        rewardId,
-        obsSourceName.value(),
-        ui->enableRandomPositionCheckBox->isChecked(),
-        this,
-        "showTestObsSourceException"
+        rewardId, obsSourceName.value(), getSourcePlaybackSettings(), this, "showTestObsSourceException"
     );
 }
 
@@ -209,14 +205,14 @@ void EditRewardDialog::showReward(const Reward& reward) {
     ui->descriptionEdit->setText(QString::fromStdString(reward.description));
     ui->costSpinBox->setValue(reward.cost);
     showSelectedColor(reward.backgroundColor);
-    ui->enableRandomPositionCheckBox->setChecked(settings.isRandomPositionEnabled(reward.id));
+    ui->randomPositionEnabledCheckBox->setChecked(settings.isRandomPositionEnabled(reward.id));
     ui->loopVideoEnabledCheckBox->setChecked(settings.isLoopVideoEnabled(reward.id));
-    ui->loopVideoDurationSpinBox->setValue(settings.getLoopVideoDuration(reward.id));
+    ui->loopVideoDurationSpinBox->setValue(settings.getLoopVideoDurationSeconds(reward.id));
     ui->limitRedemptionsPerStreamCheckBox->setChecked(reward.maxRedemptionsPerStream.has_value());
     ui->limitRedemptionsPerStreamSpinBox->setValue(reward.maxRedemptionsPerStream.value_or(1));
     ui->limitRedemptionsPerUserPerStreamCheckBox->setChecked(reward.maxRedemptionsPerUserPerStream.has_value());
     ui->limitRedemptionsPerUserPerStreamSpinBox->setValue(reward.maxRedemptionsPerUserPerStream.value_or(1));
-    ui->enableGlobalCooldownCheckBox->setChecked(reward.globalCooldownSeconds.has_value());
+    ui->globalCooldownEnabledCheckBox->setChecked(reward.globalCooldownSeconds.has_value());
     showGlobalCooldown(reward.globalCooldownSeconds.value_or(1));
     setObsSourceName(settings.getObsSourceName(reward.id));
 
@@ -263,7 +259,7 @@ void EditRewardDialog::disableInput() {
     ui->limitRedemptionsPerStreamSpinBox->setEnabled(false);
     ui->limitRedemptionsPerUserPerStreamCheckBox->setEnabled(false);
     ui->limitRedemptionsPerUserPerStreamSpinBox->setEnabled(false);
-    ui->enableGlobalCooldownCheckBox->setEnabled(false);
+    ui->globalCooldownEnabledCheckBox->setEnabled(false);
     ui->globalCooldownSpinBox->setEnabled(false);
     ui->globalCooldownTimeUnitComboBox->setEnabled(false);
     ui->deleteButton->setEnabled(false);
@@ -345,7 +341,7 @@ RewardData EditRewardDialog::getRewardData() {
         getOptionalSetting(ui->limitRedemptionsPerStreamCheckBox, ui->limitRedemptionsPerStreamSpinBox),
         getOptionalSetting(ui->limitRedemptionsPerUserPerStreamCheckBox, ui->limitRedemptionsPerUserPerStreamSpinBox),
         getOptionalSetting(
-            ui->enableGlobalCooldownCheckBox,
+            ui->globalCooldownEnabledCheckBox,
             ui->globalCooldownSpinBox->value() * COOLDOWN_TIME_UNITS[ui->globalCooldownTimeUnitComboBox->currentIndex()]
         ),
     };
@@ -365,7 +361,12 @@ std::optional<std::int64_t> EditRewardDialog::getOptionalSetting(QCheckBox* chec
 
 void EditRewardDialog::saveLocalRewardSettings(const std::string& rewardId) {
     settings.setObsSourceName(rewardId, getObsSourceName());
-    settings.setRandomPositionEnabled(rewardId, ui->enableRandomPositionCheckBox->isChecked());
-    settings.setLoopVideoEnabled(rewardId, ui->loopVideoEnabledCheckBox->isChecked());
-    settings.setLoopVideoDuration(rewardId, ui->loopVideoDurationSpinBox->value());
+    settings.setSourcePlaybackSettings(rewardId, getSourcePlaybackSettings());
+}
+
+SourcePlaybackSettings EditRewardDialog::getSourcePlaybackSettings() {
+    return {
+        ui->randomPositionEnabledCheckBox->isChecked(),
+        ui->loopVideoEnabledCheckBox->isChecked(),
+        ui->loopVideoDurationSpinBox->value()};
 }

@@ -100,17 +100,30 @@ void Settings::setLoopVideoEnabled(const std::string& rewardId, bool loopVideoEn
 
 static std::string getLoopVideoDurationKey(const std::string& rewardId);
 
-double Settings::getLoopVideoDuration(const std::string& rewardId) const {
+double Settings::getLoopVideoDurationSeconds(const std::string& rewardId) const {
     config_set_default_double(config, PLUGIN_NAME, getLoopVideoDurationKey(rewardId).c_str(), 5);
     return config_get_double(config, PLUGIN_NAME, getLoopVideoDurationKey(rewardId).c_str());
 }
 
-void Settings::setLoopVideoDuration(const std::string& rewardId, double loopVideoDuration) {
+void Settings::setLoopVideoDurationSeconds(const std::string& rewardId, double loopVideoDuration) {
     config_set_double(config, PLUGIN_NAME, getLoopVideoDurationKey(rewardId).c_str(), loopVideoDuration);
 }
 
 static std::string getLastVideoWidthKey(const std::string& rewardId, std::size_t playlistIndex);
 static std::string getLastVideoHeightKey(const std::string& rewardId, std::size_t playlistIndex);
+
+SourcePlaybackSettings Settings::getSourcePlaybackSettings(const std::string& rewardId) const {
+    return {isRandomPositionEnabled(rewardId), isLoopVideoEnabled(rewardId), getLoopVideoDurationSeconds(rewardId)};
+}
+
+void Settings::setSourcePlaybackSettings(
+    const std::string& rewardId,
+    const SourcePlaybackSettings& sourcePlaybackSettings
+) {
+    setRandomPositionEnabled(rewardId, sourcePlaybackSettings.randomPositionEnabled);
+    setLoopVideoEnabled(rewardId, sourcePlaybackSettings.loopVideoEnabled);
+    setLoopVideoDurationSeconds(rewardId, sourcePlaybackSettings.loopVideoDurationSeconds);
+}
 
 std::optional<std::pair<std::uint32_t, std::uint32_t>> Settings::getLastVideoSize(
     const std::string& rewardId,

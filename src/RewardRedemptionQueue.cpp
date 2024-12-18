@@ -44,7 +44,7 @@ void RewardRedemptionQueue::queueRewardRedemption(const RewardRedemption& reward
         playObsSource(
             rewardRedemption.reward.id,
             obsSourceName.value(),
-            settings.isRandomPositionEnabled(rewardRedemption.reward.id)
+            settings.getSourcePlaybackSettings(rewardRedemption.reward.id)
         );
         return;
     }
@@ -123,14 +123,14 @@ const char* RewardRedemptionQueue::ObsSourceNoVideoException::what() const noexc
 void RewardRedemptionQueue::testObsSource(
     const std::string& rewardId,
     const std::string& obsSourceName,
-    bool randomPositionEnabled,
+    const SourcePlaybackSettings& sourcePlaybackSettings,
     QObject* receiver,
     const char* member
 ) {
     asio::co_spawn(
         ioContext,
         asyncTestObsSource(
-            rewardId, obsSourceName, randomPositionEnabled, *(new QObjectCallback(this, receiver, member))
+            rewardId, obsSourceName, sourcePlaybackSettings, *(new QObjectCallback(this, receiver, member))
         ),
         asio::detached
     );
@@ -142,7 +142,7 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayRewardRedemptionsFromQueue
         try {
             const std::string& rewardId = nextRewardRedemption.reward.id;
             co_await asyncPlayObsSource(
-                rewardId, getObsSource(nextRewardRedemption), settings.isRandomPositionEnabled(rewardId)
+                rewardId, getObsSource(nextRewardRedemption), settings.getSourcePlaybackSettings(rewardId)
             );
         } catch (const ObsSourceNoVideoException&) {}
         co_await popPlayedRewardRedemptionFromQueue(nextRewardRedemption);
@@ -195,17 +195,17 @@ asio::awaitable<void> RewardRedemptionQueue::popPlayedRewardRedemptionFromQueue(
 void RewardRedemptionQueue::playObsSource(
     const std::string& rewardId,
     const std::string& obsSourceName,
-    bool randomPositionEnabled
+    const SourcePlaybackSettings& sourcePlaybackSettings
 ) {
-    playObsSource(rewardId, getObsSource(obsSourceName), randomPositionEnabled);
+    playObsSource(rewardId, getObsSource(obsSourceName), sourcePlaybackSettings);
 }
 
 void RewardRedemptionQueue::playObsSource(
     const std::string& rewardId,
     OBSSourceAutoRelease source,
-    bool randomPositionEnabled
+    const SourcePlaybackSettings& sourcePlaybackSettings
 ) {
-    asio::co_spawn(ioContext, asyncPlayObsSource(rewardId, std::move(source), randomPositionEnabled), asio::detached);
+    asio::co_spawn(ioContext, asyncPlayObsSource(rewardId, std::move(source), sourcePlaybackSettings), asio::detached);
 }
 
 template <class T>
@@ -229,7 +229,7 @@ private:
 asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(
     std::string rewardId,
     OBSSourceAutoRelease source,
-    bool randomPositionEnabled
+    SourcePlaybackSettings sourcePlaybackSettings
 ) {
     if (!source) {
         co_return;
@@ -243,15 +243,15 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(
     ObsSignalWithCallback mediaStartedSignal(
         source, "media_started", &MediaStartedCallback::setMediaStarted, mediaStartedCallback
     );
-
-    ObsSignalWithCallback mediaEndedSignal(
-        source, "media_ended", &MediaEndedCallback::stopDeadlineTimer, mediaEndedCallback
-    );
     ObsSignalWithCallback mediaStoppedSignal(
         source, "media_stopped", &MediaEndedCallback::stopDeadlineTimer, mediaEndedCallback
     );
+    std::optional<ObsSignalWithCallback<decltype(mediaEndedCallback)>> mediaEndedSignal;
+    if (!sourcePlaybackSettings.loopVideoEnabled) {
+        mediaEndedSignal.emplace(source, "media_ended", &MediaEndedCallback::stopDeadlineTimer, mediaEndedCallback);
+    };
 
-    SourcePlayback sourcePlayback{state, rewardId, source, randomPositionEnabled, 0, 1};
+    SourcePlayback sourcePlayback{state, rewardId, source, sourcePlaybackSettings, 0, 1};
     startObsSource(sourcePlayback);
 
     // Give some time for the source to start, otherwise stop it.
@@ -265,7 +265,7 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(
     co_await asyncCheckMediaStarted(sourcePlayback, *mediaStartedCallback);
     saveLastVideoSize(sourcePlayback);
 
-    deadlineTimer.expires_from_now(getMediaEndDeadline(source));
+    deadlineTimer.expires_from_now(getMediaEndDeadline(sourcePlayback));
     try {
         co_await deadlineTimer.async_wait(asio::use_awaitable);
     } catch (const boost::system::system_error&) {}
@@ -333,8 +333,14 @@ void RewardRedemptionQueue::saveLastVideoSize(SourcePlayback& sourcePlayback) {
     );
 }
 
-boost::posix_time::time_duration RewardRedemptionQueue::getMediaEndDeadline(obs_source_t* source) {
-    std::int64_t durationMilliseconds = obs_source_media_get_duration(source);
+boost::posix_time::time_duration RewardRedemptionQueue::getMediaEndDeadline(SourcePlayback& sourcePlayback) {
+    if (sourcePlayback.settings.loopVideoEnabled) {
+        double loopVideoDurationSeconds = std::max(sourcePlayback.settings.loopVideoDurationSeconds, 0.5);
+        return boost::posix_time::milliseconds(
+            static_cast<long long>(1000 * sourcePlayback.settings.loopVideoDurationSeconds)
+        );
+    }
+    std::int64_t durationMilliseconds = obs_source_media_get_duration(sourcePlayback.source);
     if (durationMilliseconds != -1) {
         std::int64_t deadlineMilliseconds = durationMilliseconds + durationMilliseconds / 2;
         return boost::posix_time::milliseconds(deadlineMilliseconds);
@@ -362,11 +368,11 @@ bool RewardRedemptionQueue::isSourcePlayedByState(const SourcePlayback& sourcePl
 asio::awaitable<void> RewardRedemptionQueue::asyncTestObsSource(
     std::string rewardId,
     std::string obsSourceName,
-    bool randomPositionEnabled,
+    SourcePlaybackSettings sourcePlaybackSettings,
     QObjectCallback& callback
 ) {
     try {
-        co_await asyncTestObsSource(rewardId, obsSourceName, randomPositionEnabled);
+        co_await asyncTestObsSource(rewardId, obsSourceName, sourcePlaybackSettings);
     } catch (const std::exception& exception) {
         log(LOG_ERROR, "Exception in asyncTestObsSource: {}", exception.what());
         callback("std::exception_ptr", std::current_exception());
@@ -376,13 +382,13 @@ asio::awaitable<void> RewardRedemptionQueue::asyncTestObsSource(
 asio::awaitable<void> RewardRedemptionQueue::asyncTestObsSource(
     const std::string& rewardId,
     const std::string& obsSourceName,
-    bool randomPositionEnabled
+    const SourcePlaybackSettings& sourcePlaybackSettings
 ) {
     OBSSourceAutoRelease obsSource = getObsSource(obsSourceName);
     if (!obsSource) {
         throw ObsSourceNotFoundException(obsSourceName);
     }
-    co_await asyncPlayObsSource(rewardId, std::move(obsSource), randomPositionEnabled);
+    co_await asyncPlayObsSource(rewardId, std::move(obsSource), sourcePlaybackSettings);
 }
 
 OBSSourceAutoRelease RewardRedemptionQueue::getObsSource(const RewardRedemption& rewardRedemption) {
@@ -405,7 +411,7 @@ void RewardRedemptionQueue::startObsSource(SourcePlayback& sourcePlayback) {
     if (isVlcSource(sourcePlayback.source)) {
         startVlcSource(sourcePlayback);
     } else {
-        startMediaSource(sourcePlayback.source);
+        startMediaSource(sourcePlayback);
     }
 
     showObsSource(sourcePlayback);
@@ -418,6 +424,9 @@ void RewardRedemptionQueue::startVlcSource(SourcePlayback& sourcePlayback) {
         log(LOG_ERROR, "VLC Source settings are null");
         return;
     }
+    obs_data_set_bool(sourceSettings, "loop", sourcePlayback.settings.loopVideoEnabled);
+    obs_data_set_bool(sourceSettings, "shuffle", false);
+    obs_source_update(sourcePlayback.source, sourceSettings);
     OBSDataArrayAutoRelease playlist = obs_data_get_array(sourceSettings, "playlist");
     if (!playlist) {
         log(LOG_ERROR, "VLC Source playlist is null");
@@ -432,15 +441,25 @@ void RewardRedemptionQueue::startVlcSource(SourcePlayback& sourcePlayback) {
     std::uniform_int_distribution<std::size_t> randomSourceIndex(0, sourcePlayback.playlistSize - 1);
     sourcePlayback.playlistIndex = randomSourceIndex(randomEngine);
 
-    obs_source_media_stop(source);
+    obs_source_media_restart(source);
+    log(LOG_ERROR, "Playing index {}", sourcePlayback.playlistIndex);
     for (std::size_t i = 0; i < sourcePlayback.playlistIndex + 1; i++) {
         obs_source_media_next(source);
     }
     obs_source_media_play_pause(source, false);
 }
 
-void RewardRedemptionQueue::startMediaSource(obs_source_t* source) {
-    obs_source_media_restart(source);
+void RewardRedemptionQueue::startMediaSource(SourcePlayback& sourcePlayback) {
+    OBSDataAutoRelease sourceSettings = obs_source_get_settings(sourcePlayback.source);
+    if (!sourceSettings) {
+        log(LOG_ERROR, "Media settings are null");
+        return;
+    }
+    obs_data_set_bool(sourceSettings, "looping", sourcePlayback.settings.loopVideoEnabled);
+    obs_data_set_bool(sourceSettings, "clear_on_media_end", false);
+    obs_data_set_bool(sourceSettings, "restart_on_activate", false);
+    obs_source_update(sourcePlayback.source, sourceSettings);
+    obs_source_media_restart(sourcePlayback.source);
 }
 
 void RewardRedemptionQueue::showObsSource(SourcePlayback& sourcePlayback) {
@@ -460,7 +479,7 @@ void RewardRedemptionQueue::showObsSource(SourcePlayback& sourcePlayback) {
                 return true;
             }
 
-            if (sourcePlayback.randomPositionEnabled) {
+            if (sourcePlayback.settings.randomPositionEnabled) {
                 if (!sourcePositionOnScenes.contains(sceneUuid)) {
                     sourcePositionOnScenes[sceneUuid] = getSourcePosition(scene, sceneItem);
                 }

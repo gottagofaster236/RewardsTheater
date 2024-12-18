@@ -57,7 +57,7 @@ public:
     void testObsSource(
         const std::string& rewardId,
         const std::string& obsSourceName,
-        bool randomPositionEnabled,
+        const SourcePlaybackSettings& sourcePlaybackSettings,
         QObject* receiver,
         const char* member
     );
@@ -71,20 +71,28 @@ private:
     void notifyRewardRedemptionQueueCondVar();
     boost::asio::awaitable<void> popPlayedRewardRedemptionFromQueue(const RewardRedemption& rewardRedemption);
 
-    void playObsSource(const std::string& rewardId, const std::string& obsSourceName, bool randomPositionEnabled);
-    void playObsSource(const std::string& rewardId, OBSSourceAutoRelease source, bool randomPositionEnabled);
+    void playObsSource(
+        const std::string& rewardId,
+        const std::string& obsSourceName,
+        const SourcePlaybackSettings& sourcePlaybackSettings
+    );
+    void playObsSource(
+        const std::string& rewardId,
+        OBSSourceAutoRelease source,
+        const SourcePlaybackSettings& sourcePlaybackSettings
+    );
 
     boost::asio::awaitable<void> asyncPlayObsSource(
         std::string rewardId,
         OBSSourceAutoRelease source,
-        bool randomPositionEnabled
+        SourcePlaybackSettings sourcePlaybackSettings
     );
 
     struct SourcePlayback {
         const unsigned state;
         const std::string rewardId;
         obs_source_t* const source;
-        const bool randomPositionEnabled;
+        const SourcePlaybackSettings settings;
         std::size_t playlistIndex;
         std::size_t playlistSize;
     };
@@ -118,7 +126,7 @@ private:
         MediaStartedCallback& mediaStartedCallback
     );
     void saveLastVideoSize(SourcePlayback& sourcePlayback);
-    boost::posix_time::time_duration getMediaEndDeadline(obs_source_t* source);
+    boost::posix_time::time_duration getMediaEndDeadline(SourcePlayback& sourcePlayback);
     boost::asio::awaitable<void> asyncStopObsSourceIfPlayedByState(
         SourcePlayback& sourcePlayback,
         bool waitForHideTransition
@@ -128,13 +136,13 @@ private:
     boost::asio::awaitable<void> asyncTestObsSource(
         std::string rewardId,
         std::string obsSourceName,
-        bool randomPositionEnabled,
+        SourcePlaybackSettings sourcePlaybackSettings,
         QObjectCallback& callback
     );
     boost::asio::awaitable<void> asyncTestObsSource(
         const std::string& rewardId,
         const std::string& obsSourceName,
-        bool randomPositionEnabled
+        const SourcePlaybackSettings& sourcePlaybackSettings
     );
 
     OBSSourceAutoRelease getObsSource(const RewardRedemption& rewardRedemption);
@@ -142,7 +150,7 @@ private:
 
     void startObsSource(SourcePlayback& sourcePlayback);
     void startVlcSource(SourcePlayback& sourcePlayback);
-    void startMediaSource(obs_source_t* source);
+    void startMediaSource(SourcePlayback& sourcePlayback);
 
     void showObsSource(SourcePlayback& sourcePlayback);
     boost::asio::awaitable<void> asyncStopObsSource(SourcePlayback& sourcePlayback, bool waitForHideTransition);
