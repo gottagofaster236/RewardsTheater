@@ -18,7 +18,7 @@ static std::unique_ptr<RewardsTheaterPlugin> plugin;
 
 static void on_frontend_event(obs_frontend_event event, void* data);
 
-bool obs_module_load(void) {
+bool obs_module_load() {
     log(LOG_INFO, "Loading plugin, version {}", REWARDS_THEATER_VERSION);
     try {
         plugin = std::make_unique<RewardsTheaterPlugin>();

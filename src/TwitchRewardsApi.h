@@ -29,7 +29,7 @@ public:
         Settings& settings,
         boost::asio::io_context& ioContext
     );
-    ~TwitchRewardsApi();
+    ~TwitchRewardsApi() override;
 
     // Calls the receiver with the created reward as std::variant<std::exception_ptr, Reward>.
     void createReward(const RewardData& rewardData, QObject* receiver, const char* member);

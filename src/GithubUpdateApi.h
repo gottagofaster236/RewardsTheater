@@ -13,7 +13,7 @@ class GithubUpdateApi : public QObject {
 
 public:
     GithubUpdateApi(HttpClient& httpClient, boost::asio::io_context& ioContext);
-    ~GithubUpdateApi();
+    ~GithubUpdateApi() override;
     void checkForUpdates();
 
 signals:

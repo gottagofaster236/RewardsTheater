@@ -467,9 +467,6 @@ static vlc_source* getVlcSourceData(obs_source_t* source) {
         return nullptr;
     }
     vlc_source* vlcSource = static_cast<vlc_source*>(data);
-    if (!vlcSource) {
-        return nullptr;
-    }
     return vlcSource;
 }
 

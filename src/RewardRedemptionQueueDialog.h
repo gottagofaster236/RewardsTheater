@@ -20,7 +20,7 @@ class RewardRedemptionQueueDialog : public QDialog {
 
 public:
     RewardRedemptionQueueDialog(RewardRedemptionQueue& rewardRedemptionQueue, QWidget* parent);
-    ~RewardRedemptionQueueDialog();
+    ~RewardRedemptionQueueDialog() override;
 
 private slots:
     void showRewardRedemptions(const std::vector<RewardRedemption>& rewardRedemptionQueue);

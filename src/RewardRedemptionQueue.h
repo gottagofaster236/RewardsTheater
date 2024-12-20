@@ -29,7 +29,7 @@ class RewardRedemptionQueue : public QObject {
 
 public:
     RewardRedemptionQueue(Settings& settings, TwitchRewardsApi& twitchRewardsApi);
-    ~RewardRedemptionQueue();
+    ~RewardRedemptionQueue() override;
 
     std::vector<RewardRedemption> getRewardRedemptionQueue() const;
     void queueRewardRedemption(const RewardRedemption& rewardRedemption);

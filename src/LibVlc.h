@@ -2,10 +2,11 @@
 // Copyright (C) 2024 by Lain Bailey <lain@obsproject.com>
 // Copyright (c) 2024, Lev Leontev
 
+#pragma once
+
 #include <exception>
 #include <optional>
 
-typedef void libvlc_media_list_t;
 typedef void libvlc_media_list_player_t;
 
 class LibVlc {
@@ -17,7 +18,7 @@ public:
     static const std::optional<LibVlc> createSafe();
 
     const char* (*libvlc_get_version)();
-    int (*libvlc_media_list_player_play_item_at_index)(void* p_mlp, int i_index);
+    int (*libvlc_media_list_player_play_item_at_index)(libvlc_media_list_player_t* p_mlp, int i_index);
 
     class VlcLibraryLoadingError : public std::exception {
         const char* what() const noexcept override;

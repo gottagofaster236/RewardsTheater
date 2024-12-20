@@ -7,9 +7,7 @@
 #include <boost/system/system_error.hpp>
 #include <boost/url.hpp>
 #include <exception>
-#include <functional>
 #include <map>
-#include <utility>
 
 #include "BoostAsio.h"
 

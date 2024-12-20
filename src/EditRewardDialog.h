@@ -38,14 +38,14 @@ public:
         Settings& settings,
         QWidget* parent
     );
-    ~EditRewardDialog();
+    ~EditRewardDialog() override;
 
 signals:
     void onRewardSaved(const Reward& reward);
     void onRewardDeleted();
 
 protected:
-    virtual void changeEvent(QEvent* event) override;
+    void changeEvent(QEvent* event) override;
 
 private slots:
     void showUploadCustomIconLabel(const std::optional<std::string>& username);

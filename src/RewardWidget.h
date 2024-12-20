@@ -5,7 +5,6 @@
 
 #include <QPointer>
 #include <QWidget>
-#include <exception>
 #include <memory>
 
 #include "ConfirmDeleteReward.h"
@@ -51,7 +50,6 @@ private:
     void showReward();
     void showEditRewardDialog();
 
-private:
     Reward reward;
     TwitchAuth& twitchAuth;
     TwitchRewardsApi& twitchRewardsApi;

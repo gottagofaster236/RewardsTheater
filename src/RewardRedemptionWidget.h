@@ -17,7 +17,7 @@ class RewardRedemptionWidget : public QWidget {
 
 public:
     RewardRedemptionWidget(const RewardRedemption& rewardRedemption, QWidget* parent);
-    ~RewardRedemptionWidget();
+    ~RewardRedemptionWidget() override;
 
 signals:
     void onRewardRedemptionRemoved(const RewardRedemption& rewardRedemption);

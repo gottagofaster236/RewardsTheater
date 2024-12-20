@@ -16,7 +16,7 @@ class ConfirmDeleteReward : public QObject {
 
 public:
     ConfirmDeleteReward(const Reward& reward, TwitchRewardsApi& twitchRewardsApi, QWidget* parent);
-    ~ConfirmDeleteReward();
+    ~ConfirmDeleteReward() override;
 
 public slots:
     void showConfirmDeleteMessageBox();

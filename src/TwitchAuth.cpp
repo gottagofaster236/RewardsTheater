@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <boost/url.hpp>
 #include <cstdint>
-#include <iterator>
 #include <ranges>
 
 #include "BoostAsio.h"

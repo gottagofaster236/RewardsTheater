@@ -21,7 +21,7 @@ class TwitchAuthDialog : public QDialog {
 public:
     TwitchAuthDialog(QWidget* parent, TwitchAuth& twitchAuth);
 
-    ~TwitchAuthDialog();
+    ~TwitchAuthDialog() override;
 
 private slots:
     void authenticateWithAccessToken();

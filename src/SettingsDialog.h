@@ -23,7 +23,7 @@ class SettingsDialog : public QDialog {
 
 public:
     SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent);
-    ~SettingsDialog();
+    ~SettingsDialog() override;
 
 public slots:
     void toggleVisibility();

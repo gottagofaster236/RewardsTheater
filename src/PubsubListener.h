@@ -36,8 +36,8 @@ private:
     boost::asio::awaitable<void> asyncSubscribeToChannelPoints(WebsocketStream& ws);
     boost::asio::awaitable<void> asyncSendPingMessages(WebsocketStream& ws);
     boost::asio::awaitable<void> asyncReadMessages(WebsocketStream& ws);
-    boost::asio::awaitable<boost::json::value> asyncReadMessage(WebsocketStream& ws);
-    boost::asio::awaitable<void> asyncSendMessage(WebsocketStream& ws, const boost::json::value& message);
+    static boost::asio::awaitable<boost::json::value> asyncReadMessage(WebsocketStream& ws);
+    static boost::asio::awaitable<void> asyncSendMessage(WebsocketStream& ws, const boost::json::value& message);
 
     TwitchAuth& twitchAuth;
     RewardRedemptionQueue& rewardRedemptionQueue;
