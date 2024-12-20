@@ -272,7 +272,7 @@ ${_usage_host:-}"
         ;;
     }
 
-    log_debug "Attempting to configure with CMake arguments: ${cmake_args}"
+    log_output "Attempting to configure with CMake arguments: ${cmake_args}"
 
     cmake ${cmake_args}
 

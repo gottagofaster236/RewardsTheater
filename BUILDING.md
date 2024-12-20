@@ -50,6 +50,15 @@ These steps are a continuation of the previous section on building.
 2. Clone the repository.
 3. Run `.github/scripts/build-macos`
 
+## Setting up development environment on Unix (Linux/macOS)
+1. Execute the corresponding build script again (either `./.github/scripts/build-linux` or `./.github/scripts/build-macos`).
+2. Find the CMake arguments by searching for "Attempting to configure with CMake arguments" in the build script output:
+   ![cmake_command](readme_images/cmake_command.png)
+3. Copy those arguments into your IDE of choice. Here is where to paste the CMake options in CLion, for example:
+   ![clion_setup](readme_images/clion_setup.png)
+4. There's probably a way to debug the plugin properly, but for now you can just build the plugin via the build script
+   and install manually when you want to test your changes.
+
 ## GitHub Actions & CI
 
 Default GitHub Actions workflows are available for the following repository actions:
