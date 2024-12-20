@@ -228,8 +228,7 @@ ${_usage_host:-}"
         cmake_args+=(
           -DCODESIGN_TEAM=${CODESIGN_TEAM:-}
           -DCODESIGN_IDENTITY=${CODESIGN_IDENT:--}
-          -DBoost_ROOT="${project_root}/.deps/boost"
-          -DBOOST_LIBRARYDIR="${project_root}/.deps/boost/universal"
+          -DBoost_DIR="${project_root}/.deps/boost/stage/lib/cmake/Boost-1.87.0"
           -DOPENSSL_ROOT_DIR="${project_root}/.deps/openssl"
           -DOPENSSL_CRYPTO_LIBRARY="${project_root}/.deps/openssl/libcrypto.a"
         )
@@ -247,7 +246,7 @@ ${_usage_host:-}"
           -DQT_VERSION=${QT_VERSION:-6}
           -DCMAKE_BUILD_TYPE=${config}
           -DCMAKE_INSTALL_PREFIX=/usr
-          -DBoost_ROOT="${project_root}/.deps/boost"
+          -DBoost_DIR="${project_root}/.deps/boost/stage/lib/cmake/Boost-1.87.0"
         )
 
         local cmake_version

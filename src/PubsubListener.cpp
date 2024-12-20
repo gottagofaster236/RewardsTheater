@@ -35,7 +35,7 @@ PubsubListener::~PubsubListener() {
 }
 
 void PubsubListener::reconnectAfterUsernameChange() {
-    pubsubThread.ioContext.post([this]() {
+    asio::post(pubsubThread.ioContext, [this] {
         usernameCondVar.cancel();  // Equivalent to notify_all() for a condition variable.
     });
 }

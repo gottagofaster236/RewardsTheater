@@ -76,7 +76,7 @@ function Build {
         )
         
         $CmakeArgs += @(
-            "-DBoost_ROOT=${ProjectRoot}/.deps/boost"
+            "-DBoost_DIR=${ProjectRoot}/.deps/boost/stage/lib/cmake/Boost-1.87.0"
             "-DFMT_DIRECTORY=${ProjectRoot}/.deps/fmt"
         )
 

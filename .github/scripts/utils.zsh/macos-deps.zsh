@@ -13,7 +13,7 @@ if [[ ! -d ./.deps/boost ]]; then
   echo "Building Boost universal binary"
   mkdir -p .deps/boost
   pushd .deps/boost
-  curl https://archives.boost.io/release/1.85.0/source/boost_1_85_0.tar.gz > boost.tar.gz
+  curl https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz > boost.tar.gz
   tar -xzf boost.tar.gz --strip-components=1
   rm boost.tar.gz
   cp ${project_root}/.github/scripts/utils.zsh/macos-boost.zsh .
@@ -28,7 +28,7 @@ if [[ ! -d ./.deps/openssl ]]; then
   echo "Building OpenSSL universal binary"
   mkdir -p .deps/openssl
   pushd .deps/openssl
-  curl -L https://github.com/openssl/openssl/releases/download/openssl-3.3.1/openssl-3.3.1.tar.gz > openssl.tar.gz
+  curl -L https://github.com/openssl/openssl/releases/download/openssl-3.4.0/openssl-3.4.0.tar.gz > openssl.tar.gz
   tar -xzf openssl.tar.gz --strip-components=1
   rm openssl.tar.gz
   cp ${project_root}/.github/scripts/utils.zsh/macos-openssl.zsh .

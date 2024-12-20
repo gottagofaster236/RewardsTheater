@@ -178,7 +178,7 @@ asio::awaitable<RewardRedemption> RewardRedemptionQueue::asyncGetNextRewardRedem
 }
 
 void RewardRedemptionQueue::notifyRewardRedemptionQueueCondVar() {
-    ioContext.post([this]() {
+    asio::post(ioContext, [this]() {
         rewardRedemptionQueueCondVar.cancel();  // Equivalent to notify_all() for a condition variable
     });
 }
@@ -283,7 +283,7 @@ RewardRedemptionQueue::MediaStartedCallback::MediaStartedCallback(asio::io_conte
 
 void RewardRedemptionQueue::MediaStartedCallback::setMediaStarted(void* param, [[maybe_unused]] calldata_t* data) {
     std::shared_ptr<MediaStartedCallback> callback = *static_cast<std::shared_ptr<MediaStartedCallback>*>(param);
-    callback->ioContext.post([callback]() {
+    asio::post(callback->ioContext, [callback] {
         if (callback->enabled) {
             callback->mediaStarted = true;
         }
@@ -298,7 +298,7 @@ RewardRedemptionQueue::MediaEndedCallback::MediaEndedCallback(
 
 void RewardRedemptionQueue::MediaEndedCallback::stopDeadlineTimer(void* param, [[maybe_unused]] calldata_t* data) {
     std::shared_ptr<MediaEndedCallback> callback = *static_cast<std::shared_ptr<MediaEndedCallback>*>(param);
-    callback->ioContext.post([callback]() {
+    asio::post(callback->ioContext, [callback] {
         if (callback->enabled) {
             callback->mediaEnded = true;
             callback->deadlineTimer.cancel();
