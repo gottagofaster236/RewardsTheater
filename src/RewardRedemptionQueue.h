@@ -157,7 +157,6 @@ private:
     // Returns true if the value has been changed
     static bool setObsDataBool(obs_data_t* data, const char* name, bool value);
     static bool setObsDataString(obs_data_t* data, const char* name, const char* value);
-    static libvlc_media_list_player_t* getVlcMediaListPlayer(obs_source_t* source);
 
     void showObsSource(SourcePlayback& sourcePlayback);
     boost::asio::awaitable<void> asyncStopObsSource(SourcePlayback& sourcePlayback, bool waitForHideTransition);

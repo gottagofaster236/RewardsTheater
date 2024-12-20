@@ -3,6 +3,9 @@
 
 #include "RewardRedemptionQueue.h"
 
+#include <util/darray.h>
+#include <util/threading.h>
+
 #include <algorithm>
 #include <boost/system/system_error.hpp>
 #include <cstdint>
@@ -421,6 +424,55 @@ void RewardRedemptionQueue::startObsSource(SourcePlayback& sourcePlayback) {
     showObsSource(sourcePlayback);
 }
 
+// See https://github.com/obsproject/obs-studio/blob/a1fbf1015f4079b79dc9ef4f6abecf67920e93cf/libobs/obs-internal.h#L547
+struct obs_context_data {
+    char* name;
+    const char* uuid;
+    void* data;
+    // Other fields
+};
+
+// See https://github.com/obsproject/obs-studio/blob/a1fbf1015f4079b79dc9ef4f6abecf67920e93cf/libobs/obs-internal.h#L693
+struct obs_source {
+    struct obs_context_data context;
+    // Other fields
+};
+
+// See
+// https://github.com/obsproject/obs-studio/blob/a1fbf1015f4079b79dc9ef4f6abecf67920e93cf/plugins/vlc-video/vlc-video-source.c#L56
+typedef DARRAY(struct media_file_data) media_file_array_t;
+
+struct vlc_source {
+    obs_source_t* source;
+
+    void* media_player;
+    libvlc_media_list_player_t* media_list_player;
+
+    struct obs_source_frame frame;
+    struct obs_source_audio audio;
+    size_t audio_capacity;
+
+    pthread_mutex_t mutex;
+    media_file_array_t files;
+    // Other fields
+};
+
+static vlc_source* getVlcSourceData(obs_source_t* source) {
+    if (!source) {
+        return nullptr;
+    }
+    obs_source* sourceInternal = reinterpret_cast<obs_source*>(source);
+    void* data = sourceInternal->context.data;
+    if (!data) {
+        return nullptr;
+    }
+    vlc_source* vlcSource = static_cast<vlc_source*>(data);
+    if (!vlcSource) {
+        return nullptr;
+    }
+    return vlcSource;
+}
+
 void RewardRedemptionQueue::startVlcSource(SourcePlayback& sourcePlayback) {
     if (!libVlc.has_value()) {
         log(LOG_ERROR, "Cannot play VLC Source because libvlc wasn't loaded");
@@ -441,13 +493,13 @@ void RewardRedemptionQueue::startVlcSource(SourcePlayback& sourcePlayback) {
     std::uniform_int_distribution<std::size_t> randomSourceIndex(0, sourcePlayback.playlistSize - 1);
     sourcePlayback.playlistIndex = randomSourceIndex(randomEngine);
 
-    libvlc_media_list_player_t* vlcMediaListPlayer = getVlcMediaListPlayer(sourcePlayback.source);
-    if (!vlcMediaListPlayer) {
+    vlc_source* vlcSource = getVlcSourceData(sourcePlayback.source);
+    if (!vlcSource || !vlcSource->media_list_player) {
         log(LOG_ERROR, "Could not get VLC player from source");
         return;
     }
     libVlc->libvlc_media_list_player_play_item_at_index(
-        vlcMediaListPlayer, static_cast<int>(sourcePlayback.playlistIndex)
+        vlcSource->media_list_player, static_cast<int>(sourcePlayback.playlistIndex)
     );
 }
 
@@ -457,13 +509,11 @@ void RewardRedemptionQueue::startMediaSource(SourcePlayback& sourcePlayback) {
 }
 
 std::size_t RewardRedemptionQueue::getVlcPlaylistSize(obs_source_t* source) {
-    OBSDataAutoRelease sourceSettings = obs_source_get_settings(source);
-    OBSDataArrayAutoRelease playlist = obs_data_get_array(sourceSettings, "playlist");
-    if (!playlist) {
-        log(LOG_ERROR, "VLC Source playlist is null");
-        return 0;
-    }
-    return obs_data_array_count(playlist);
+    vlc_source* vlcSource = getVlcSourceData(source);
+    pthread_mutex_lock(&vlcSource->mutex);
+    std::size_t size = vlcSource->files.num;
+    pthread_mutex_unlock(&vlcSource->mutex);
+    return size;
 }
 
 bool RewardRedemptionQueue::updateVlcSourceSettings(obs_source_t* source) {
@@ -514,46 +564,6 @@ bool RewardRedemptionQueue::setObsDataString(obs_data_t* data, const char* name,
     }
     obs_data_set_string(data, name, value);
     return true;
-}
-
-// See https://github.com/obsproject/obs-studio/blob/a1fbf1015f4079b79dc9ef4f6abecf67920e93cf/libobs/obs-internal.h#L547
-struct obs_context_data {
-    char* name;
-    const char* uuid;
-    void* data;
-    // Other fields
-};
-
-// See https://github.com/obsproject/obs-studio/blob/a1fbf1015f4079b79dc9ef4f6abecf67920e93cf/libobs/obs-internal.h#L693
-struct obs_source {
-    struct obs_context_data context;
-    // Other fields
-};
-
-// See
-// https://github.com/obsproject/obs-studio/blob/a1fbf1015f4079b79dc9ef4f6abecf67920e93cf/plugins/vlc-video/vlc-video-source.c#L56
-struct vlc_source {
-    obs_source_t* source;
-
-    void* media_player;
-    libvlc_media_list_player_t* media_list_player;
-    // Other fields
-};
-
-libvlc_media_list_player_t* RewardRedemptionQueue::getVlcMediaListPlayer(obs_source_t* source) {
-    if (!source) {
-        return nullptr;
-    }
-    obs_source* sourceInternal = reinterpret_cast<obs_source*>(source);
-    void* data = sourceInternal->context.data;
-    if (!data) {
-        return nullptr;
-    }
-    vlc_source* vlcSource = static_cast<vlc_source*>(data);
-    if (!vlcSource) {
-        return nullptr;
-    }
-    return vlcSource->media_list_player;
 }
 
 void RewardRedemptionQueue::showObsSource(SourcePlayback& sourcePlayback) {
