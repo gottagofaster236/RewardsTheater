@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "IoThreadPool.h"
+#include "LibVlc.h"
 #include "Reward.h"
 #include "Settings.h"
 #include "TwitchRewardsApi.h"
@@ -57,10 +58,13 @@ public:
     void testObsSource(
         const std::string& rewardId,
         const std::string& obsSourceName,
-        bool randomPositionEnabled,
+        const SourcePlaybackSettings& sourcePlaybackSettings,
         QObject* receiver,
         const char* member
     );
+
+    // Returns false if the loopVideoEnabled setting will be ignored. If no source with such name exists, returns true.
+    bool sourceSupportsLoopVideo(const std::string& obsSourceName) const;
 
 signals:
     void onRewardRedemptionQueueUpdated(const std::vector<RewardRedemption> rewardRedemptionQueue);
@@ -71,20 +75,28 @@ private:
     void notifyRewardRedemptionQueueCondVar();
     boost::asio::awaitable<void> popPlayedRewardRedemptionFromQueue(const RewardRedemption& rewardRedemption);
 
-    void playObsSource(const std::string& rewardId, const std::string& obsSourceName, bool randomPositionEnabled);
-    void playObsSource(const std::string& rewardId, OBSSourceAutoRelease source, bool randomPositionEnabled);
+    void playObsSource(
+        const std::string& rewardId,
+        const std::string& obsSourceName,
+        const SourcePlaybackSettings& sourcePlaybackSettings
+    );
+    void playObsSource(
+        const std::string& rewardId,
+        OBSSourceAutoRelease source,
+        const SourcePlaybackSettings& sourcePlaybackSettings
+    );
 
     boost::asio::awaitable<void> asyncPlayObsSource(
         std::string rewardId,
         OBSSourceAutoRelease source,
-        bool randomPositionEnabled
+        SourcePlaybackSettings sourcePlaybackSettings
     );
 
     struct SourcePlayback {
         const unsigned state;
         const std::string rewardId;
         obs_source_t* const source;
-        const bool randomPositionEnabled;
+        const SourcePlaybackSettings settings;
         std::size_t playlistIndex;
         std::size_t playlistSize;
     };
@@ -101,15 +113,10 @@ private:
     struct MediaEndedCallback {
         boost::asio::io_context& ioContext;
         boost::asio::deadline_timer& deadlineTimer;
-        bool skipFirstCall;
         bool mediaEnded = false;
         bool enabled = true;
 
-        MediaEndedCallback(
-            boost::asio::io_context& ioContext,
-            boost::asio::deadline_timer& deadlineTimer,
-            bool isVlcSource
-        );
+        MediaEndedCallback(boost::asio::io_context& ioContext, boost::asio::deadline_timer& deadlineTimer);
         static void stopDeadlineTimer(void* param, calldata_t* data);
     };
 
@@ -118,7 +125,7 @@ private:
         MediaStartedCallback& mediaStartedCallback
     );
     void saveLastVideoSize(SourcePlayback& sourcePlayback);
-    boost::posix_time::time_duration getMediaEndDeadline(obs_source_t* source);
+    boost::posix_time::time_duration getMediaEndDeadline(SourcePlayback& sourcePlayback);
     boost::asio::awaitable<void> asyncStopObsSourceIfPlayedByState(
         SourcePlayback& sourcePlayback,
         bool waitForHideTransition
@@ -128,21 +135,29 @@ private:
     boost::asio::awaitable<void> asyncTestObsSource(
         std::string rewardId,
         std::string obsSourceName,
-        bool randomPositionEnabled,
+        SourcePlaybackSettings sourcePlaybackSettings,
         QObjectCallback& callback
     );
     boost::asio::awaitable<void> asyncTestObsSource(
         const std::string& rewardId,
         const std::string& obsSourceName,
-        bool randomPositionEnabled
+        const SourcePlaybackSettings& sourcePlaybackSettings
     );
+    static bool sourceSupportsLoopVideo(obs_source_t* source);
 
-    OBSSourceAutoRelease getObsSource(const RewardRedemption& rewardRedemption);
-    OBSSourceAutoRelease getObsSource(const std::string& sourceName);
+    OBSSourceAutoRelease getObsSource(const RewardRedemption& rewardRedemption) const;
+    static OBSSourceAutoRelease getObsSource(const std::string& sourceName);
 
     void startObsSource(SourcePlayback& sourcePlayback);
     void startVlcSource(SourcePlayback& sourcePlayback);
-    void startMediaSource(obs_source_t* source);
+    static void startMediaSource(SourcePlayback& sourcePlayback);
+    static std::size_t getVlcPlaylistSize(obs_source_t* source);
+    static bool updateVlcSourceSettings(obs_source_t* source);
+    static bool updateMediaSourceSettings(SourcePlayback& sourcePlayback);
+    // Returns true if the value has been changed
+    static bool setObsDataBool(obs_data_t* data, const char* name, bool value);
+    static bool setObsDataString(obs_data_t* data, const char* name, const char* value);
+    static libvlc_media_list_player_t* getVlcMediaListPlayer(obs_source_t* source);
 
     void showObsSource(SourcePlayback& sourcePlayback);
     boost::asio::awaitable<void> asyncStopObsSource(SourcePlayback& sourcePlayback, bool waitForHideTransition);
@@ -176,6 +191,7 @@ private:
     unsigned playObsSourceState;
     std::map<obs_source_t*, unsigned> sourcePlayedByState;
     std::map<obs_source_t*, std::map<std::string, vec2>> sourcePositionOnScenes;
+    const std::optional<LibVlc> libVlc;
 
     std::default_random_engine randomEngine;
 };

@@ -17,7 +17,6 @@
 #include <thread>
 
 #include "Log.h"
-#include "RewardsTheaterVersion.generated.h"
 #include "SettingsDialog.h"
 
 // https://dev.twitch.tv/docs/authentication/register-app/
@@ -41,7 +40,6 @@ RewardsTheaterPlugin::RewardsTheaterPlugin()
       twitchRewardsApi(twitchAuth, httpClient, settings, ioThreadPool.ioContext),
       githubUpdateApi(httpClient, ioThreadPool.ioContext), rewardRedemptionQueue(settings, twitchRewardsApi),
       pubsubListener(twitchAuth, rewardRedemptionQueue) {
-    log(LOG_INFO, "Loading plugin, version {}", REWARDS_THEATER_VERSION);
     checkMinObsVersion();
     checkRestrictedRegion();
 
@@ -52,7 +50,7 @@ RewardsTheaterPlugin::RewardsTheaterPlugin()
     obs_frontend_pop_ui_translation();
 
     QAction* action = static_cast<QAction*>(obs_frontend_add_tools_menu_qaction(obs_module_text("RewardsTheater")));
-    QObject::connect(action, &QAction::triggered, settingsDialog, &SettingsDialog::toggleVisibility);
+    QObject::connect(action, &QAction::triggered, settingsDialog, &SettingsDialog::show);
 
     twitchAuth.startService();
     githubUpdateApi.checkForUpdates();

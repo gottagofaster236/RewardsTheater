@@ -11,6 +11,12 @@
 #include <string>
 #include <utility>
 
+struct SourcePlaybackSettings {
+    bool randomPositionEnabled;
+    bool loopVideoEnabled;
+    double loopVideoDurationSeconds;
+};
+
 class Settings {
 public:
     Settings(config_t* config);
@@ -31,6 +37,15 @@ public:
 
     bool isRandomPositionEnabled(const std::string& rewardId) const;
     void setRandomPositionEnabled(const std::string& rewardId, bool randomPositionEnabled);
+
+    bool isLoopVideoEnabled(const std::string& rewardId) const;
+    void setLoopVideoEnabled(const std::string& rewardId, bool loopVideoEnabled);
+
+    double getLoopVideoDurationSeconds(const std::string& rewardId) const;
+    void setLoopVideoDurationSeconds(const std::string& rewardId, double loopVideoDuration);
+
+    SourcePlaybackSettings getSourcePlaybackSettings(const std::string& rewardId) const;
+    void setSourcePlaybackSettings(const std::string& rewardId, const SourcePlaybackSettings& sourcePlaybackSettings);
 
     // We can't get the video size of a Media Source while it's not playing, thus, we save the size while it is playing.
     std::optional<std::pair<std::uint32_t, std::uint32_t>> getLastVideoSize(

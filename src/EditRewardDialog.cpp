@@ -64,6 +64,12 @@ EditRewardDialog::EditRewardDialog(
     connect(ui->backgroundColorButton, &QPushButton::clicked, this, &EditRewardDialog::showColorDialog);
     connect(ui->updateObsSourcesButton, &QToolButton::clicked, this, &EditRewardDialog::updateObsSourceComboBox);
     connect(ui->testObsSourceButton, &QToolButton::clicked, this, &EditRewardDialog::testObsSource);
+    connect(
+        ui->loopVideoEnabledCheckBox,
+        &QCheckBox::stateChanged,
+        this,
+        &EditRewardDialog::showLoopVideoNotSupportedErrorIfNeeded
+    );
     connect(&twitchAuth, &TwitchAuth::onUsernameChanged, this, &EditRewardDialog::showUploadCustomIconLabel);
 }
 
@@ -171,6 +177,9 @@ void EditRewardDialog::testObsSource() {
     if (!obsSourceName.has_value()) {
         return;
     }
+    if (showLoopVideoNotSupportedErrorIfNeeded()) {
+        return;
+    }
 
     std::string rewardId;
     if (originalReward.has_value()) {
@@ -178,13 +187,8 @@ void EditRewardDialog::testObsSource() {
     } else {
         rewardId = "new";
     }
-
     rewardRedemptionQueue.testObsSource(
-        rewardId,
-        obsSourceName.value(),
-        ui->enableRandomPositionCheckBox->isChecked(),
-        this,
-        "showTestObsSourceException"
+        rewardId, obsSourceName.value(), getSourcePlaybackSettings(), this, "showTestObsSourceException"
     );
 }
 
@@ -203,18 +207,45 @@ void EditRewardDialog::showTestObsSourceException(std::exception_ptr exception) 
     errorMessageBox->show(message);
 }
 
+bool EditRewardDialog::showLoopVideoNotSupportedErrorIfNeeded() {
+    QCheckBox* loopVideoEnabledCheckBox = ui->loopVideoEnabledCheckBox;
+    if (!loopVideoEnabledCheckBox->isChecked()) {
+        return false;
+    }
+    std::optional<std::string> obsSourceName = getObsSourceName();
+    if (!obsSourceName.has_value()) {
+        return false;
+    }
+    if (rewardRedemptionQueue.sourceSupportsLoopVideo(obsSourceName.value())) {
+        return false;
+    }
+    errorMessageBox->show(obs_module_text("LoopVideoNotSupportedForVlcSourceWithSeveralVideos"));
+
+    // Avoid calling setChecked inside of the QCheckBox::stateChanged signal.
+    QMetaObject::invokeMethod(
+        loopVideoEnabledCheckBox,
+        [loopVideoEnabledCheckBox]() {
+            loopVideoEnabledCheckBox->setChecked(false);
+        },
+        Qt::QueuedConnection
+    );
+    return true;
+}
+
 void EditRewardDialog::showReward(const Reward& reward) {
     ui->enabledCheckBox->setChecked(reward.isEnabled);
     ui->titleEdit->setText(QString::fromStdString(reward.title));
     ui->descriptionEdit->setText(QString::fromStdString(reward.description));
     ui->costSpinBox->setValue(reward.cost);
     showSelectedColor(reward.backgroundColor);
-    ui->enableRandomPositionCheckBox->setChecked(settings.isRandomPositionEnabled(reward.id));
+    ui->randomPositionEnabledCheckBox->setChecked(settings.isRandomPositionEnabled(reward.id));
+    ui->loopVideoEnabledCheckBox->setChecked(settings.isLoopVideoEnabled(reward.id));
+    ui->loopVideoDurationSpinBox->setValue(settings.getLoopVideoDurationSeconds(reward.id));
     ui->limitRedemptionsPerStreamCheckBox->setChecked(reward.maxRedemptionsPerStream.has_value());
     ui->limitRedemptionsPerStreamSpinBox->setValue(reward.maxRedemptionsPerStream.value_or(1));
     ui->limitRedemptionsPerUserPerStreamCheckBox->setChecked(reward.maxRedemptionsPerUserPerStream.has_value());
     ui->limitRedemptionsPerUserPerStreamSpinBox->setValue(reward.maxRedemptionsPerUserPerStream.value_or(1));
-    ui->enableGlobalCooldownCheckBox->setChecked(reward.globalCooldownSeconds.has_value());
+    ui->globalCooldownEnabledCheckBox->setChecked(reward.globalCooldownSeconds.has_value());
     showGlobalCooldown(reward.globalCooldownSeconds.value_or(1));
     setObsSourceName(settings.getObsSourceName(reward.id));
 
@@ -261,7 +292,7 @@ void EditRewardDialog::disableInput() {
     ui->limitRedemptionsPerStreamSpinBox->setEnabled(false);
     ui->limitRedemptionsPerUserPerStreamCheckBox->setEnabled(false);
     ui->limitRedemptionsPerUserPerStreamSpinBox->setEnabled(false);
-    ui->enableGlobalCooldownCheckBox->setEnabled(false);
+    ui->globalCooldownEnabledCheckBox->setEnabled(false);
     ui->globalCooldownSpinBox->setEnabled(false);
     ui->globalCooldownTimeUnitComboBox->setEnabled(false);
     ui->deleteButton->setEnabled(false);
@@ -343,7 +374,7 @@ RewardData EditRewardDialog::getRewardData() {
         getOptionalSetting(ui->limitRedemptionsPerStreamCheckBox, ui->limitRedemptionsPerStreamSpinBox),
         getOptionalSetting(ui->limitRedemptionsPerUserPerStreamCheckBox, ui->limitRedemptionsPerUserPerStreamSpinBox),
         getOptionalSetting(
-            ui->enableGlobalCooldownCheckBox,
+            ui->globalCooldownEnabledCheckBox,
             ui->globalCooldownSpinBox->value() * COOLDOWN_TIME_UNITS[ui->globalCooldownTimeUnitComboBox->currentIndex()]
         ),
     };
@@ -363,5 +394,12 @@ std::optional<std::int64_t> EditRewardDialog::getOptionalSetting(QCheckBox* chec
 
 void EditRewardDialog::saveLocalRewardSettings(const std::string& rewardId) {
     settings.setObsSourceName(rewardId, getObsSourceName());
-    settings.setRandomPositionEnabled(rewardId, ui->enableRandomPositionCheckBox->isChecked());
+    settings.setSourcePlaybackSettings(rewardId, getSourcePlaybackSettings());
+}
+
+SourcePlaybackSettings EditRewardDialog::getSourcePlaybackSettings() {
+    return {
+        ui->randomPositionEnabledCheckBox->isChecked(),
+        ui->loopVideoEnabledCheckBox->isChecked(),
+        ui->loopVideoDurationSpinBox->value()};
 }

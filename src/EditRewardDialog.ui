@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>661</width>
-    <height>531</height>
+    <height>571</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -62,7 +62,7 @@
    <property name="geometry">
     <rect>
      <x>110</x>
-     <y>480</y>
+     <y>520</y>
      <width>171</width>
      <height>31</height>
     </rect>
@@ -75,7 +75,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>480</y>
+     <y>520</y>
      <width>171</width>
      <height>31</height>
     </rect>
@@ -88,7 +88,7 @@
    <property name="geometry">
     <rect>
      <x>290</x>
-     <y>480</y>
+     <y>520</y>
      <width>171</width>
      <height>31</height>
     </rect>
@@ -153,7 +153,7 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>320</y>
+     <y>360</y>
      <width>341</width>
      <height>31</height>
     </rect>
@@ -166,7 +166,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>320</y>
+     <y>360</y>
      <width>71</width>
      <height>31</height>
     </rect>
@@ -182,7 +182,7 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>360</y>
+     <y>400</y>
      <width>341</width>
      <height>31</height>
     </rect>
@@ -195,7 +195,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>360</y>
+     <y>400</y>
      <width>71</width>
      <height>31</height>
     </rect>
@@ -207,11 +207,11 @@
     <number>99999999</number>
    </property>
   </widget>
-  <widget class="QCheckBox" name="enableGlobalCooldownCheckBox">
+  <widget class="QCheckBox" name="globalCooldownEnabledCheckBox">
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>390</y>
+     <y>430</y>
      <width>341</width>
      <height>51</height>
     </rect>
@@ -224,7 +224,7 @@
    <property name="geometry">
     <rect>
      <x>470</x>
-     <y>400</y>
+     <y>440</y>
      <width>71</width>
      <height>31</height>
     </rect>
@@ -240,7 +240,7 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>440</y>
+     <y>480</y>
      <width>341</width>
      <height>31</height>
     </rect>
@@ -262,7 +262,7 @@
    <property name="geometry">
     <rect>
      <x>550</x>
-     <y>360</y>
+     <y>400</y>
      <width>91</width>
      <height>31</height>
     </rect>
@@ -275,7 +275,7 @@
    <property name="geometry">
     <rect>
      <x>550</x>
-     <y>320</y>
+     <y>360</y>
      <width>91</width>
      <height>31</height>
     </rect>
@@ -314,6 +314,9 @@
    </property>
    <property name="maximum">
     <number>999999999</number>
+   </property>
+   <property name="singleStep">
+    <number>10</number>
    </property>
    <property name="value">
     <number>100</number>
@@ -383,7 +386,7 @@
    <property name="geometry">
     <rect>
      <x>550</x>
-     <y>400</y>
+     <y>440</y>
      <width>91</width>
      <height>31</height>
     </rect>
@@ -438,7 +441,7 @@
     <number>200</number>
    </property>
   </widget>
-  <widget class="QCheckBox" name="enableRandomPositionCheckBox">
+  <widget class="QCheckBox" name="randomPositionEnabledCheckBox">
    <property name="geometry">
     <rect>
      <x>130</x>
@@ -449,6 +452,51 @@
    </property>
    <property name="text">
     <string>EnableRandomPosition</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="secondsLabel">
+   <property name="geometry">
+    <rect>
+     <x>550</x>
+     <y>320</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Seconds</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="loopVideoEnabledCheckBox">
+   <property name="geometry">
+    <rect>
+     <x>130</x>
+     <y>320</y>
+     <width>341</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>LoopVideoAndStopAfter</string>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="loopVideoDurationSpinBox">
+   <property name="geometry">
+    <rect>
+     <x>470</x>
+     <y>320</y>
+     <width>71</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="decimals">
+    <number>1</number>
+   </property>
+   <property name="maximum">
+    <double>99.900000000000006</double>
+   </property>
+   <property name="value">
+    <double>5.000000000000000</double>
    </property>
   </widget>
  </widget>

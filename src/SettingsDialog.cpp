@@ -15,6 +15,7 @@
 #include "HttpClient.h"
 #include "Log.h"
 #include "RewardWidget.h"
+#include "RewardsTheaterVersion.generated.h"
 #include "ui_SettingsDialog.h"
 
 SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
@@ -245,10 +246,16 @@ void SettingsDialog::showRewardsTheaterLink(
     std::string rewardsTheater = obs_module_text("RewardsTheater");
     if (linkColor.has_value()) {
         rewardsTheaterLink = fmt::format(
-            "{} <a href=\"{}\"><font color=\"{}\">{}</font></a>", rewardsTheater, url, linkColor.value(), linkText
+            "{} {} <a href=\"{}\"><font color=\"{}\">{}</font></a>",
+            rewardsTheater,
+            REWARDS_THEATER_VERSION,
+            url,
+            linkColor.value(),
+            linkText
         );
     } else {
-        rewardsTheaterLink = fmt::format("{} <a href=\"{}\">{}</a>", rewardsTheater, url, linkText);
+        rewardsTheaterLink =
+            fmt::format("{} {} <a href=\"{}\">{}</a>", rewardsTheater, REWARDS_THEATER_VERSION, url, linkText);
     }
 
     ui->titleLabel->setText(QString::fromStdString(rewardsTheaterLink));

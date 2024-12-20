@@ -63,9 +63,8 @@ Or you can read the full instructions below.
 2. Add an OBS source for each video you want to play as a channel points reward. It has to be either Media Source or VLC Video Source:
    
    ![source](readme_images/source.png)
-3. Select a video file for the source from your computer. If you want the video to appear and hide smoothly, uncheck "Show nothing when playback ends" and select show/hide transitions for the source:
+3. Select a video file for the source from your computer. If you want the video to appear and hide smoothly, select the show/hide transitions for the source:
    
-     ![media_source](readme_images/media_source.png)
      ![transition](readme_images/transition.png)
 4. Position the source on the scene in the way that you like.
 5. If you want to hear the videos yourself when the chat plays them, go to Audio Mixer, right-click the source, select "Advanced Audio Properties", and choose "Monitor and Output" under "Audio Monitoring".
@@ -113,3 +112,4 @@ PRs are welcome! If you want to build RewardsTheater yourself, please refer to [
 - RewardsTheater uses [Qt Core](https://doc.qt.io/qt-6/qtcore-index.html), [Qt Widgets](https://doc.qt.io/qt-6/qtwidgets-index.html) and [Qt GUI](https://doc.qt.io/qt-6/qtgui-index.html) modules, which are available under GNU General Public License v2.0 or later.
 - RewardsTheater uses [OpenSSL](https://openssl.org/), which is licensed under Apache-2.0 License.
 - RewardTheater uses Google's [material-design-icons](https://github.com/google/material-design-icons/tree/master), which are licensed under Apache-2.0 license.
+- Arch Linux PLGBUILD file contributed by @deadYokai
