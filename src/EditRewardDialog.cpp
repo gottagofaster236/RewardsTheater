@@ -221,7 +221,7 @@ bool EditRewardDialog::showLoopVideoNotSupportedErrorIfNeeded() {
     }
     errorMessageBox->show(obs_module_text("LoopVideoNotSupportedForVlcSourceWithSeveralVideos"));
 
-    // Avoid calling setChecked inside of the QCheckBox::stateChanged signal.
+    // Avoid calling setChecked inside of the QCheckBox::stateChanged signal
     QMetaObject::invokeMethod(
         loopVideoEnabledCheckBox,
         [loopVideoEnabledCheckBox]() {
@@ -401,5 +401,6 @@ SourcePlaybackSettings EditRewardDialog::getSourcePlaybackSettings() {
     return {
         ui->randomPositionEnabledCheckBox->isChecked(),
         ui->loopVideoEnabledCheckBox->isChecked(),
-        ui->loopVideoDurationSpinBox->value()};
+        ui->loopVideoDurationSpinBox->value()
+    };
 }

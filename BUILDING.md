@@ -13,7 +13,7 @@
 ## Setting up development environment on Windows
 These steps are a continuation of the previous section on building.
 
-1. Install [pre-commit](https://pre-commit.com/) and run `pre-commit install` in the root of the repository in order to format code automatically before a commit. (This uses [.pre-commit-config.yaml](.pre-commit-config.yaml) and [.cmake-format.json](.cmake-format.json)).
+1. Install [pre-commit](https://pre-commit.com/) and run `pre-commit install` in the root of the repository in order to format code automatically before a commit. (This uses [.pre-commit-config.yaml](.pre-commit-config.yaml) and [.clang-format](.clang-format)).
 2. - Clone [OBS Studio](https://github.com/obsproject/obs-studio) **recursively**:
      ```
      git clone https://github.com/obsproject/obs-studio --recursive
