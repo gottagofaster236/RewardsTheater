@@ -525,7 +525,7 @@ bool RewardRedemptionQueue::updateVlcSourceSettings(obs_source_t* source) {
     bool settingsChanged = false;
     settingsChanged |= setObsDataBool(sourceSettings, "loop", true);
     settingsChanged |= setObsDataBool(sourceSettings, "shuffle", false);
-    settingsChanged |= setObsDataString(sourceSettings, "playback_behavior", "PlaybackBehavior.PauseUnpause");
+    settingsChanged |= setObsDataString(sourceSettings, "playback_behavior", "pause_unpause");
     if (settingsChanged) {
         obs_source_update(source, sourceSettings);
     }
