@@ -92,7 +92,7 @@ bool LibVlc::load_libvlc_module() {
 bool LibVlc::load_vlc_funcs() {
 #define LOAD_VLC_FUNC(func) \
     do { \
-        func = static_cast<decltype(func)>(os_dlsym(libvlc_module, #func)); \
+        func = reinterpret_cast<decltype(func)>(os_dlsym(libvlc_module, #func)); \
         if (!func) { \
             log(LOG_WARNING, \
                 "Could not find VLC " \

@@ -61,8 +61,8 @@ target_sources(
           src/RewardRedemptionQueueDialog.h
           src/RewardRedemptionQueueDialog.cpp
           src/QObjectCallback.h
-		  src/LibVlc.h
-		  src/LibVlc.cpp
+          src/LibVlc.h
+          src/LibVlc.cpp
 )
 
 # GCC ignores the "pragma GCC diagnostic ignored" in precompiled headers

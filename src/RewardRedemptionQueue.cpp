@@ -332,7 +332,6 @@ void RewardRedemptionQueue::saveLastVideoSize(SourcePlayback& sourcePlayback) {
 
 boost::posix_time::time_duration RewardRedemptionQueue::getMediaEndDeadline(SourcePlayback& sourcePlayback) {
     if (sourceSupportsLoopVideo(sourcePlayback.source) && sourcePlayback.settings.loopVideoEnabled) {
-        double loopVideoDurationSeconds = std::max(sourcePlayback.settings.loopVideoDurationSeconds, 0.5);
         return boost::posix_time::milliseconds(
             static_cast<long long>(1000 * sourcePlayback.settings.loopVideoDurationSeconds)
         );

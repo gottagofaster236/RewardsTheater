@@ -37,7 +37,7 @@ void obs_module_unload() {
     plugin = nullptr;
 }
 
-void on_frontend_event(obs_frontend_event event, void* data) {
+void on_frontend_event(obs_frontend_event event, [[maybe_unused]] void* data) {
     if (event == OBS_FRONTEND_EVENT_EXIT) {
         obs_frontend_remove_event_callback(on_frontend_event, nullptr);
         // Unload early to avoid holding up a reference counter to any OBS sources.
