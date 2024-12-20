@@ -510,6 +510,10 @@ void RewardRedemptionQueue::startMediaSource(SourcePlayback& sourcePlayback) {
 
 std::size_t RewardRedemptionQueue::getVlcPlaylistSize(obs_source_t* source) {
     vlc_source* vlcSource = getVlcSourceData(source);
+    if (!vlcSource) {
+        log(LOG_ERROR, "Could not get VLC player from source");
+        return 0;
+    }
     pthread_mutex_lock(&vlcSource->mutex);
     std::size_t size = vlcSource->files.num;
     pthread_mutex_unlock(&vlcSource->mutex);
