@@ -1,7 +1,7 @@
 # PKGBUILD file author: deadYokai
 pkgname=rewards-theater-obs-git
 _pkgname=RewardsTheater
-pkgver=1.1.0
+pkgver=1.1.1
 pkgrel=1
 pkgdesc="An OBS plugin that lets your viewers redeem videos or sounds on stream via channel points."
 
