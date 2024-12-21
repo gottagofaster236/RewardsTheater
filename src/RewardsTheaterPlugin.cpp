@@ -50,7 +50,7 @@ RewardsTheaterPlugin::RewardsTheaterPlugin()
     obs_frontend_pop_ui_translation();
 
     QAction* action = static_cast<QAction*>(obs_frontend_add_tools_menu_qaction(obs_module_text("RewardsTheater")));
-    QObject::connect(action, &QAction::triggered, settingsDialog, &SettingsDialog::show);
+    QObject::connect(action, &QAction::triggered, settingsDialog, &SettingsDialog::showAndActivate);
 
     twitchAuth.startService();
     githubUpdateApi.checkForUpdates();

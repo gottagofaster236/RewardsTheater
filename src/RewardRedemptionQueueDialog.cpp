@@ -7,7 +7,7 @@
 #include "ui_RewardRedemptionQueueDialog.h"
 
 RewardRedemptionQueueDialog::RewardRedemptionQueueDialog(RewardRedemptionQueue& rewardRedemptionQueue, QWidget* parent)
-    : QDialog(parent), rewardRedemptionQueue(rewardRedemptionQueue),
+    : OnTopDialog(parent), rewardRedemptionQueue(rewardRedemptionQueue),
       ui(std::make_unique<Ui::RewardRedemptionQueueDialog>()) {
     ui->setupUi(this);
     ui->rewardRedemptionsLayout->setAlignment(Qt::AlignTop);

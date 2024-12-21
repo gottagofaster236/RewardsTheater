@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include <QDialog>
 #include <map>
 #include <memory>
 #include <variant>
 
 #include "ErrorMessageBox.h"
+#include "OnTopDialog.h"
 #include "RewardRedemptionQueueDialog.h"
 #include "RewardWidget.h"
 #include "RewardsTheaterPlugin.h"
@@ -18,15 +18,12 @@ namespace Ui {
 class SettingsDialog;
 }
 
-class SettingsDialog : public QDialog {
+class SettingsDialog : public OnTopDialog {
     Q_OBJECT
 
 public:
     SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent);
     ~SettingsDialog() override;
-
-public slots:
-    void toggleVisibility();
 
 private slots:
     void logInOrLogOut();

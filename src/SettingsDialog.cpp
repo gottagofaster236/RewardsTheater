@@ -19,7 +19,7 @@
 #include "ui_SettingsDialog.h"
 
 SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
-    : QDialog(parent), plugin(plugin), ui(std::make_unique<Ui::SettingsDialog>()),
+    : OnTopDialog(parent), plugin(plugin), ui(std::make_unique<Ui::SettingsDialog>()),
       twitchAuthDialog(new TwitchAuthDialog(this, plugin.getTwitchAuth())),
       rewardRedemptionQueueDialog(new RewardRedemptionQueueDialog(plugin.getRewardRedemptionQueue(), parent)),
       errorMessageBox(new ErrorMessageBox(this)) {
@@ -66,10 +66,6 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
 }
 
 SettingsDialog::~SettingsDialog() = default;
-
-void SettingsDialog::toggleVisibility() {
-    setVisible(!isVisible());
-}
 
 void SettingsDialog::logInOrLogOut() {
     TwitchAuth& auth = plugin.getTwitchAuth();
@@ -131,7 +127,7 @@ void SettingsDialog::showAddRewardDialog() {
         this
     );
     connect(editRewardDialog, &EditRewardDialog::onRewardSaved, this, &SettingsDialog::addReward);
-    editRewardDialog->show();
+    editRewardDialog->showAndActivate();
 }
 
 void SettingsDialog::showUpdateAvailableLink() {
@@ -155,8 +151,7 @@ void SettingsDialog::saveIntervalBetweenRewards(double interval) {
 }
 
 void SettingsDialog::openRewardRedemptionQueue() {
-    rewardRedemptionQueueDialog->show();
-    rewardRedemptionQueueDialog->activateWindow();
+    rewardRedemptionQueueDialog->showAndActivate();
 }
 
 void SettingsDialog::showRewards() {

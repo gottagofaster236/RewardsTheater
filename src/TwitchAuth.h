@@ -32,7 +32,7 @@ public:
         HttpClient& httpClient,
         boost::asio::io_context& ioContext
     );
-    ~TwitchAuth();
+    ~TwitchAuth() override;
     void startService();
 
     std::optional<std::string> getAccessToken() const;

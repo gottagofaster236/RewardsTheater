@@ -39,7 +39,7 @@ EditRewardDialog::EditRewardDialog(
     Settings& settings,
     QWidget* parent
 )
-    : QDialog(parent), originalReward(originalReward), twitchAuth(twitchAuth), twitchRewardsApi(twitchRewardsApi),
+    : OnTopDialog(parent), originalReward(originalReward), twitchAuth(twitchAuth), twitchRewardsApi(twitchRewardsApi),
       rewardRedemptionQueue(rewardRedemptionQueue), settings(settings), ui(std::make_unique<Ui::EditRewardDialog>()),
       colorDialog(nullptr), confirmDeleteReward(nullptr), errorMessageBox(new ErrorMessageBox(this)),
       randomEngine(std::random_device()()) {

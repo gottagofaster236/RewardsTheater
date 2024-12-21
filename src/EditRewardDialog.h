@@ -5,7 +5,6 @@
 
 #include <QCheckBox>
 #include <QColorDialog>
-#include <QDialog>
 #include <QEvent>
 #include <QSpinBox>
 #include <exception>
@@ -16,6 +15,7 @@
 #include <variant>
 
 #include "ConfirmDeleteReward.h"
+#include "OnTopDialog.h"
 #include "Reward.h"
 #include "RewardRedemptionQueue.h"
 #include "Settings.h"
@@ -26,7 +26,7 @@ namespace Ui {
 class EditRewardDialog;
 }
 
-class EditRewardDialog : public QDialog {
+class EditRewardDialog : public OnTopDialog {
     Q_OBJECT
 
 public:

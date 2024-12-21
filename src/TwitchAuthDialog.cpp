@@ -14,7 +14,7 @@
 #include "ui_TwitchAuthDialog.h"
 
 TwitchAuthDialog::TwitchAuthDialog(QWidget* parent, TwitchAuth& twitchAuth)
-    : QDialog(parent), twitchAuth(twitchAuth), ui(std::make_unique<Ui::TwitchAuthDialog>()),
+    : OnTopDialog(parent), twitchAuth(twitchAuth), ui(std::make_unique<Ui::TwitchAuthDialog>()),
       errorMessageBox(new ErrorMessageBox(this)) {
     ui->setupUi(this);
 
@@ -83,6 +83,6 @@ void TwitchAuthDialog::showOurselvesAfterAuthMessageBox() {
         return;
     }
     if (errorMessageBox->standardButton(errorMessageBox->clickedButton()) == QMessageBox::Ok) {
-        show();
+        showAndActivate();
     }
 }

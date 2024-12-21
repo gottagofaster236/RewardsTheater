@@ -63,6 +63,8 @@ target_sources(
           src/QObjectCallback.h
           src/LibVlc.h
           src/LibVlc.cpp
+          src/OnTopDialog.h
+          src/OnTopDialog.cpp
 )
 
 # GCC ignores the "pragma GCC diagnostic ignored" in precompiled headers

@@ -3,19 +3,19 @@
 
 #pragma once
 
-#include <QDialog>
 #include <chrono>
 #include <memory>
 #include <thread>
 
 #include "ErrorMessageBox.h"
+#include "OnTopDialog.h"
 #include "TwitchAuth.h"
 
 namespace Ui {
 class TwitchAuthDialog;
 }
 
-class TwitchAuthDialog : public QDialog {
+class TwitchAuthDialog : public OnTopDialog {
     Q_OBJECT
 
 public:

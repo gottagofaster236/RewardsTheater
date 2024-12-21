@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include <QDialog>
 #include <QWidget>
 #include <memory>
 
+#include "OnTopDialog.h"
 #include "Reward.h"
 #include "RewardRedemptionQueue.h"
 #include "RewardRedemptionQueueDialog.h"
@@ -15,7 +15,7 @@ namespace Ui {
 class RewardRedemptionQueueDialog;
 }
 
-class RewardRedemptionQueueDialog : public QDialog {
+class RewardRedemptionQueueDialog : public OnTopDialog {
     Q_OBJECT
 
 public:
