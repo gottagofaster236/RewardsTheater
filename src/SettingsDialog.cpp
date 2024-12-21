@@ -21,7 +21,7 @@
 SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
     : OnTopDialog(parent), plugin(plugin), ui(std::make_unique<Ui::SettingsDialog>()),
       twitchAuthDialog(new TwitchAuthDialog(this, plugin.getTwitchAuth())),
-      rewardRedemptionQueueDialog(new RewardRedemptionQueueDialog(plugin.getRewardRedemptionQueue(), parent)),
+      rewardRedemptionQueueDialog(new RewardRedemptionQueueDialog(plugin.getRewardRedemptionQueue(), this)),
       errorMessageBox(new ErrorMessageBox(this)) {
     ui->setupUi(this);
     showGithubLink();
