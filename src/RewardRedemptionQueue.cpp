@@ -526,7 +526,7 @@ bool RewardRedemptionQueue::updateVlcSourceSettings(obs_source_t* source) {
     bool settingsChanged = false;
     settingsChanged |= setObsDataBool(sourceSettings, "loop", true);
     settingsChanged |= setObsDataBool(sourceSettings, "shuffle", false);
-    settingsChanged |= setObsDataString(sourceSettings, "playback_behavior", "pause_unpause");
+    settingsChanged |= setObsDataString(sourceSettings, "playback_behavior", "stop_restart");
     if (settingsChanged) {
         obs_source_update(source, sourceSettings);
     }
@@ -542,7 +542,7 @@ bool RewardRedemptionQueue::updateMediaSourceSettings(SourcePlayback& sourcePlay
     bool settingsChanged = false;
     settingsChanged |= setObsDataBool(sourceSettings, "looping", sourcePlayback.settings.loopVideoEnabled);
     settingsChanged |= setObsDataBool(sourceSettings, "clear_on_media_end", false);
-    settingsChanged |= setObsDataBool(sourceSettings, "restart_on_activate", false);
+    settingsChanged |= setObsDataBool(sourceSettings, "restart_on_activate", true);
     if (settingsChanged) {
         obs_source_update(sourcePlayback.source, sourceSettings);
     }
