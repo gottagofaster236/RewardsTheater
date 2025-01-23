@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <util/config-file.h>
+
 #include <exception>
 
 #include "GithubUpdateApi.h"
@@ -33,6 +35,7 @@ private:
         const char* what() const noexcept override;
     };
 
+    static config_t* getConfig();
     void checkMinObsVersion();
     void checkRestrictedRegion();
 

@@ -28,7 +28,7 @@ static const int MIN_OBS_VERSION = 503316480;
 static const char* const MIN_OBS_VERSION_STRING = "30.0.0";
 
 RewardsTheaterPlugin::RewardsTheaterPlugin()
-    : settings(obs_frontend_get_global_config()), ioThreadPool(std::max(2u, std::thread::hardware_concurrency())),
+    : settings(getConfig()), ioThreadPool(std::max(2u, std::thread::hardware_concurrency())),
       httpClient(ioThreadPool.ioContext), twitchAuth(
                                               settings,
                                               TWITCH_CLIENT_ID,
@@ -88,6 +88,15 @@ const char* RewardsTheaterPlugin::UnsupportedObsVersionException::what() const n
 
 const char* RewardsTheaterPlugin::RestrictedRegionException::what() const noexcept {
     return "RestrictedRegionException";
+}
+
+config_t* RewardsTheaterPlugin::getConfig() {
+#if LIBOBS_API_MAJOR_VER >= 31
+    // TODO: this should be obs_frontend_get_user_config, but then the settings must be migrated
+    return obs_frontend_get_app_config();
+#else
+    return obs_frontend_get_global_config();
+#endif
 }
 
 void RewardsTheaterPlugin::checkMinObsVersion() {
