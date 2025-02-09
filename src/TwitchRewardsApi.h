@@ -52,7 +52,7 @@ public:
     };
     void updateRedemptionStatus(const RewardRedemption& rewardRedemption, RedemptionStatus status);
 
-    static Reward parsePubsubReward(const boost::json::value& reward);
+    static Reward parseEventsubReward(const boost::json::value& reward);
 
     class EmptyRewardTitleException : public std::exception {
     public:

@@ -7,10 +7,10 @@
 
 #include <exception>
 
+#include "EventsubListener.h"
 #include "GithubUpdateApi.h"
 #include "HttpClient.h"
 #include "IoThreadPool.h"
-#include "PubsubListener.h"
 #include "RewardRedemptionQueue.h"
 #include "Settings.h"
 #include "TwitchAuth.h"
@@ -46,5 +46,5 @@ private:
     TwitchRewardsApi twitchRewardsApi;
     GithubUpdateApi githubUpdateApi;
     RewardRedemptionQueue rewardRedemptionQueue;
-    PubsubListener pubsubListener;
+    EventsubListener eventsubListener;
 };

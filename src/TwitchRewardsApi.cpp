@@ -65,19 +65,19 @@ void TwitchRewardsApi::updateRedemptionStatus(const RewardRedemption& rewardRede
     asio::co_spawn(ioContext, asyncUpdateRedemptionStatus(rewardRedemption, status), asio::detached);
 }
 
-Reward TwitchRewardsApi::parsePubsubReward(const json::value& reward) {
-    // The format of the reward for PubSub events differs slightly from the Helix one, hence we need another function.
+Reward TwitchRewardsApi::parseEventsubReward(const json::value& reward) {
+    // EventSub only provides the first four fields
     return Reward{
         value_to<std::string>(reward.at("id")),
         value_to<std::string>(reward.at("title")),
         value_to<std::string>(reward.at("prompt")),
         value_to<std::int32_t>(reward.at("cost")),
-        getImageUrl(reward),
-        reward.at("is_enabled").as_bool(),
-        value_to<std::string>(reward.at("background_color")),
-        getOptionalSetting(reward.at("max_per_stream"), "max_per_stream"),
-        getOptionalSetting(reward.at("max_per_user_per_stream"), "max_per_user_per_stream"),
-        getOptionalSetting(reward.at("global_cooldown"), "global_cooldown_seconds"),
+        boost::urls::url{},
+        true,
+        Color{},
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
         false,
     };
 }

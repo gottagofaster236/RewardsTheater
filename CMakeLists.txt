@@ -54,8 +54,8 @@ target_sources(
           src/ErrorMessageBox.cpp
           src/ConfirmDeleteReward.h
           src/ConfirmDeleteReward.cpp
-          src/PubsubListener.h
-          src/PubsubListener.cpp
+          src/EventsubListener.h
+          src/EventsubListener.cpp
           src/RewardRedemptionWidget.h
           src/RewardRedemptionWidget.cpp
           src/RewardRedemptionQueueDialog.h

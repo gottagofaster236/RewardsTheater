@@ -39,7 +39,7 @@ RewardsTheaterPlugin::RewardsTheaterPlugin()
                                           ),
       twitchRewardsApi(twitchAuth, httpClient, settings, ioThreadPool.ioContext),
       githubUpdateApi(httpClient, ioThreadPool.ioContext), rewardRedemptionQueue(settings, twitchRewardsApi),
-      pubsubListener(twitchAuth, rewardRedemptionQueue) {
+      eventsubListener(twitchAuth, httpClient, rewardRedemptionQueue) {
     checkMinObsVersion();
     checkRestrictedRegion();
 
