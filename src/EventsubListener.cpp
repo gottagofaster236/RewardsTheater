@@ -57,6 +57,8 @@ const char* EventsubListener::ReconnectException::what() const noexcept {
     return "ReconnectException";
 }
 
+std::string getMultipleExceptionsMessage(std::exception_ptr e);
+
 asio::awaitable<void> EventsubListener::asyncReconnectToEventsubForever() {
     while (true) {
         std::optional<std::string> usernameOptional = twitchAuth.getUsername();
@@ -73,8 +75,10 @@ asio::awaitable<void> EventsubListener::asyncReconnectToEventsubForever() {
 
         try {
             co_await (asyncConnectToEventsub(username) && usernameCondVar.async_wait(asio::use_awaitable));
-        } catch (const std::exception& e) {
-            log(LOG_ERROR, "Exception in asyncReconnectToEventsubForever: {}", e.what());
+        } catch (...) {
+            log(LOG_ERROR,
+                "Exception in asyncReconnectToEventsubForever: {}",
+                getMultipleExceptionsMessage(std::current_exception()));
         }
 
         if (twitchAuth.getUsername() != username || eventsubUrl != this->eventsubUrl) {
@@ -82,6 +86,18 @@ asio::awaitable<void> EventsubListener::asyncReconnectToEventsubForever() {
             continue;
         }
         co_await asio::steady_timer(eventsubThread.ioContext, RECONNECT_DELAY).async_wait(asio::use_awaitable);
+    }
+}
+
+std::string getMultipleExceptionsMessage(std::exception_ptr exceptionPointer) {
+    while (true) {
+        try {
+            std::rethrow_exception(exceptionPointer);
+        } catch (const asio::multiple_exceptions& multipleExceptions) {
+            exceptionPointer = multipleExceptions.first_exception();
+        } catch (const std::exception& e) {
+            return e.what();
+        }
     }
 }
 
