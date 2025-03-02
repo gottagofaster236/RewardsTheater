@@ -71,7 +71,6 @@ asio::awaitable<void> EventsubListener::asyncReconnectToEventsubForever() {
             continue;
         }
         std::string username = usernameOptional.value();
-        boost::urls::url eventsubUrl = this->eventsubUrl;
 
         try {
             co_await (asyncConnectToEventsub(username) && usernameCondVar.async_wait(asio::use_awaitable));
@@ -81,8 +80,8 @@ asio::awaitable<void> EventsubListener::asyncReconnectToEventsubForever() {
                 getMultipleExceptionsMessage(std::current_exception()));
         }
 
-        if (twitchAuth.getUsername() != username || eventsubUrl != this->eventsubUrl) {
-            // Disconnected because of a username or URL change - reconnect immediately.
+        if (twitchAuth.getUsername() != username) {
+            // Disconnected because of a username change - reconnect immediately.
             continue;
         }
         co_await asio::steady_timer(eventsubThread.ioContext, RECONNECT_DELAY).async_wait(asio::use_awaitable);
@@ -217,7 +216,6 @@ asio::awaitable<void> EventsubListener::asyncReadMessages(WebsocketStream& ws) {
             std::string redemptionId = value_to<std::string>(event.at("id"));
             rewardRedemptionQueue.queueRewardRedemption(RewardRedemption{reward, redemptionId});
         } else if (type == "session_reconnect") {
-            eventsubUrl = boost::url(value_to<std::string>(message.at("payload").at("session").at("reconnect_url")));
             throw ReconnectException();
         }
     }

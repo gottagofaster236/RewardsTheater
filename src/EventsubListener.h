@@ -58,7 +58,7 @@ private:
     HttpClient& httpClient;
     RewardRedemptionQueue& rewardRedemptionQueue;
     IoThreadPool eventsubThread;
-    boost::urls::url eventsubUrl;
+    const boost::urls::url eventsubUrl;
     std::set<std::string> processedMessageIds;
     std::string sessionId;
     boost::asio::steady_timer keepaliveTimeoutTimer;
