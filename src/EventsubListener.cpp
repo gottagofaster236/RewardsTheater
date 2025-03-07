@@ -57,7 +57,7 @@ const char* EventsubListener::ReconnectException::what() const noexcept {
     return "ReconnectException";
 }
 
-std::string getMultipleExceptionsMessage(std::exception_ptr e);
+static std::string getMultipleExceptionsMessage(std::exception_ptr e);
 
 asio::awaitable<void> EventsubListener::asyncReconnectToEventsubForever() {
     while (true) {
