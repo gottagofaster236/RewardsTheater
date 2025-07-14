@@ -4,6 +4,7 @@
 #include "RewardsTheaterPlugin.h"
 
 #include <fmt/core.h>
+#include <obs-config.h>
 #include <obs-frontend-api.h>
 #include <obs-module.h>
 #include <obs.h>
@@ -24,9 +25,8 @@ static const char* const TWITCH_CLIENT_ID = "2u4jgrdekf0pwdpq7cmqcarifv93z3";
 // Use several ports to minimize the probability of collision between several running OBS instances.
 static constexpr std::array AUTH_SERVER_PORTS = {19910, 19911, 19912, 19913, 19914, 19915, 19916, 19917, 19918, 19919};
 
-// See https://github.com/obsproject/obs-studio/blob/release/31.0/libobs/obs-config.h
-static const int MIN_OBS_VERSION = (31 << 24);
-static const char* const MIN_OBS_VERSION_STRING = "31.0.0";
+static const int MIN_OBS_VERSION = MAKE_SEMANTIC_VERSION(31, 1, 1);
+static const char* const MIN_OBS_VERSION_STRING = "31.1.1";
 
 RewardsTheaterPlugin::RewardsTheaterPlugin()
     : settings(getConfig()), ioThreadPool(std::max(2u, std::thread::hardware_concurrency())),
