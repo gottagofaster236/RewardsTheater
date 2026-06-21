@@ -31,13 +31,8 @@ private:
         const char* what() const noexcept override;
     };
 
-    class RestrictedRegionException : public std::exception {
-        const char* what() const noexcept override;
-    };
-
     static config_t* getConfig();
     void checkMinObsVersion();
-    void checkRestrictedRegion();
 
     Settings settings;
     IoThreadPool ioThreadPool;

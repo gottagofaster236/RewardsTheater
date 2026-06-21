@@ -10,7 +10,6 @@ static const char* const TWITCH_ACCESS_TOKEN_KEY = "TWITCH_ACCESS_TOKEN_KEY";
 static const char* const RANDOM_POSITION_ENABLED_KEY = "RANDOM_POSITION_ENABLED_KEY";
 static const char* const LOOP_VIDEO_ENABLED_KEY = "LOOP_VIDEO_ENABLED_KEY";
 static const char* const LOOP_VIDEO_DURATION_KEY = "LOOP_VIDEO_DURATION_KEY";
-static const char* const PLUGIN_DISABLED_KEY = "PLUGIN_DISABLED_KEY";
 static const char* const LAST_OBS_SOURCE_NAME_KEY = "LAST_OBS_SOURCE_NAME_KEY";
 static const char* const LAST_VIDEO_WIDTH_KEY = "LAST_VIDEO_WIDTH_KEY";
 static const char* const LAST_VIDEO_HEIGHT_KEY = "LAST_VIDEO_HEIGHT_KEY";
@@ -249,18 +248,4 @@ std::string getLastPlaylistSizeKey(const std::string& rewardId) {
 
 std::string getLastObsSourceKey(const std::string& rewardId) {
     return rewardId + LAST_OBS_SOURCE_NAME_KEY;
-}
-
-std::optional<bool> Settings::isPluginDisabled() const {
-    config_set_default_int(config, PLUGIN_NAME, PLUGIN_DISABLED_KEY, -1);
-    std::int64_t result = config_get_int(config, PLUGIN_NAME, PLUGIN_DISABLED_KEY);
-    if (result == -1) {
-        return {};
-    } else {
-        return static_cast<bool>(result);
-    }
-}
-
-void Settings::setPluginDisabled(bool pluginDisabled) {
-    config_set_int(config, PLUGIN_NAME, PLUGIN_DISABLED_KEY, pluginDisabled);
 }

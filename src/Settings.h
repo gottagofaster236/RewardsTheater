@@ -63,9 +63,6 @@ public:
 
     void deleteReward(const std::string& rewardId);
 
-    std::optional<bool> isPluginDisabled() const;
-    void setPluginDisabled(bool pluginDisabled);
-
 private:
     std::string getLastObsSourceName(const std::string& rewardId) const;
     void setLastObsSourceName(const std::string& rewardId, const std::string& lastObsSource);
