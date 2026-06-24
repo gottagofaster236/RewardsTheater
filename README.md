@@ -20,7 +20,7 @@ Or you can read the full instructions below.
 
 ## Requirements
 - You are a Twitch Affiliate or Partner and have channel points enabled.
-- OBS version 30.0.0 or newer.
+- OBS version 31.1.1 or newer.
 
 ## Setting up
 
@@ -69,6 +69,7 @@ Or you can read the full instructions below.
      ![transition](readme_images/transition.png)
 4. Position the source on the scene in the way that you like.
 5. If you want to hear the videos yourself when the chat plays them, go to Audio Mixer, right-click the source, select "Advanced Audio Properties", and choose "Monitor and Output" under "Audio Monitoring".
+   You may have to unhide the source and play it for it to appear in that menu.
 
 ### Adding a random video source
 You can use a VLC Video Source with several videos in the playlist. Then RewardsTheater will play a random video from this playlist every time.
