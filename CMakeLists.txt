@@ -65,6 +65,8 @@ target_sources(
           src/LibVlc.cpp
           src/OnTopDialog.h
           src/OnTopDialog.cpp
+          src/QCheckBoxCompat.h
+          src/ConditionVariable.h
 )
 
 # GCC ignores the "pragma GCC diagnostic ignored" in precompiled headers
@@ -75,7 +77,7 @@ endif()
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost CONFIG REQUIRED COMPONENTS system url json)
+find_package(Boost CONFIG REQUIRED COMPONENTS url json)
 IF (WIN32)
   set(OPENSSL_USE_STATIC_LIBS TRUE)
 endif()
@@ -86,7 +88,7 @@ else()
   find_package(fmt REQUIRED)
 endif()
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
-target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC Boost::system Boost::url Boost::json
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC Boost::url Boost::json
                                                    OpenSSL::SSL OpenSSL::Crypto fmt::fmt-header-only)
 
 # Import libobs as main plugin dependency

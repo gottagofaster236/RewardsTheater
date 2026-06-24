@@ -31,7 +31,10 @@
         "CMAKE_OSX_DEPLOYMENT_TARGET": "12.0",
         "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64",
         "CODESIGN_IDENTITY": "$penv{CODESIGN_IDENT}",
-        "CODESIGN_TEAM": "$penv{CODESIGN_TEAM}"
+        "CODESIGN_TEAM": "$penv{CODESIGN_TEAM}",
+		"Boost_DIR": "${fileDir}/.deps/boost/stage/lib/cmake/Boost-1.91.0",
+		"OPENSSL_ROOT_DIR": "${fileDir}/.deps/openssl",
+		"OPENSSL_CRYPTO_LIBRARY": "${fileDir}/.deps/openssl/libcrypto.a"
       }
     },
     {
@@ -56,9 +59,12 @@
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
       },
-      "generator": "Visual Studio 17 2022",
-      "architecture": "x64,version=10.0.22621",
-      "warnings": {"dev": true, "deprecated": true}
+      "architecture": "x64",
+      "warnings": {"dev": true, "deprecated": true},
+	  "cacheVariables": {
+	    "Boost_DIR": "${fileDir}/.deps/boost/stage/lib/cmake/Boost-1.91.0",
+		"FMT_DIRECTORY": "${fileDir}/.deps/fmt"
+	  }
     },
     {
       "name": "windows-ci-x64",
@@ -84,7 +90,8 @@
       "warnings": {"dev": true, "deprecated": true},
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "CMAKE_INSTALL_LIBDIR": "lib/CMAKE_SYSTEM_PROCESSOR-linux-gnu"
+        "CMAKE_INSTALL_LIBDIR": "lib/CMAKE_SYSTEM_PROCESSOR-linux-gnu",
+		"Boost_DIR": "${fileDir}/.deps/boost/stage/lib/cmake/Boost-1.91.0"
       }
     },
     {

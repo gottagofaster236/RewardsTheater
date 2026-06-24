@@ -14,6 +14,7 @@
 
 #include "HttpClient.h"
 #include "Log.h"
+#include "QCheckBoxCompat.h"
 #include "RewardWidget.h"
 #include "RewardsTheaterVersion.generated.h"
 #include "ui_SettingsDialog.h"
@@ -33,10 +34,15 @@ SettingsDialog::SettingsDialog(RewardsTheaterPlugin& plugin, QWidget* parent)
         ui->reloadRewardsButton, &QPushButton::clicked, &plugin.getTwitchRewardsApi(), &TwitchRewardsApi::reloadRewards
     );
     connect(ui->addRewardButton, &QPushButton::clicked, this, &SettingsDialog::showAddRewardDialog);
-    connect(ui->pauseRewardPlaybackCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::setRewardPlaybackPaused);
+    connect(
+        ui->pauseRewardPlaybackCheckBox,
+        &QCheckBox::checkStateChangedCompat,
+        this,
+        &SettingsDialog::setRewardPlaybackPaused
+    );
     connect(
         ui->rewardRedemptionQueueEnabledCheckBox,
-        &QCheckBox::stateChanged,
+        &QCheckBox::checkStateChangedCompat,
         this,
         &SettingsDialog::saveRewardRedemptionQueueEnabled
     );

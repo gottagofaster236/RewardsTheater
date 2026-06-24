@@ -74,12 +74,6 @@ function Build {
         '--config', $Configuration
     )
 
-        
-    $CmakeArgs += @(
-        "-DBoost_DIR=${ProjectRoot}/.deps/boost/stage/lib/cmake/Boost-1.87.0"
-        "-DFMT_DIRECTORY=${ProjectRoot}/.deps/fmt"
-    )
-
     Log-Group "Configuring ${ProductName}..."
     Invoke-External cmake @CmakeArgs
 
@@ -89,9 +83,6 @@ function Build {
     Log-Group "Installing ${ProductName}..."
     Invoke-External cmake @CmakeInstallArgs
     
-    Remove-Item -LiteralPath "${ProjectRoot}/release/${Configuration}/lib" -Force -Recurse
-    Remove-Item -LiteralPath "${ProjectRoot}/release/${Configuration}/include" -Force -Recurse
-
     Pop-Location -Stack BuildTemp
     Log-Group
 }

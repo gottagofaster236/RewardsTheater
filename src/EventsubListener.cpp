@@ -5,6 +5,7 @@
 
 #include <fmt/core.h>
 
+#include "ConditionVariable.h"
 #include "Log.h"
 #include "TwitchRewardsApi.h"
 
@@ -30,7 +31,7 @@ EventsubListener::EventsubListener(
     : twitchAuth(twitchAuth), httpClient(httpClient), rewardRedemptionQueue(rewardRedemptionQueue), eventsubThread(1),
       eventsubUrl("wss://eventsub.wss.twitch.tv/ws"), processedMessageIds{}, sessionId{},
       keepaliveTimeoutTimer(eventsubThread.ioContext), keepaliveTimeout(INITIAL_KEEPALIVE_TIMEOUT),
-      usernameCondVar(eventsubThread.ioContext, boost::posix_time::pos_infin) {
+      usernameCondVar(eventsubThread.ioContext, POS_INFINITY) {
     connect(&twitchAuth, &TwitchAuth::onUsernameChanged, this, &EventsubListener::reconnectAfterUsernameChange);
     asio::co_spawn(eventsubThread.ioContext, asyncReconnectToEventsubForever(), asio::detached);
 }

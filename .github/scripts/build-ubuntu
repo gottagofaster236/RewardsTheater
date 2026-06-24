@@ -198,7 +198,6 @@ ${_usage_host:-}"
           -DQT_VERSION=${QT_VERSION:-6}
           -DCMAKE_BUILD_TYPE=${config}
           -DCMAKE_INSTALL_PREFIX=/usr
-          -DBoost_DIR="${project_root}/.deps/boost/stage/lib/cmake/Boost-1.87.0"
         )
 
         local cmake_version

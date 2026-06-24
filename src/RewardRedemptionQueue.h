@@ -18,6 +18,7 @@
 #include <thread>
 #include <vector>
 
+#include "BoostAsio.h"
 #include "IoThreadPool.h"
 #include "LibVlc.h"
 #include "Reward.h"
@@ -112,11 +113,11 @@ private:
 
     struct MediaEndedCallback {
         boost::asio::io_context& ioContext;
-        boost::asio::deadline_timer& deadlineTimer;
+        boost::asio::steady_timer& deadlineTimer;
         bool mediaEnded = false;
         bool enabled = true;
 
-        MediaEndedCallback(boost::asio::io_context& ioContext, boost::asio::deadline_timer& deadlineTimer);
+        MediaEndedCallback(boost::asio::io_context& ioContext, boost::asio::steady_timer& deadlineTimer);
         static void stopDeadlineTimer(void* param, calldata_t* data);
     };
 
@@ -125,7 +126,7 @@ private:
         MediaStartedCallback& mediaStartedCallback
     );
     void saveLastVideoSize(SourcePlayback& sourcePlayback);
-    boost::posix_time::time_duration getMediaEndDeadline(SourcePlayback& sourcePlayback);
+    std::chrono::milliseconds getMediaEndDeadline(SourcePlayback& sourcePlayback);
     boost::asio::awaitable<void> asyncStopObsSourceIfPlayedByState(
         SourcePlayback& sourcePlayback,
         bool waitForHideTransition
@@ -185,7 +186,7 @@ private:
     std::vector<RewardRedemption> rewardRedemptionQueue;
     bool rewardPlaybackPaused;
     mutable std::mutex rewardRedemptionQueueMutex;
-    boost::asio::deadline_timer rewardRedemptionQueueCondVar;
+    boost::asio::steady_timer rewardRedemptionQueueCondVar;
 
     unsigned playObsSourceState;
     std::map<obs_source_t*, unsigned> sourcePlayedByState;

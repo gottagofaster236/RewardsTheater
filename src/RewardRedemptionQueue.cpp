@@ -12,6 +12,7 @@
 #include <cstring>
 #include <utility>
 
+#include "ConditionVariable.h"
 #include "Log.h"
 
 namespace asio = boost::asio;
@@ -20,8 +21,8 @@ using namespace std::chrono_literals;
 RewardRedemptionQueue::RewardRedemptionQueue(Settings& settings, TwitchRewardsApi& twitchRewardsApi)
     : settings(settings), twitchRewardsApi(twitchRewardsApi), rewardRedemptionQueueThread(1),
       ioContext(rewardRedemptionQueueThread.ioContext), rewardPlaybackPaused(false),
-      rewardRedemptionQueueCondVar(ioContext, boost::posix_time::pos_infin), playObsSourceState(0),
-      libVlc(LibVlc::createSafe()), randomEngine(std::random_device()()) {
+      rewardRedemptionQueueCondVar(ioContext, POS_INFINITY), playObsSourceState(0), libVlc(LibVlc::createSafe()),
+      randomEngine(std::random_device()()) {
     asio::co_spawn(ioContext, asyncPlayRewardRedemptionsFromQueue(), asio::detached);
 }
 
@@ -244,7 +245,7 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(
     unsigned state = playObsSourceState++;
     sourcePlayedByState[source] = state;
 
-    asio::deadline_timer deadlineTimer(ioContext);
+    asio::steady_timer deadlineTimer(ioContext);
     auto mediaStartedCallback = std::make_shared<MediaStartedCallback>(ioContext);
     auto mediaEndedCallback = std::make_shared<MediaEndedCallback>(ioContext, deadlineTimer);
     ObsSignalWithCallback mediaStartedSignal(
@@ -262,7 +263,7 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(
     startObsSource(sourcePlayback);
 
     // Give some time for the source to start, otherwise stop it.
-    deadlineTimer.expires_from_now(boost::posix_time::milliseconds(500));
+    deadlineTimer.expires_after(std::chrono::milliseconds(500));
     try {
         co_await deadlineTimer.async_wait(asio::use_awaitable);
     } catch (const boost::system::system_error&) {}
@@ -272,7 +273,7 @@ asio::awaitable<void> RewardRedemptionQueue::asyncPlayObsSource(
     co_await asyncCheckMediaStarted(sourcePlayback, *mediaStartedCallback);
     saveLastVideoSize(sourcePlayback);
 
-    deadlineTimer.expires_from_now(getMediaEndDeadline(sourcePlayback));
+    deadlineTimer.expires_after(getMediaEndDeadline(sourcePlayback));
     try {
         co_await deadlineTimer.async_wait(asio::use_awaitable);
     } catch (const boost::system::system_error&) {}
@@ -292,7 +293,7 @@ void RewardRedemptionQueue::MediaStartedCallback::setMediaStarted(void* param, [
 
 RewardRedemptionQueue::MediaEndedCallback::MediaEndedCallback(
     asio::io_context& ioContext,
-    asio::deadline_timer& deadlineTimer
+    asio::steady_timer& deadlineTimer
 )
     : ioContext(ioContext), deadlineTimer(deadlineTimer) {}
 
@@ -333,18 +334,17 @@ void RewardRedemptionQueue::saveLastVideoSize(SourcePlayback& sourcePlayback) {
     );
 }
 
-boost::posix_time::time_duration RewardRedemptionQueue::getMediaEndDeadline(SourcePlayback& sourcePlayback) {
+std::chrono::milliseconds RewardRedemptionQueue::getMediaEndDeadline(SourcePlayback& sourcePlayback) {
     if (sourceSupportsLoopVideo(sourcePlayback.source) && sourcePlayback.settings.loopVideoEnabled) {
-        return boost::posix_time::milliseconds(
-            static_cast<long long>(1000 * sourcePlayback.settings.loopVideoDurationSeconds)
+        return std::chrono::milliseconds(static_cast<long long>(1000 * sourcePlayback.settings.loopVideoDurationSeconds)
         );
     }
     std::int64_t durationMilliseconds = obs_source_media_get_duration(sourcePlayback.source);
     if (durationMilliseconds != -1) {
         std::int64_t deadlineMilliseconds = durationMilliseconds + durationMilliseconds / 2 + 3000;
-        return boost::posix_time::milliseconds(deadlineMilliseconds);
+        return std::chrono::milliseconds(deadlineMilliseconds);
     } else {
-        return boost::posix_time::pos_infin;
+        return POS_INFINITY;
     }
 }
 

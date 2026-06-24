@@ -63,5 +63,5 @@ private:
     std::string sessionId;
     boost::asio::steady_timer keepaliveTimeoutTimer;
     std::chrono::seconds keepaliveTimeout;
-    boost::asio::deadline_timer usernameCondVar;
+    boost::asio::steady_timer usernameCondVar;
 };

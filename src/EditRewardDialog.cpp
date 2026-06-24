@@ -13,6 +13,7 @@
 #include <array>
 
 #include "HttpClient.h"
+#include "QCheckBoxCompat.h"
 #include "ui_EditRewardDialog.h"
 
 static constexpr std::array DEFAULT_COLORS{
@@ -66,7 +67,7 @@ EditRewardDialog::EditRewardDialog(
     connect(ui->testObsSourceButton, &QToolButton::clicked, this, &EditRewardDialog::testObsSource);
     connect(
         ui->loopVideoEnabledCheckBox,
-        &QCheckBox::stateChanged,
+        &QCheckBox::checkStateChangedCompat,
         this,
         &EditRewardDialog::showLoopVideoNotSupportedErrorIfNeeded
     );

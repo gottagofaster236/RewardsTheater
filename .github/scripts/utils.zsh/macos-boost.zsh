@@ -3,7 +3,7 @@
 
 rm -rf arm64 x86_64 universal stage bin.v2
 rm -f b2 project-config*
-./bootstrap.sh cxxflags="-arch x86_64 -arch arm64" cflags="-arch x86_64 -arch arm64" linkflags="-arch x86_64 -arch arm64" link=static --with-libraries=system,url,json
+./bootstrap.sh cxxflags="-arch x86_64 -arch arm64" cflags="-arch x86_64 -arch arm64" linkflags="-arch x86_64 -arch arm64" link=static --with-libraries=url,json
 ./b2 link=static toolset=clang-darwin target-os=darwin architecture=arm abi=aapcs cxxflags="-arch arm64" cflags="-arch arm64" linkflags="-arch arm64" -a
 mkdir -p arm64 && cp stage/lib/*.a arm64
 ./b2 link=static toolset=clang-darwin target-os=darwin architecture=x86 cxxflags="-arch x86_64" cflags="-arch x86_64" linkflags="-arch x86_64" abi=sysv binary-format=mach-o -a

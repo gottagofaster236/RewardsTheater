@@ -104,7 +104,7 @@ build() {
   cmake_args+=(--preset 'macos-ci')
   
   cmake_args+=(
-	-DBoost_DIR="${project_root}/.deps/boost/stage/lib/cmake/Boost-1.87.0"
+	-DBoost_DIR="${project_root}/.deps/boost/stage/lib/cmake/Boost-1.91.0"
 	-DOPENSSL_ROOT_DIR="${project_root}/.deps/openssl"
 	-DOPENSSL_CRYPTO_LIBRARY="${project_root}/.deps/openssl/libcrypto.a"
   )
