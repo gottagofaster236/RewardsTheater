@@ -475,7 +475,7 @@ void RewardRedemptionQueue::startVlcSource(SourcePlayback& sourcePlayback) {
         log(LOG_ERROR, "Cannot play VLC Source because libvlc wasn't loaded");
         return;
     }
-    if (updateVlcSourceSettings(sourcePlayback.source)) {
+    if (updateVlcSourceSettings(sourcePlayback)) {
         // VLC media player is going to be re-initialized after settings are changed which breaks the "play item at
         // index" for some reason.
         obs_source_media_restart(sourcePlayback.source);
@@ -517,18 +517,18 @@ std::size_t RewardRedemptionQueue::getVlcPlaylistSize(obs_source_t* source) {
     return size;
 }
 
-bool RewardRedemptionQueue::updateVlcSourceSettings(obs_source_t* source) {
-    OBSDataAutoRelease sourceSettings = obs_source_get_settings(source);
+bool RewardRedemptionQueue::updateVlcSourceSettings(SourcePlayback& sourcePlayback) {
+    OBSDataAutoRelease sourceSettings = obs_source_get_settings(sourcePlayback.source);
     if (!sourceSettings) {
         log(LOG_ERROR, "VLC Source settings are null");
         return false;
     }
     bool settingsChanged = false;
-    settingsChanged |= setObsDataBool(sourceSettings, "loop", true);
+    settingsChanged |= setObsDataBool(sourceSettings, "loop", sourcePlayback.settings.loopVideoEnabled);
     settingsChanged |= setObsDataBool(sourceSettings, "shuffle", false);
     settingsChanged |= setObsDataString(sourceSettings, "playback_behavior", "stop_restart");
     if (settingsChanged) {
-        obs_source_update(source, sourceSettings);
+        obs_source_update(sourcePlayback.source, sourceSettings);
     }
     return settingsChanged;
 }

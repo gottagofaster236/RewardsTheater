@@ -153,7 +153,7 @@ private:
     void startVlcSource(SourcePlayback& sourcePlayback);
     static void startMediaSource(SourcePlayback& sourcePlayback);
     static std::size_t getVlcPlaylistSize(obs_source_t* source);
-    static bool updateVlcSourceSettings(obs_source_t* source);
+    static bool updateVlcSourceSettings(SourcePlayback& sourcePlayback);
     static bool updateMediaSourceSettings(SourcePlayback& sourcePlayback);
     // Returns true if the value has been changed
     static bool setObsDataBool(obs_data_t* data, const char* name, bool value);
