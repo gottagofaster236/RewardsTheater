@@ -59,8 +59,13 @@ function Package {
     Remove-Item @RemoveArgs
 
     Log-Group "Archiving ${ProductName}..."
+	
+	# https://github.com/CodeYan01/media-playlist-source/commit/4e2c565debb65e09f7ff6a1da0e68ccea3a3c54f
+	Copy-Item -Path "${ProjectRoot}/release/${Configuration}/${ProductName}/data/locale" -Destination "${ProjectRoot}/release-zip/${Configuration}/data/obs-plugins/${ProductName}/locale" -Recurse
+    Copy-Item -Path "${ProjectRoot}/release/${Configuration}/${ProductName}/bin" -Destination "${ProjectRoot}/release-zip/${Configuration}/obs-plugins" -Recurse
+
     $CompressArgs = @{
-        Path = (Get-ChildItem -Path "${ProjectRoot}/release/${Configuration}" -Exclude "${OutputName}*.*")
+        Path = (Get-ChildItem -Path "${ProjectRoot}/release-zip/${Configuration}" -Exclude "${OutputName}*.*")
         CompressionLevel = 'Optimal'
         DestinationPath = "${ProjectRoot}/release/${OutputName}.zip"
         Verbose = ($Env:CI -ne $null)
