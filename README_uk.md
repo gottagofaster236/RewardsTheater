@@ -19,7 +19,7 @@
 ![ui](readme_images/ui_uk.png)
 
 ## Вимоги
-- Ти Twitch Affiliate або Partner, і в тебе ввімкнені бали каналу.
+- Ти маєш канал на Twitch, і в тебе [ввімкнені бали каналу](https://help.twitch.tv/s/article/channel-points-guide).
 - OBS 31.1.1 або новішої версії.
 
 ## Налаштування

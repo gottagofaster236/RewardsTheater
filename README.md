@@ -19,7 +19,7 @@ Or you can read the full instructions below.
 ![ui](readme_images/ui.png)
 
 ## Requirements
-- You are a Twitch Affiliate or Partner and have channel points enabled.
+- You have a Twitch channel and have [channel points enabled](https://help.twitch.tv/s/article/channel-points-guide).
 - OBS version 31.1.1 or newer.
 
 ## Setting up
